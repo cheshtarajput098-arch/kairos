@@ -30,3 +30,4 @@ The team cannot ask the organisers, and isn't available mid-run. These defaults 
 | Step | Question | Decision | Reason |
 |---|---|---|---|
 | Step 01 | Primary chunking strategy for placeholder corpus | Heading 2 (`## `) primary split, 350-word token window overflow split with 15% overlap | Matches document structure while preserving stable `[Doc_ID §Section]` citation markers |
+| Step 03 | Dense and Sparse indexing engines | FastEmbed (`BAAI/bge-small-en-v1.5`) for dense search and `bm25s` for sparse search | Pure CPU-native execution, fast local inference, zero external servers or services required |

@@ -4,13 +4,14 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from kairos.api.middleware import RequestTracingMiddleware, SecurityHeadersMiddleware
 from kairos.config import load_config
+from kairos.ingest.manifest import verify_corpus_manifest
 from kairos.schemas import ErrorDetail, ErrorEnvelope
 
 logging.basicConfig(level=logging.INFO, format='{"time":"%(asctime)s", "level":"%(levelname)s", "message":"%(message)s"}')
@@ -45,8 +46,7 @@ app.add_middleware(
 async def custom_global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     request_id = getattr(request.state, "request_id", "unknown")
     logger.error(f"Unhandled exception [request_id={request_id}]: {exc}", exc_info=False)
-    
-    # Generic error envelope without stack traces sent to client
+
     envelope = ErrorEnvelope(
         error=ErrorDetail(
             code="INTERNAL_SERVER_ERROR",
@@ -66,10 +66,22 @@ async def health_check() -> dict[str, str]:
     return {"status": "ok", "service": "kairos"}
 
 
-@app.get("/v1/ready", response_model=dict)
-async def readiness_check() -> dict[str, str]:
-    """Readiness probe: checks index integrity and models loading."""
-    # Readiness logic will verify corpus manifest and loaded indexes in step 03
+@app.get("/v1/ready")
+async def readiness_check(response: Response) -> dict[str, str]:
+    """Readiness probe: checks corpus integrity manifest and index availability (LLM04)."""
+    manifest_path = Path("data/corpus.manifest.json")
+    corpus_dir = Path("data/corpus")
+
+    is_valid, reason = verify_corpus_manifest(corpus_dir, manifest_path)
+    if not is_valid:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return {"status": "not_ready", "reason": reason}
+
+    chunks_file = Path("index/chunks.json")
+    if not chunks_file.exists():
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return {"status": "not_ready", "reason": "Index not built"}
+
     return {"status": "ready", "service": "kairos"}
 
 

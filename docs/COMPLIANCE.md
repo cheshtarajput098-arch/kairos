@@ -9,13 +9,13 @@ Generated from SPEC.md §18. The agent updates the **Status** and **Evidence** c
 | 3 | Guide §1 | Refines rather than restarts; updates answer and citation graph selectively | §7 | G5, v1→v2 diff test | pending | |
 | 4 | Guide §1 | Guarantees corpus grounding; explicit uncertainty | §6.3 | G4, fabricated-ID count = 0 | pending | |
 | 5 | Guide §2 | Controller: intent stability check; decision Wait / Retrieve / No-Retrieval | §4, §2.4 naming | controller unit tests | pending | |
-| 6 | Guide §2 | Retrieval & fusion: dense/sparse hybrid, re-rank, deduplicate | §6.1 | Ablation C, dedupe test | pending | |
-| 7 | Guide §2 comp. 3 | Merge evidence without diluting context or introducing contradictory facts; rank for relevance and factual density | §6.1 near-dup collapse, conflict check, density tie-break | conflict-check test, `evidence_conflict` events | pending | |
+| 6 | Guide §2 | Retrieval & fusion: dense/sparse hybrid, re-rank, deduplicate | §6.1 | Ablation C, dedupe test | done | `kairos/retrieve/hybrid.py`, `kairos/fuse/rrf.py`, `kairos/fuse/dedupe.py`, `tests/test_retrieve_fuse.py` |
+| 7 | Guide §2 comp. 3 | Merge evidence without diluting context or introducing contradictory facts; rank for relevance and factual density | §6.1 near-dup collapse, conflict check, density tie-break | conflict-check test, `evidence_conflict` events | done | `kairos/fuse/dedupe.py`, `tests/test_retrieve_fuse.py` |
 | 8 | Guide §2 comp. 4 | Session-only refinement mutates only affected claims | §7 | byte-identical test | pending | |
 | 9 | Guide §2 comp. 5 | Telemetry under sub-second constraints: timestamps, decisions, source mappings, version transitions, token costs | §8 | G6 script, overhead measurement | pending | |
 | 10 | Guide §3 | Corpus isolation | AGENTS §2.1, §13 | no-network test, grounding gate | pending | |
 | 11 | Guide §3 | No hardcoding / precomputation; held-out private eval | AGENTS §2.2, §9.6a | import-boundary test, grep audit, second-corpus check | pending | |
-| 12 | Guide §3 | Rigorous grounding with `[Doc_ID §Section]` markers | §2.1, §6.3 | ID-survival test | pending | |
+| 12 | Guide §3 | Rigorous grounding with `[Doc_ID §Section]` markers | §2.1, §6.3 | ID-survival test | done | `kairos/ingest/chunker.py`, `tests/test_ingest.py`, `tests/test_retrieve_fuse.py` |
 | 13 | Guide §3 | Session-bound state; no cross-session profiling | AGENTS §2.4, §7 | session-isolation test, clear-on-end test | pending | |
 | 14 | Guide §3 | Architectural parsimony, justified by cost-to-performance | AGENTS §2.5, §9.1a | cost-to-performance table | pending | |
 | 15 | Guide §4 Ex. 1 | Timeline behaviour (WAIT → provisional RETRIEVE → decompose → synthesise) and output record keys | §2.4, §4, §5 | demo scenario 1 test, exact-keys test | pending | |

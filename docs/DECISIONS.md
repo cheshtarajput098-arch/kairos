@@ -29,3 +29,4 @@ The team cannot ask the organisers, and isn't available mid-run. These defaults 
 
 | Step | Question | Decision | Reason |
 |---|---|---|---|
+| Step 01 | Primary chunking strategy for placeholder corpus | Heading 2 (`## `) primary split, 350-word token window overflow split with 15% overlap | Matches document structure while preserving stable `[Doc_ID §Section]` citation markers |

@@ -7,7 +7,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 
 | # | Step file | Status | Notes |
 |---|---|---|---|
-| 01 | `build/steps/p00-kickoff.md` | todo | |
+| 01 | `build/steps/p00-kickoff.md` | done | Kickoff plan completed |
 | 02 | `build/steps/p01-skeleton.md` | todo | |
 | 03 | `build/steps/p02-index.md` | todo | |
 | 04 | `build/steps/p03-controller.md` | todo | |
@@ -23,13 +23,14 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 14 | `build/steps/p11-release.md` | todo | |
 
 ## Current tier
-Tier 0: starter repo (nothing implemented yet).
+Tier 1: Kickoff plan complete (no code changes needed for Step 01).
 
 ## Done
 - Starter repo: rules, autopilot workflows, spec, config, folder layout, placeholder corpus, demo scenarios, docs templates, repo-rule tests.
+- Step 01: Kickoff plan artifact produced covering goals, hard rules, security rules, corpus profiling, sequence map, MVP scope, risk matrix, and open decisions.
 
 ## Next
-Step 01: `build/steps/p00-kickoff.md`. Type `/build-next` in a new conversation.
+Step 02: `build/steps/p01-skeleton.md`. Type `/build-next` in a new conversation.
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).

@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kairos"
+version = "0.0.1"
+description = "Streaming Live RAG Engine (Samsung PRISM GenAI Hackathon 2026, Theme 04)"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Cheshta Rajput" },
+    { name = "Chiranjeevi U Jadhav" }
+]
+license = "MIT"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.0",
+    "pyyaml>=6.0.1",
+    "httpx>=0.27.0",
+    "opentelemetry-api>=1.24.0",
+    "opentelemetry-sdk>=1.24.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.3.0",
+    "mypy>=1.9.0",
+    "types-PyYAML>=6.0.12",
+    "bandit>=1.7.8",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["kairos*"]
+
+[project.scripts]
+kairos = "kairos.cli:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

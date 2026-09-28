@@ -8,7 +8,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | # | Step file | Status | Notes |
 |---|---|---|---|
 | 01 | `build/steps/p00-kickoff.md` | done | Kickoff plan completed |
-| 02 | `build/steps/p01-skeleton.md` | todo | |
+| 02 | `build/steps/p01-skeleton.md` | done | Skeleton, packaging, config, telemetry, API & security baseline |
 | 03 | `build/steps/p02-index.md` | todo | |
 | 04 | `build/steps/p03-controller.md` | todo | |
 | 05 | `build/steps/p04-decomposer.md` | todo | |
@@ -23,14 +23,15 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 14 | `build/steps/p11-release.md` | todo | |
 
 ## Current tier
-Tier 1: Kickoff plan complete (no code changes needed for Step 01).
+Tier 1: Skeleton, packaging, config, telemetry, API & security baseline complete.
 
 ## Done
 - Starter repo: rules, autopilot workflows, spec, config, folder layout, placeholder corpus, demo scenarios, docs templates, repo-rule tests.
 - Step 01: Kickoff plan artifact produced covering goals, hard rules, security rules, corpus profiling, sequence map, MVP scope, risk matrix, and open decisions.
+- Step 02: `pyproject.toml`, MIT `LICENSE`, `Makefile`, `.pre-commit-config.yaml`, Pydantic Settings config loader (`kairos/config.py`), Pydantic v2 strict schemas (`kairos/schemas.py`), telemetry engine (`kairos/telemetry/`), thin LLM provider interface (`kairos/llm/`), FastAPI `/v1` app with health/ready probes & security headers (`kairos/api/`), `Dockerfile` & `docker-compose.yml`, 27 unit & security integration tests passing.
 
 ## Next
-Step 02: `build/steps/p01-skeleton.md`. Type `/build-next` in a new conversation.
+Step 03: `build/steps/p02-index.md`. Type `/build-next` in a new conversation.
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).

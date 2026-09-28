@@ -24,7 +24,7 @@ Generated from SPEC.md §18. The agent updates the **Status** and **Evidence** c
 | 18–23 | Guide §5 | G1–G6 at their thresholds | §9.1 | `gates.json` with n | pending | |
 | 24–28 | Guide §6 | Five pitfalls: eager retrieval, context loss, citation hallucination, retrieving on presentation turns, over-fragmenting | §4.3–4.5, §5 context inheritance, §6.3, §4.1, §5 dedupe+cap | retrievals/turn, G5, G4, suppression rate, redundant-leg rate | pending | |
 | 29 | Guide §7 | Roadmap phases 1–5 | build steps 01–08 (build/SEQUENCE.md) | PROJECT_STATE.md | pending | |
-| 30 | Guide §8 | Reproducible repo: lockfiles, env templates, one-command run | §11 | G1 in CI | pending | |
+| 30 | Guide §8 | Reproducible repo: lockfiles, env templates, one-command run | §11 | G1 in CI | done | `pyproject.toml`, `.env.example`, `Dockerfile`, `docker-compose.yml`, `Makefile`, `tests/test_api.py` |
 | 31 | Guide §8 | Architecture brief ≤ 6 pages with the six named topics | Prompt 11 | PDF page count | pending | |
 | 32 | Guide §8 | Eval report: baseline comparison, ≥ 3 analysed edge-case failures, ≥ 2 ablations | §9.2–9.5 | EVAL_REPORT.md | pending | |
 | 33 | Guide §8 | Video ≤ 5 min covering the six named behaviours | DEMO_SCRIPT.md | video length and shot list | pending | |

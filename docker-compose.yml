@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  kairos:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - KAIROS_ENV=dev
+      - KAIROS_TOKEN_SECRET=dev-secret-change-in-prod
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/runs
+      - /app/index
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    depends_on:
+      - jaeger
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.56
+    ports:
+      - "127.0.0.1:16686:16686" # Jaeger UI
+      - "127.0.0.1:4318:4318"   # OTLP HTTP receiver
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true

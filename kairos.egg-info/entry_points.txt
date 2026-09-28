@@ -1,0 +1,2 @@
+[console_scripts]
+kairos = kairos.cli:main

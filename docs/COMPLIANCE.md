@@ -5,7 +5,7 @@ Generated from SPEC.md §18. The agent updates the **Status** and **Evidence** c
 | # | Source | Requirement | Where it's met | Proof required | Status | Evidence |
 |---|---|---|---|---|---|---|
 | 1 | Guide §1 | Listens incrementally: timestamped chunks, predicts retrieval intent before the user finishes | §4 controller, §9.6a adapter | G2 (official + strict), lead-time histogram | done | `kairos/stream/replay.py`, `kairos/controller/`, `tests/test_stream.py`, `runs/cli_replay/replay_summary.json` |
-| 2 | Guide §1 | Decomposes multi-intent queries and parallelises retrieval | §5 | G3 (official + strict), legs' `first_dispatch_s` | pending | |
+| 2 | Guide §1 | Decomposes multi-intent queries and parallelises retrieval | §5 | G3 (official + strict), legs' `first_dispatch_s` | done | `kairos/decompose/`, `tests/test_decompose.py`, `runs/cli_replay/replay_summary.json` |
 | 3 | Guide §1 | Refines rather than restarts; updates answer and citation graph selectively | §7 | G5, v1→v2 diff test | pending | |
 | 4 | Guide §1 | Guarantees corpus grounding; explicit uncertainty | §6.3 | G4, fabricated-ID count = 0 | pending | |
 | 5 | Guide §2 | Controller: intent stability check; decision Wait / Retrieve / No-Retrieval | §4, §2.4 naming | controller unit tests | done | `kairos/controller/rules.py`, `kairos/controller/features.py`, `kairos/controller/speculation.py`, `tests/test_controller.py` |

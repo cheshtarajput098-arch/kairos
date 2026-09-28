@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Step 05: Multi-intent decomposer, deduplication & parallel dispatch - 2026-09-29
+- Built speech disfluency normalizer (`kairos/decompose/disfluency.py`) stripping fillers ("uh", "um"), repetitions ("the the"), and self-repairs ("in Pune — no, Mumbai").
+- Implemented offline rule-based clause splitter (`kairos/decompose/rule_splitter.py`) with context inheritance across clauses (locations, head noun entities, quantities) preventing context loss.
+- Implemented schema-validated LLM decomposer (`kairos/decompose/llm_splitter.py`) with `<user_utterance>` spotlighting and automatic fallback to rule-based splitter.
+- Built Stage 2 decomposition manager (`kairos/decompose/manager.py`) with BGE embedding candidate deduplication (cosine > 0.9), hard sub-query cap (max 4 legs), stable leg IDs (`L1, L2...`), and incremental diffing across chunk arrivals.
+- Built parallel retrieval dispatcher (`kairos/decompose/dispatcher.py`) running concurrent hybrid retrieval legs via `asyncio.gather`.
+- Updated replay CLI (`kairos replay --split dev`) to display legs per turn with first-dispatch timestamps.
+- Added 10 unit tests in `tests/test_decompose.py`; full suite has 64 passing tests with 92% coverage across `kairos/`.
+
 ### Step 04: Replay harness and retrieval controller - 2026-09-29
 - Built virtual clock streaming replay reader in `kairos/stream/replay.py` supporting cadence multipliers (0.75x/1.0x/1.5x), instantaneous evaluation mode, partial revision handling (`revises=<index>`), and config-driven limits.
 - Built Stage 1 feature extractor (`kairos/controller/features.py`) computing entity counts/saturation, embedding drift cosine distance, syntactic openness heuristics, BM25 probe stability, and presentation intent cues.

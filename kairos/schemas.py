@@ -81,6 +81,16 @@ class Leg(StrictBaseModel):
     first_dispatch_s: float
 
 
+class SubQuery(StrictBaseModel):
+    leg_id: str
+    text: str
+    entities: list[str] = Field(default_factory=list)
+
+
+class DecompositionResponse(StrictBaseModel):
+    sub_queries: list[SubQuery]
+
+
 class ClaimObject(StrictBaseModel):
     claim_id: str
     leg_id: str

@@ -7,10 +7,12 @@ import json
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 from kairos.controller.features import ControllerFeatureExtractor
 from kairos.controller.rules import RuleBasedController
 from kairos.controller.speculation import SpeculationManager
+from kairos.decompose import DecompositionManager, ParallelDispatcher
 from kairos.fuse.dedupe import deduplicate_and_rank
 from kairos.fuse.rrf import reciprocal_rank_fusion
 from kairos.index.store import IndexStore
@@ -68,10 +70,13 @@ def run_replay(split: str, transcripts_path: str | None = None, out_dir: str = "
     feature_extractor = ControllerFeatureExtractor(store.sparse_index)
     controller = RuleBasedController()
     speculation_mgr = SpeculationManager()
+    retriever = HybridRetriever(store)
+    dispatcher = ParallelDispatcher(retriever)
+    decomposer = DecompositionManager()
 
     current_session_id: str | None = None
     has_prior_answer = False
-    turn_results = []
+    turn_results: list[dict[str, Any]] = []
 
     for reader in readers:
         session_id = reader.transcript.session_id
@@ -83,6 +88,8 @@ def run_replay(split: str, transcripts_path: str | None = None, out_dir: str = "
         u_end = reader.transcript.utterance_end
         feature_extractor.reset_turn()
         speculation_mgr.reset_turn()
+        decomposer.reset_turn()
+        dispatcher.reset_turn()
 
         first_retrieval_t: float | None = None
         turn_decisions: list[str] = []
@@ -96,8 +103,12 @@ def run_replay(split: str, transcripts_path: str | None = None, out_dir: str = "
                 dec = controller.decide(features, ev.t, has_prior_answer=has_prior_answer)
                 r_decs.append(f"t={ev.t:.1f}s:{dec.decision}({dec.reason})")
 
-                if dec.decision == "RETRIEVE" and first_retrieval_t is None:
-                    first_retrieval_t = ev.t
+                if dec.decision == "RETRIEVE":
+                    if first_retrieval_t is None:
+                        first_retrieval_t = ev.t
+                    active_legs, reissued_ids = decomposer.decompose(ev.prefix, ev.t)
+                    if reissued_ids:
+                        await dispatcher.dispatch_legs(active_legs, reissued_ids)
 
             # Mark that this session now has an answer unless it was pure presentation
             if r_reader.transcript.turn_type != "presentation_only":
@@ -106,6 +117,7 @@ def run_replay(split: str, transcripts_path: str | None = None, out_dir: str = "
         asyncio.run(_process_turn(reader, turn_decisions))
 
         lead_time = (u_end - first_retrieval_t) if first_retrieval_t is not None else 0.0
+        active_legs_list = list(decomposer.active_legs.values())
         turn_results.append({
             "turn_id": t_id,
             "type": reader.transcript.turn_type,
@@ -113,16 +125,28 @@ def run_replay(split: str, transcripts_path: str | None = None, out_dir: str = "
             "first_retrieval_t": first_retrieval_t,
             "lead_time": round(lead_time, 2),
             "decisions": turn_decisions,
+            "legs": [
+                {
+                    "leg_id": leg.leg_id,
+                    "text": leg.text,
+                    "first_dispatch_s": leg.first_dispatch_s,
+                }
+                for leg in active_legs_list
+            ],
         })
 
     print(f"\nReplayed {len(turn_results)} turns successfully:")
-    print(f"{'Turn ID':<14} | {'Type':<18} | {'Utterance End':<13} | {'First Retrieve':<14} | {'Lead Time':<9}")
-    print("-" * 78)
+    print(f"{'Turn ID':<14} | {'Type':<18} | {'Utterance End':<13} | {'First Retrieve':<14} | {'Lead Time':<9} | {'Legs':<24}")
+    print("-" * 102)
     for r in turn_results:
         f_ret = f"{r['first_retrieval_t']:.1f}s" if r['first_retrieval_t'] is not None else "None"
-        decs: list[str] = r["decisions"]  # type: ignore[assignment]
-        print(f"{r['turn_id']:<14} | {r['type']:<18} | {r['utterance_end']:<13.1f} | {f_ret:<14} | {r['lead_time']:<8.2f}s")
+        decs: list[str] = r["decisions"]
+        legs_data: list[dict[str, Any]] = r["legs"]
+        legs_str = ", ".join(f"{l['leg_id']} ({l['first_dispatch_s']:.1f}s)" for l in legs_data) if legs_data else "None"
+        print(f"{r['turn_id']:<14} | {r['type']:<18} | {r['utterance_end']:<13.1f} | {f_ret:<14} | {r['lead_time']:<8.2f}s | {legs_str:<24}")
         print(f"   Decisions: {' -> '.join(decs)}")
+        for l in legs_data:
+            print(f"      {l['leg_id']} [{l['first_dispatch_s']:.1f}s]: {l['text']}")
 
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)

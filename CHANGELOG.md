@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Step 04: Replay harness and retrieval controller - 2026-09-29
+- Built virtual clock streaming replay reader in `kairos/stream/replay.py` supporting cadence multipliers (0.75x/1.0x/1.5x), instantaneous evaluation mode, partial revision handling (`revises=<index>`), and config-driven limits.
+- Built Stage 1 feature extractor (`kairos/controller/features.py`) computing entity counts/saturation, embedding drift cosine distance, syntactic openness heuristics, BM25 probe stability, and presentation intent cues.
+- Built Stage 1 rule-based controller (`kairos/controller/rules.py`) outputting `WAIT`, `RETRIEVE`, and `NO_RETRIEVAL` decisions with machine-readable reasons and logging full feature vectors.
+- Built reversible speculative retrieval manager (`kairos/controller/speculation.py`) with per-turn speculative budget and cancellation on entity changes.
+- Authored development replay dataset in `data/replay/dev/` (16 scenarios covering compound, late-constraint, presentation-only, single, and out-of-corpus turns, plus gold labels).
+- Added `kairos replay --split <split>` CLI command with decision timeline and lead-time display.
+- Added comprehensive unit tests in `tests/test_stream.py` and `tests/test_controller.py`. All 52 tests pass with 92% coverage across `kairos/`.
+
 ### Step 03: Corpus ingest, integrity & hybrid index - 2026-09-29
 - Built section-aware document chunker with stable IDs (`[Doc_ID §Section]`) in `kairos/ingest/chunker.py`.
 - Implemented Unicode NFKC normalization and zero-width/control character stripper in `kairos/ingest/normalizer.py`.

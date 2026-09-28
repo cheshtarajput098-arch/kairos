@@ -4,11 +4,11 @@ Generated from SPEC.md §18. The agent updates the **Status** and **Evidence** c
 
 | # | Source | Requirement | Where it's met | Proof required | Status | Evidence |
 |---|---|---|---|---|---|---|
-| 1 | Guide §1 | Listens incrementally: timestamped chunks, predicts retrieval intent before the user finishes | §4 controller, §9.6a adapter | G2 (official + strict), lead-time histogram | pending | |
+| 1 | Guide §1 | Listens incrementally: timestamped chunks, predicts retrieval intent before the user finishes | §4 controller, §9.6a adapter | G2 (official + strict), lead-time histogram | done | `kairos/stream/replay.py`, `kairos/controller/`, `tests/test_stream.py`, `runs/cli_replay/replay_summary.json` |
 | 2 | Guide §1 | Decomposes multi-intent queries and parallelises retrieval | §5 | G3 (official + strict), legs' `first_dispatch_s` | pending | |
 | 3 | Guide §1 | Refines rather than restarts; updates answer and citation graph selectively | §7 | G5, v1→v2 diff test | pending | |
 | 4 | Guide §1 | Guarantees corpus grounding; explicit uncertainty | §6.3 | G4, fabricated-ID count = 0 | pending | |
-| 5 | Guide §2 | Controller: intent stability check; decision Wait / Retrieve / No-Retrieval | §4, §2.4 naming | controller unit tests | pending | |
+| 5 | Guide §2 | Controller: intent stability check; decision Wait / Retrieve / No-Retrieval | §4, §2.4 naming | controller unit tests | done | `kairos/controller/rules.py`, `kairos/controller/features.py`, `kairos/controller/speculation.py`, `tests/test_controller.py` |
 | 6 | Guide §2 | Retrieval & fusion: dense/sparse hybrid, re-rank, deduplicate | §6.1 | Ablation C, dedupe test | done | `kairos/retrieve/hybrid.py`, `kairos/fuse/rrf.py`, `kairos/fuse/dedupe.py`, `tests/test_retrieve_fuse.py` |
 | 7 | Guide §2 comp. 3 | Merge evidence without diluting context or introducing contradictory facts; rank for relevance and factual density | §6.1 near-dup collapse, conflict check, density tie-break | conflict-check test, `evidence_conflict` events | done | `kairos/fuse/dedupe.py`, `tests/test_retrieve_fuse.py` |
 | 8 | Guide §2 comp. 4 | Session-only refinement mutates only affected claims | §7 | byte-identical test | pending | |
@@ -20,7 +20,7 @@ Generated from SPEC.md §18. The agent updates the **Status** and **Evidence** c
 | 14 | Guide §3 | Architectural parsimony, justified by cost-to-performance | AGENTS §2.5, §9.1a | cost-to-performance table | pending | |
 | 15 | Guide §4 Ex. 1 | Timeline behaviour (WAIT → provisional RETRIEVE → decompose → synthesise) and output record keys | §2.4, §4, §5 | demo scenario 1 test, exact-keys test | pending | |
 | 16 | Guide §4 Ex. 2 | Late detail: no restart, targeted delta queries, preserve prior citations, append delta citations, version 2 | §7 | demo scenario 2 test | pending | |
-| 17 | Guide §4 Ex. 3 | Presentation request: `retrieval_required: false`, `reason: presentation_restructure`, zero vector search, keep citations | §4.1, §7 | demo scenario 3 test with retrieval spy | pending | |
+| 17 | Guide §4 Ex. 3 | Presentation request: `retrieval_required: false`, `reason: presentation_restructure`, zero vector search, keep citations | §4.1, §7 | demo scenario 3 test with retrieval spy | done | `kairos/controller/rules.py`, `tests/test_controller.py` |
 | 18–23 | Guide §5 | G1–G6 at their thresholds | §9.1 | `gates.json` with n | pending | |
 | 24–28 | Guide §6 | Five pitfalls: eager retrieval, context loss, citation hallucination, retrieving on presentation turns, over-fragmenting | §4.3–4.5, §5 context inheritance, §6.3, §4.1, §5 dedupe+cap | retrievals/turn, G5, G4, suppression rate, redundant-leg rate | pending | |
 | 29 | Guide §7 | Roadmap phases 1–5 | build steps 01–08 (build/SEQUENCE.md) | PROJECT_STATE.md | pending | |

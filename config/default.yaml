@@ -1,0 +1,140 @@
+# config/default.yaml — every threshold, limit and model pin lives here (AGENTS rule: config over code).
+# Values marked "TBD" are filled in by the prompt named next to them. The Settings loader (Prompt 1)
+# must fail fast at startup if a value the running mode needs is still "TBD".
+# Tune thresholds on data/replay/dev ONLY. Never tune on test.
+
+app:
+  env: dev                      # dev | prod  (prod disables /docs)
+  host: 0.0.0.0
+  port: 8000
+  runs_dir: runs
+  index_dir: index
+  corpus_dir: data/corpus
+  seed: 42
+
+models:
+  embedding:
+    name: BAAI/bge-small-en-v1.5
+    revision: TBD               # Prompt 2: pin the exact model revision
+    sha256: TBD                 # Prompt 2
+    dim: 384
+  reranker:
+    enabled: false
+    name: cross-encoder/ms-marco-MiniLM-L-6-v2
+    revision: TBD
+  nli:
+    enabled: false
+    name: TBD                   # Prompt 8/7b: MiniCheck or DeBERTa NLI
+    threshold: 0.5
+  local_llm:
+    enabled: true               # falls back to Speed 1 automatically if the file is missing
+    gguf_file: TBD              # Prompt 7b: chosen by benchmark (~1-4B, quantised)
+    sha256: TBD
+    n_threads: 4
+    context_tokens: 4096
+    max_output_tokens: 256
+    temperature: 0.0
+  controller_classifier:
+    arm: rule                   # rule | model  (Ablation A)
+    model_file: TBD             # Prompt 7: MiniLM ONNX or logistic regression
+
+controller:
+  drift_threshold: 0.15         # 1 - cosine between consecutive prefix embeddings
+  stable_chunks: 2              # consecutive stable chunks before RETRIEVE
+  min_entities: 1
+  probe:
+    enabled: true
+    top_k: 3                    # BM25 probe top-3 unchanged across 2 chunks
+  presentation_intent_threshold: 0.7
+  max_speculative_retrievals: 3 # per turn, then degrade to batch
+
+decomposer:
+  mode: rule                    # rule | llm (llm = second pass over rule legs)
+  max_legs: 4
+  dedupe_cosine: 0.9
+  llm_deadline_ms: 600
+  disfluency:
+    fillers: ["uh", "um", "erm", "hmm", "like", "you know", "i mean", "sort of", "kind of"]
+    repair_cues: ["no", "sorry", "actually", "i mean", "rather", "wait"]
+  gold_match_cosine: 0.6        # eval only: leg-to-gold-intent matching
+
+retrieval:
+  deadline_ms: 400
+  top_k_dense: 20
+  top_k_sparse: 20
+  cache:
+    enabled: true
+    max_entries: 1024
+
+fusion:
+  rrf_k: 60                     # Ablation C: 10 vs 60
+  top_n: 8
+  near_dup_cosine: 0.95
+  conflict_check: true
+
+synthesis:
+  speed2:
+    enabled: true
+    provider: local             # local | gemini | openai_compatible | ollama | none
+    deadline_ms: 2500
+    run_policy: after_draft     # after_draft | after_utterance_end | off
+    circuit_breaker:
+      failures_to_open: 3
+      reset_after_s: 30
+  max_evidence_span_words: 30
+
+drafting:
+  enabled: true                 # answer-as-you-speak (SPEC §6.4)
+  max_rollbacks_per_turn: 3
+
+grounding:
+  span_fuzzy_ratio: 0.9
+  nli_async: true
+
+session:
+  ttl_s: 1800
+  max_sessions: 200
+  delta:
+    constraint_similarity: 0.55
+    new_topic_similarity: 0.35
+    cues: ["actually", "also", "instead", "no,", "it was", "but", "except", "make that"]
+
+telemetry:
+  jsonl: true
+  otlp_endpoint: http://jaeger:4318
+  log_text: false               # never true outside local debugging
+  redact: [email, phone, card]
+  overhead_target_pct: 2
+
+security:
+  token_ttl_s: 3600
+  allowed_origins: ["http://localhost:8000", "http://127.0.0.1:8000"]
+  max_message_bytes: 4096
+  max_chunks_per_turn: 200
+  max_words_per_turn: 400
+  max_sessions_per_client: 5
+  rate_limit:
+    http_per_min: 120
+    ws_messages_per_min: 600
+  ws:
+    idle_timeout_s: 120
+    max_connection_s: 3600
+    queue_size: 256
+  llm_tokens_per_turn: 2048
+  spotlighting: true
+  injection_flag_threshold: 0.6
+
+eval:
+  cadences: [0.75, 1.0, 1.5]
+  asr_noise:
+    wer_levels: [0.05, 0.10]
+    partial_revision_rate: 0.25
+    disfluency_rate: 0.15
+    seed: 7
+  latency_model:
+    words_per_second: 2.5
+
+prices_usd_per_1k_tokens:       # cost estimation only; 0 for local models
+  local: {input: 0.0, output: 0.0}
+  gemini: {input: TBD, output: TBD}
+  openai_compatible: {input: TBD, output: TBD}

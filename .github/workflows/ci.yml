@@ -1,0 +1,15 @@
+# Starter CI: runs the repository-rule tests on every push.
+# Prompt 1 replaces this with the full pipeline (ruff, mypy, pytest+coverage, bandit, pip-audit,
+# gitleaks, docker build, Trivy), and later prompts add the web, e2e and eval jobs.
+name: ci
+on: [push, pull_request]
+jobs:
+  repo-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pytest pyyaml
+      - run: pytest -q tests/test_repo_rules.py

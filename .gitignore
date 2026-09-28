@@ -1,0 +1,27 @@
+# secrets
+.env
+*.key
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+# build outputs
+runs/
+index/
+models/
+*.gguf
+*.onnx
+web/node_modules/
+web/dist/
+kairos/api/static/
+# os / editors
+.DS_Store
+.idea/
+.vscode/
+# bundle files (kept locally after unpacking, never committed)
+.bundle/

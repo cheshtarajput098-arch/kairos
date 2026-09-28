@@ -1,4 +1,5 @@
 """Input limits & security parameters enforcement (SPEC §13.3)."""
+
 from __future__ import annotations
 
 from kairos.config import load_config

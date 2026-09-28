@@ -1,4 +1,5 @@
 """Unit tests for corpus ingest, normalizer, chunker, and injection scanner."""
+
 from pathlib import Path
 
 from kairos.ingest.chunker import chunk_document

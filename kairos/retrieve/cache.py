@@ -1,4 +1,5 @@
 """Prefix-hash result cache for retrieval queries (SPEC §6.1)."""
+
 from __future__ import annotations
 
 import hashlib

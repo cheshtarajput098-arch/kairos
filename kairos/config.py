@@ -2,6 +2,7 @@
 
 Validates config/default.yaml and environment variable overrides at startup.
 """
+
 from __future__ import annotations
 
 import os
@@ -62,7 +63,9 @@ class ModelsConfig(BaseModel):
     reranker: RerankerModelConfig = Field(default_factory=RerankerModelConfig)
     nli: NLIModelConfig = Field(default_factory=NLIModelConfig)
     local_llm: LocalLLMModelConfig = Field(default_factory=LocalLLMModelConfig)
-    controller_classifier: ControllerClassifierConfig = Field(default_factory=ControllerClassifierConfig)
+    controller_classifier: ControllerClassifierConfig = Field(
+        default_factory=ControllerClassifierConfig
+    )
 
 
 class ProbeConfig(BaseModel):
@@ -173,7 +176,9 @@ class WSConfig(BaseModel):
 
 class SecurityConfig(BaseModel):
     token_ttl_s: int = 3600
-    allowed_origins: list[str] = Field(default_factory=lambda: ["http://localhost:8000", "http://127.0.0.1:8000"])
+    allowed_origins: list[str] = Field(
+        default_factory=lambda: ["http://localhost:8000", "http://127.0.0.1:8000"]
+    )
     max_message_bytes: int = 4096
     max_chunks_per_turn: int = 200
     max_words_per_turn: int = 400
@@ -256,6 +261,8 @@ def load_config(config_path: Path | None = None) -> Settings:
 
     # Fail fast validations
     if settings.telemetry.log_text and settings.app.env == "prod":
-        raise ValueError("raw text logging (telemetry.log_text=True) is strictly forbidden in production!")
+        raise ValueError(
+            "raw text logging (telemetry.log_text=True) is strictly forbidden in production!"
+        )
 
     return settings

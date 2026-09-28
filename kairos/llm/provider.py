@@ -3,6 +3,7 @@
 Exposes only `generate_json(schema, messages, limits)` — zero tools, zero function calling.
 Supported providers: none | gemini | openai_compatible | ollama | local
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -25,7 +26,7 @@ class LLMProvider:
         if self.provider_type == "none" or not self.provider_type:
             # Fallback offline generator returns empty/valid default dict matching schema fields
             return self._fallback_response(schema)
-        
+
         # Placeholder for external providers (gemini, openai_compatible, ollama, local)
         # Detailed integrations will be added in prompt 07b (local GGUF) and external modes
         return self._fallback_response(schema)

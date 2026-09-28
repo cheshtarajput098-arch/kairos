@@ -1,4 +1,5 @@
 """Unit tests for Pydantic v2 strict schemas (SPEC §2)."""
+
 import pytest
 from pydantic import ValidationError
 

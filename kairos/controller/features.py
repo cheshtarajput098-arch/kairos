@@ -1,4 +1,5 @@
 """Feature extraction for the Stage 1 Retrieval Controller (SPEC §4.2)."""
+
 from __future__ import annotations
 
 import re
@@ -9,18 +10,47 @@ from fastembed import TextEmbedding
 from kairos.index.sparse import SparseIndex
 
 DANGLING_CONNECTORS = {
-    "and", "in", "the", "for", "with", "to", "or", "of", "at", "a", "an", "is",
-    "about", "on", "as", "by", "that", "this", "my", "our", "their", "its", "from"
+    "and",
+    "in",
+    "the",
+    "for",
+    "with",
+    "to",
+    "or",
+    "of",
+    "at",
+    "a",
+    "an",
+    "is",
+    "about",
+    "on",
+    "as",
+    "by",
+    "that",
+    "this",
+    "my",
+    "our",
+    "their",
+    "its",
+    "from",
 }
 
 PRESENTATION_CUES = [
     re.compile(r"\b(repeat|shorten|bullet|bullets|summarize|format|restructure)\b", re.IGNORECASE),
-    re.compile(r"\b(in\s+(?:two\s+)?bullets?|as\s+bullets?|in\s+bullet\s+(?:points?|format)|bullet\s+format|single\s+sentence)\b", re.IGNORECASE),
-    re.compile(r"\b(your\s+last\s+answer|the\s+previous\s+answer|that|it|previous)\b", re.IGNORECASE),
+    re.compile(
+        r"\b(in\s+(?:two\s+)?bullets?|as\s+bullets?|in\s+bullet\s+(?:points?|format)|bullet\s+format|single\s+sentence)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\b(your\s+last\s+answer|the\s+previous\s+answer|that|it|previous)\b", re.IGNORECASE
+    ),
 ]
 
 # Simple entity extractor: capitalized words, domain keywords, numbers
-ENTITY_RE = re.compile(r"\b[A-Z][a-z0-9]+\b|\b\d+(?:st|nd|rd|th)?\b|\b(?:workshop|venues?|cancellation|catering|refunds?|reimbursement|travel|policy|receipts?|meeting|rooms?)\b", re.IGNORECASE)
+ENTITY_RE = re.compile(
+    r"\b[A-Z][a-z0-9]+\b|\b\d+(?:st|nd|rd|th)?\b|\b(?:workshop|venues?|cancellation|catering|refunds?|reimbursement|travel|policy|receipts?|meeting|rooms?)\b",
+    re.IGNORECASE,
+)
 
 
 def extract_entities(text: str) -> set[str]:

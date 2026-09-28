@@ -1,4 +1,5 @@
 """Unit tests for transcript stream reader, virtual clock, and partial revisions."""
+
 import asyncio
 
 import pytest
@@ -21,6 +22,7 @@ def test_instant_replay_streaming() -> None:
     reader = ReplayReader(transcript, instant=True)
 
     events: list[ReplayEvent] = []
+
     async def _run() -> None:
         async for ev in reader.stream_events():
             events.append(ev)
@@ -47,6 +49,7 @@ def test_partial_revision_handling() -> None:
     reader = ReplayReader(transcript, instant=True)
 
     events: list[ReplayEvent] = []
+
     async def _run() -> None:
         async for ev in reader.stream_events():
             events.append(ev)
@@ -76,6 +79,7 @@ def test_limits_enforced_from_config(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     reader = ReplayReader(transcript, instant=True)
     events: list[ReplayEvent] = []
+
     async def _run() -> None:
         async for ev in reader.stream_events():
             events.append(ev)

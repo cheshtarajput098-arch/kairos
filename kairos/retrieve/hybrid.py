@@ -1,4 +1,5 @@
 """Async concurrent hybrid retrieval with deadline cancellation (SPEC §6.1)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -46,10 +47,14 @@ class HybridRetriever:
         deadline_s = (deadline_override_ms or self.deadline_ms) / 1000.0
 
         async def _run_dense() -> list[tuple[str, float]]:
-            return await asyncio.to_thread(self.index_store.dense_index.search, query, self.top_k_dense)
+            return await asyncio.to_thread(
+                self.index_store.dense_index.search, query, self.top_k_dense
+            )
 
         async def _run_sparse() -> list[tuple[str, float]]:
-            return await asyncio.to_thread(self.index_store.sparse_index.search, query, self.top_k_sparse)
+            return await asyncio.to_thread(
+                self.index_store.sparse_index.search, query, self.top_k_sparse
+            )
 
         dense_task = asyncio.create_task(_run_dense())
         sparse_task = asyncio.create_task(_run_sparse())
@@ -65,8 +70,18 @@ class HybridRetriever:
             dense_task.cancel()
             sparse_task.cancel()
             # Return any partial completed leg if available, else empty
-            dense_res = dense_task.result() if dense_task.done() and not dense_task.cancelled() and not dense_task.exception() else []
-            sparse_res = sparse_task.result() if sparse_task.done() and not sparse_task.cancelled() and not sparse_task.exception() else []
+            dense_res = (
+                dense_task.result()
+                if dense_task.done() and not dense_task.cancelled() and not dense_task.exception()
+                else []
+            )
+            sparse_res = (
+                sparse_task.result()
+                if sparse_task.done()
+                and not sparse_task.cancelled()
+                and not sparse_task.exception()
+                else []
+            )
             status = "cancelled"
 
         elapsed_ms = (time.perf_counter() - start_time) * 1000.0

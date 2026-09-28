@@ -1,4 +1,5 @@
 """Unit tests for Kairos configuration & Settings loader."""
+
 import pytest
 
 from kairos.config import load_config

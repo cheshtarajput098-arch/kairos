@@ -2,6 +2,7 @@
 
 Applies Unicode NFKC normalization and strips control and zero-width characters.
 """
+
 from __future__ import annotations
 
 import re

@@ -9,6 +9,7 @@ Covers:
 6. Parallel retrieval dispatcher with concurrent execution and soft failure.
 7. LLM decomposer with schema validation and clean offline fallback.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -120,7 +121,9 @@ def test_incremental_diffing_and_dispatcher() -> None:
         mock_retriever = MagicMock()
         retrieve_call_count = 0
 
-        async def mock_retrieve_leg(query: str, deadline_override_ms: int | None = None) -> dict[str, Any]:
+        async def mock_retrieve_leg(
+            query: str, deadline_override_ms: int | None = None
+        ) -> dict[str, Any]:
             nonlocal retrieve_call_count
             retrieve_call_count += 1
             await asyncio.sleep(0.01)
@@ -165,7 +168,9 @@ def test_llm_decomposer_clean_fallback() -> None:
     mock_provider.generate_json.side_effect = RuntimeError("LLM unavailable")
 
     decomposer = LLMDecomposer(provider=mock_provider)
-    result = decomposer.decompose("What is the capacity of workshop venues in Pune and their catering options?")
+    result = decomposer.decompose(
+        "What is the capacity of workshop venues in Pune and their catering options?"
+    )
 
     # Clean fallback to rule-based splitter
     assert len(result) >= 1
@@ -176,8 +181,16 @@ def test_llm_decomposer_success() -> None:
     mock_provider = MagicMock()
     mock_provider.generate_json.return_value = {
         "sub_queries": [
-            {"leg_id": "temp1", "text": "capacity of workshop venues in Pune", "entities": ["Pune", "venues"]},
-            {"leg_id": "temp2", "text": "catering options for workshop venues in Pune", "entities": ["Pune", "catering"]},
+            {
+                "leg_id": "temp1",
+                "text": "capacity of workshop venues in Pune",
+                "entities": ["Pune", "venues"],
+            },
+            {
+                "leg_id": "temp2",
+                "text": "catering options for workshop venues in Pune",
+                "entities": ["Pune", "catering"],
+            },
         ],
     }
 
@@ -193,7 +206,9 @@ def test_parallel_dispatcher_error_resilience() -> None:
     async def _test() -> None:
         mock_retriever = MagicMock()
 
-        async def mock_retrieve_leg(query: str, deadline_override_ms: int | None = None) -> dict[str, Any]:
+        async def mock_retrieve_leg(
+            query: str, deadline_override_ms: int | None = None
+        ) -> dict[str, Any]:
             if "error" in query:
                 raise ValueError("Corpus connection failed")
             return {

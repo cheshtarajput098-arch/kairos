@@ -8,6 +8,7 @@ Orchestrates:
 5. Incremental diffing across chunk arrivals with stable leg IDs ('L1', 'L2', ...),
    reissuing retrieval ONLY for newly added or mutated legs.
 """
+
 from __future__ import annotations
 
 import logging
@@ -31,6 +32,7 @@ def _get_embed_model() -> Any:
     if _global_embed_model is None:
         try:
             from fastembed import TextEmbedding
+
             _global_embed_model = TextEmbedding("BAAI/bge-small-en-v1.5")
         except Exception as e:  # noqa: BLE001
             logger.warning(f"Could not load FastEmbed model: {e}")
@@ -52,7 +54,9 @@ class DecompositionManager:
 
         self.normalizer = DisfluencyNormalizer()
         self.rule_splitter = RuleBasedSplitter(max_legs=self.max_legs)
-        self.llm_decomposer = LLMDecomposer(max_legs=self.max_legs, fallback_splitter=self.rule_splitter)
+        self.llm_decomposer = LLMDecomposer(
+            max_legs=self.max_legs, fallback_splitter=self.rule_splitter
+        )
 
         # State tracking per turn: stable leg_id -> Leg
         self.active_legs: dict[str, Leg] = {}

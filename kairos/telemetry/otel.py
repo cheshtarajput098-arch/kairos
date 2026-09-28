@@ -1,4 +1,5 @@
 """OpenTelemetry integration with fallback when OTLP collector is unavailable (SPEC §8)."""
+
 from __future__ import annotations
 
 import logging
@@ -12,7 +13,9 @@ logger = logging.getLogger("kairos.telemetry")
 _TRACER: trace.Tracer | None = None
 
 
-def init_tracer(service_name: str = "kairos", otlp_endpoint: str = "http://jaeger:4318") -> trace.Tracer:
+def init_tracer(
+    service_name: str = "kairos", otlp_endpoint: str = "http://jaeger:4318"
+) -> trace.Tracer:
     global _TRACER
     if _TRACER is not None:
         return _TRACER
@@ -23,7 +26,9 @@ def init_tracer(service_name: str = "kairos", otlp_endpoint: str = "http://jaege
         processor = BatchSpanProcessor(exporter)
         provider.add_span_processor(processor)
     except Exception as e:  # noqa: BLE001
-        logger.warning(f"Could not initialize OTLP exporter at {otlp_endpoint}: {e}. Falling back to NoOp tracer.")
+        logger.warning(
+            f"Could not initialize OTLP exporter at {otlp_endpoint}: {e}. Falling back to NoOp tracer."
+        )
 
     trace.set_tracer_provider(provider)
     _TRACER = trace.get_tracer(service_name)

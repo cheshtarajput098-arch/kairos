@@ -1,4 +1,5 @@
 """Unit tests for FastAPI endpoints, middlewares, error envelope, security headers."""
+
 import pytest
 from fastapi.testclient import TestClient
 

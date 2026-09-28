@@ -5,6 +5,7 @@ Strips speech disfluencies prior to multi-intent decomposition:
 2. Immediate consecutive word repetitions ('the the' -> 'the')
 3. Speech self-repairs ('in Pune — no, Mumbai' -> 'in Mumbai', 'actually', 'sorry', 'I mean')
 """
+
 from __future__ import annotations
 
 import re
@@ -21,13 +22,23 @@ class DisfluencyNormalizer:
         fillers: Sequence[str] | None = None,
         repair_cues: Sequence[str] | None = None,
     ) -> None:
-        self.fillers = list(fillers) if fillers is not None else list(_default_config.decomposer.disfluency.fillers)
-        self.repair_cues = list(repair_cues) if repair_cues is not None else list(_default_config.decomposer.disfluency.repair_cues)
+        self.fillers = (
+            list(fillers)
+            if fillers is not None
+            else list(_default_config.decomposer.disfluency.fillers)
+        )
+        self.repair_cues = (
+            list(repair_cues)
+            if repair_cues is not None
+            else list(_default_config.decomposer.disfluency.repair_cues)
+        )
 
         # Precompile filler pattern (longer phrases first to avoid partial word masking)
         sorted_fillers = sorted(self.fillers, key=len, reverse=True)
         escaped_fillers = [re.escape(f) for f in sorted_fillers]
-        self._fillers_regex = re.compile(rf"\b(?:{'|'.join(escaped_fillers)})\b[,.]?", re.IGNORECASE)
+        self._fillers_regex = re.compile(
+            rf"\b(?:{'|'.join(escaped_fillers)})\b[,.]?", re.IGNORECASE
+        )
 
         # Immediate repetition pattern: e.g. "the the" -> "the"
         self._repetition_regex = re.compile(r"\b(\w+)(?:\s+\1\b)+", re.IGNORECASE)
@@ -92,7 +103,9 @@ class DisfluencyNormalizer:
         text = pattern1.sub(replace_match, text)
 
         # Pattern 2: standalone repair cues with trailing correction, e.g. "actually 50 seats"
-        pattern2 = re.compile(rf"\s*[-—–,]*\s*{self._repair_cues_pattern}\s*[,:-]*\s*", re.IGNORECASE)
+        pattern2 = re.compile(
+            rf"\s*[-—–,]*\s*{self._repair_cues_pattern}\s*[,:-]*\s*", re.IGNORECASE
+        )
         # Only replace dangling cues if not already resolved
         text = pattern2.sub(" ", text)
 

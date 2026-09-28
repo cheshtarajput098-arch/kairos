@@ -1,4 +1,5 @@
 """Section-aware corpus chunker producing stable [Doc_ID §Section] markers (SPEC §2.1)."""
+
 from __future__ import annotations
 
 import re
@@ -77,7 +78,13 @@ def chunk_corpus(corpus_dir: Path) -> list[CorpusChunk]:
     all_chunks: list[CorpusChunk] = []
     files = sorted(corpus_dir.glob("Doc_*.md"))
     if not files:
-        files = sorted([f for f in corpus_dir.iterdir() if f.is_file() and not f.name.startswith(".") and f.name != "README.md"])
+        files = sorted(
+            [
+                f
+                for f in corpus_dir.iterdir()
+                if f.is_file() and not f.name.startswith(".") and f.name != "README.md"
+            ]
+        )
 
     for file_path in files:
         all_chunks.extend(chunk_document(file_path))

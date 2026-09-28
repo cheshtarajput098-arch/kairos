@@ -1,4 +1,5 @@
 """Unit tests for Stage 1 Retrieval Controller, speculation, and suppression."""
+
 import asyncio
 
 import pytest

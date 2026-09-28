@@ -2,6 +2,7 @@
 
 Enforces extra="forbid" on all models to reject unknown fields.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -11,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class StrictBaseModel(BaseModel):
     """Base model enforcing strict validation and forbidding extra fields."""
+
     model_config = ConfigDict(extra="forbid", strict=True)
 
 
@@ -31,10 +33,18 @@ class ReplayChunk(StrictBaseModel):
     revises: int | None = None
 
 
+class StreamInputChunk(StrictBaseModel):
+    t: float
+    text: str
+    is_final: bool = False
+
+
 class ReplayTranscript(StrictBaseModel):
     session_id: str
     turn_id: str
-    turn_type: Literal["compound", "late_constraint", "presentation_only", "single", "out_of_corpus"]
+    turn_type: Literal[
+        "compound", "late_constraint", "presentation_only", "single", "out_of_corpus"
+    ]
     scenario: str | None = None
     chunks: list[ReplayChunk]
     utterance_end: float
@@ -128,6 +138,7 @@ class Metrics(StrictBaseModel):
 
 class EventRecord(StrictBaseModel):
     """Per-turn output event record (SPEC §2.4)."""
+
     session_id: str
     turn_id: str
     answer_version: int = 1

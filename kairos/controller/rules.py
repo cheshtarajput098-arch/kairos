@@ -1,4 +1,5 @@
 """Rule-based arm of the Stage 1 Retrieval Controller (SPEC §4.3)."""
+
 from __future__ import annotations
 
 from typing import Literal

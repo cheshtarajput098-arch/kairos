@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Step 06: Grounded Speed-1 synthesis, drafting, session store & delta engine - 2026-09-29
+- Built context spotlighting (`kairos/security/spotlight.py`) enclosing chunks in `<untrusted_corpus id="...">`, escaping adversarial tags, down-weighting flagged chunks, and appending system prompt isolation instructions.
+- Implemented Speed-1 extractive synthesizer (`kairos/synth/extractive.py`) scoring candidate sentences by leg overlap, producing natural lead-ins, <= 30-word evidence spans, and exact `[Doc_ID §Section]` citations.
+- Implemented Answer-as-you-speak drafting manager (`kairos/synth/drafting.py`) supporting mid-utterance draft synthesis, deterministic gate verification, commit/rollback at utterance end, Ready-at-End calculation, and `draft_*` telemetry events.
+- Implemented Stage 1 deterministic grounding gate (`kairos/grounding/gate.py`) rejecting ungrounded or fabricated citations and mismatched spans with explicit uncertainty statements.
+- Implemented ephemeral session store (`kairos/session/token.py` & `store.py`) with server-issued 128-bit IDs, HMAC-SHA256 tokens, TTL auto-cleanup, max-sessions cap, version snapshots, and 404 responses for token mismatches.
+- Implemented session delta engine (`kairos/session/delta.py`) classifying turns, patching only affected claims while preserving unaffected claims strictly byte-identical (Gate G5), and restructuring presentation without retrieval.
+- Implemented REST session endpoints (`POST /v1/sessions`, `GET /v1/sessions/{id}`, `GET /v1/sessions/{id}/diff`, `DELETE /v1/sessions/{id}`) and WebSocket streaming (`WS /v1/stream`) with origin checks, token validation, 4096-byte message limits, 60 msg/s rate limiting, and real-time event streaming.
+- Enhanced CLI replay (`kairos replay demo`) replaying all 3 hackathon demo scenarios, printing answer v1, v2, version diffs, and Ready-at-End scores.
+- Added 19 unit & integration tests across 5 new test files. Full suite has 83 passing tests with 90% coverage in Docker container, clean mypy `--strict`, clean ruff, and zero bandit security issues.
+
 ### Step 05: Multi-intent decomposer, deduplication & parallel dispatch - 2026-09-29
 - Built speech disfluency normalizer (`kairos/decompose/disfluency.py`) stripping fillers ("uh", "um"), repetitions ("the the"), and self-repairs ("in Pune — no, Mumbai").
 - Implemented offline rule-based clause splitter (`kairos/decompose/rule_splitter.py`) with context inheritance across clauses (locations, head noun entities, quantities) preventing context loss.

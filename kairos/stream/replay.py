@@ -1,4 +1,5 @@
 """Transcript replay reader with virtual clock, cadence scaling, and partial revisions (SPEC §2.2, §4)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -43,7 +44,9 @@ class ReplayReader:
         self.settings = load_config()
 
     @classmethod
-    def from_jsonl(cls, file_path: Path, cadence: float = 1.0, instant: bool = False) -> list[ReplayReader]:
+    def from_jsonl(
+        cls, file_path: Path, cadence: float = 1.0, instant: bool = False
+    ) -> list[ReplayReader]:
         """Read all turns from a JSONL file."""
         readers: list[ReplayReader] = []
         with open(file_path, "r", encoding="utf-8") as f:

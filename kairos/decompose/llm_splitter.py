@@ -5,6 +5,7 @@ Uses structured LLM generation with fixed JSON schema:
 Operates at temperature 0 with user text delimited in <user_utterance> blocks.
 Falls back cleanly to RuleBasedSplitter on timeout, schema errors, or missing models.
 """
+
 from __future__ import annotations
 
 import logging
@@ -61,6 +62,8 @@ class LLMDecomposer:
                     sq.leg_id = f"L{idx + 1}"
                 return capped
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"LLM decomposition failed or timed out: {e}; falling back to rule-based splitter.")
+            logger.warning(
+                f"LLM decomposition failed or timed out: {e}; falling back to rule-based splitter."
+            )
 
         return self.fallback.split(text)

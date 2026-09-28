@@ -1,4 +1,5 @@
 """JSONL Event Logger with PII Redaction (SPEC §8)."""
+
 from __future__ import annotations
 
 import json
@@ -32,7 +33,7 @@ def redact_obj(obj: Any, log_text: bool = False, redact_types: list[str] | None 
     if isinstance(obj, str):
         if not log_text and len(obj) > 200:
             # Mask or truncate long raw transcript text if log_text is False
-            return f"[TEXT_HASH:{hash(obj) & 0xffffffff:08x}_LEN:{len(obj)}]"
+            return f"[TEXT_HASH:{hash(obj) & 0xFFFFFFFF:08x}_LEN:{len(obj)}]"
         return redact_pii_text(obj, redact_types)
     elif isinstance(obj, dict):
         return {k: redact_obj(v, log_text, redact_types) for k, v in obj.items()}
@@ -42,7 +43,12 @@ def redact_obj(obj: Any, log_text: bool = False, redact_types: list[str] | None 
 
 
 class JSONLEventWriter:
-    def __init__(self, runs_dir: pathlib.Path = pathlib.Path("runs"), run_id: str | None = None, log_text: bool = False):
+    def __init__(
+        self,
+        runs_dir: pathlib.Path = pathlib.Path("runs"),
+        run_id: str | None = None,
+        log_text: bool = False,
+    ):
         self.run_id = run_id or f"run_{uuid.uuid4().hex[:8]}"
         self.log_dir = runs_dir / self.run_id
         self.log_dir.mkdir(parents=True, exist_ok=True)

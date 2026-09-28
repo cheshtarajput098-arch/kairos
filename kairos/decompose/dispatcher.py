@@ -4,6 +4,7 @@ Dispatches concurrent hybrid retrieval across active query legs under per-leg de
 Integrates with Stage 2 incremental diffing so that only newly proposed or mutated
 legs trigger new retrieval tasks, preserving completed results for stable legs.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -47,8 +48,7 @@ class ParallelDispatcher:
             }
         """
         targets = [
-            leg for leg in legs
-            if leg_ids_to_retrieve is None or leg.leg_id in leg_ids_to_retrieve
+            leg for leg in legs if leg_ids_to_retrieve is None or leg.leg_id in leg_ids_to_retrieve
         ]
 
         if not targets:

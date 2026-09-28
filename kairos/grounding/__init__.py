@@ -1,4 +1,8 @@
-"""Deterministic ID + span grounding gate (always on) and optional NLI gate. SPEC §6.3.
+"""Stage 5 Grounding Gate (SPEC §6.3, Gate G4).
 
-Stub created by the starter repo. Implement per the prompt that owns this package.
+Deterministic citation and evidence span verification against the session's retrieved chunks.
 """
+
+from kairos.grounding.gate import GroundingGate
+
+__all__ = ["GroundingGate"]

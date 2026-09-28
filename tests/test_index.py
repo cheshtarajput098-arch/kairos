@@ -1,4 +1,5 @@
 """Unit tests for corpus manifest integrity and index store."""
+
 from pathlib import Path
 
 from kairos.index.store import IndexStore

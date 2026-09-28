@@ -2,16 +2,24 @@
 
 Calculates a heuristic risk score and flags suspicious patterns without deleting chunks.
 """
+
 from __future__ import annotations
 
 import re
 
 INJECTION_PATTERNS = [
-    re.compile(r"ignore\s+(all\s+)?(previous|prior|above)\s+(instructions|directives|prompts)", re.IGNORECASE),
+    re.compile(
+        r"ignore\s+(all\s+)?(previous|prior|above)\s+(instructions|directives|prompts)",
+        re.IGNORECASE,
+    ),
     re.compile(r"(disregard|forget)\s+(all\s+)?(previous|prior)\s+rules", re.IGNORECASE),
-    re.compile(r"you\s+are\s+now\s+(an?\s+)?(unrestricted|jailbroken|developer|admin)", re.IGNORECASE),
+    re.compile(
+        r"you\s+are\s+now\s+(an?\s+)?(unrestricted|jailbroken|developer|admin)", re.IGNORECASE
+    ),
     re.compile(r"<\|im_start\|>|<\|im_end\|>|\[SYSTEM\]|\[ASSISTANT\]", re.IGNORECASE),
-    re.compile(r"(reveal|print|dump|show)\s+(your\s+)?(system\s+prompt|initial\s+prompt)", re.IGNORECASE),
+    re.compile(
+        r"(reveal|print|dump|show)\s+(your\s+)?(system\s+prompt|initial\s+prompt)", re.IGNORECASE
+    ),
     re.compile(r"do\s+not\s+follow\s+any\s+policy", re.IGNORECASE),
 ]
 

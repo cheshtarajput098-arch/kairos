@@ -1,4 +1,5 @@
 """Unit tests for telemetry, JSONL event logging, and PII redaction."""
+
 import json
 import pathlib
 

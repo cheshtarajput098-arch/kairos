@@ -1,4 +1,5 @@
 """Reversible speculation manager with per-turn budget (SPEC §4.5)."""
+
 from __future__ import annotations
 
 import asyncio

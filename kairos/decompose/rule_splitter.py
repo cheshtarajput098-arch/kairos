@@ -4,6 +4,7 @@ Splits compound utterances into sub-queries on coordinating conjunctions and lis
 between clauses that contain content nouns, inheriting shared context (locations, head entities,
 numbers) into every generated leg to prevent context dilution/loss.
 """
+
 from __future__ import annotations
 
 import re
@@ -82,14 +83,42 @@ class RuleBasedSplitter:
         core_clause = _QUESTION_PREFIXES.sub("", clause).strip()
 
         stop_proper = {
-            "What", "Where", "When", "Which", "Who", "Whom", "Whose", "Why", "How",
-            "Can", "Could", "Would", "Should", "Tell", "Please", "Check", "Give", "Show",
-            "The", "A", "An", "Is", "Are", "In", "At", "For", "To", "On", "Of", "With",
+            "What",
+            "Where",
+            "When",
+            "Which",
+            "Who",
+            "Whom",
+            "Whose",
+            "Why",
+            "How",
+            "Can",
+            "Could",
+            "Would",
+            "Should",
+            "Tell",
+            "Please",
+            "Check",
+            "Give",
+            "Show",
+            "The",
+            "A",
+            "An",
+            "Is",
+            "Are",
+            "In",
+            "At",
+            "For",
+            "To",
+            "On",
+            "Of",
+            "With",
         }
 
         # Look for locations / proper nouns (capitalized words like Pune, Mumbai, Riverside)
         caps = [
-            c for c in re.findall(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b", core_clause)
+            c
+            for c in re.findall(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b", core_clause)
             if c not in stop_proper
         ]
         if caps:
@@ -101,7 +130,9 @@ class RuleBasedSplitter:
             context["quantity"] = num_match.group(0)
 
         # Look for prepositional head context (e.g. 'for customer workshops', 'of workshop venues')
-        head_match = re.search(r"\b(?:for|of|in|at)\s+([a-z\s]+?)(?:\s+in|\s+at|$)", core_clause, re.IGNORECASE)
+        head_match = re.search(
+            r"\b(?:for|of|in|at)\s+([a-z\s]+?)(?:\s+in|\s+at|$)", core_clause, re.IGNORECASE
+        )
         if head_match:
             cand = head_match.group(1).strip()
             if len(cand.split()) <= 4 and cand not in {"the", "a", "an"}:
@@ -147,7 +178,19 @@ class RuleBasedSplitter:
     def _has_content_words(self, clause: str) -> bool:
         """Check if clause contains content nouns/verbs rather than just stop words."""
         words = re.findall(r"\b[A-Za-z]{3,}\b", clause.lower())
-        stop_words = {"what", "about", "tell", "please", "also", "with", "from", "that", "this", "they", "them"}
+        stop_words = {
+            "what",
+            "about",
+            "tell",
+            "please",
+            "also",
+            "with",
+            "from",
+            "that",
+            "this",
+            "they",
+            "them",
+        }
         content_words = [w for w in words if w not in stop_words]
         return len(content_words) >= 1
 
@@ -158,8 +201,20 @@ class RuleBasedSplitter:
         # Content nouns (length >= 4)
         words = re.findall(r"\b[a-z]{4,}\b", text.lower())
         stopwords = {
-            "what", "where", "when", "which", "about", "their", "there", "these",
-            "those", "would", "could", "should", "options", "details",
+            "what",
+            "where",
+            "when",
+            "which",
+            "about",
+            "their",
+            "there",
+            "these",
+            "those",
+            "would",
+            "could",
+            "should",
+            "options",
+            "details",
         }
         content = [w for w in words if w not in stopwords]
         entities = list(dict.fromkeys(caps + content))

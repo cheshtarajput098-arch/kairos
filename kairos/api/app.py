@@ -1,23 +1,30 @@
 """FastAPI /v1 Application Entrypoint (SPEC §10, §13.3)."""
+
 from __future__ import annotations
 
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 
-from fastapi import FastAPI, Request, Response, status
+from fastapi import FastAPI, Request, Response, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from kairos.api.middleware import RequestTracingMiddleware, SecurityHeadersMiddleware
+from kairos.api.stream import handle_stream_websocket
 from kairos.config import load_config
 from kairos.index.store import IndexStore
 from kairos.ingest.manifest import verify_corpus_manifest
-from kairos.schemas import ErrorDetail, ErrorEnvelope
+from kairos.schemas import ErrorDetail, ErrorEnvelope, VersionDiff
+from kairos.session.store import SessionStore
 
-logging.basicConfig(level=logging.INFO, format='{"time":"%(asctime)s", "level":"%(levelname)s", "message":"%(message)s"}')
+logging.basicConfig(
+    level=logging.INFO,
+    format='{"time":"%(asctime)s", "level":"%(levelname)s", "message":"%(message)s"}',
+)
 logger = logging.getLogger("kairos.api")
 
 settings = load_config()
@@ -29,10 +36,12 @@ redoc_url = None if settings.app.env == "prod" else "/redoc"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Automatic index build, load, and warm-up on container startup."""
+    """Automatic index build, load, warm-up, and session store on container startup."""
     corpus_dir = Path("data/corpus")
     index_dir = Path("index")
     chunks_file = index_dir / "chunks.json"
+
+    app.state.session_store = SessionStore()
 
     is_valid, _ = verify_corpus_manifest(corpus_dir)
     store = IndexStore(index_dir=index_dir, corpus_dir=corpus_dir)
@@ -74,7 +83,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.security.allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -131,6 +140,122 @@ async def readiness_check(response: Response) -> dict[str, str]:
             return {"status": "not_ready", "reason": f"Index load failed: {e}"}
 
     return {"status": "ready", "service": "kairos"}
+
+
+def _get_token(request: Request) -> str:
+    auth = request.headers.get("Authorization")
+    if auth and auth.startswith("Bearer "):
+        return auth[7:].strip()
+    return request.query_params.get("token", "")
+
+
+@app.post("/v1/sessions", status_code=status.HTTP_201_CREATED)
+async def create_session() -> dict[str, Any]:
+    """Issue a new random 128-bit session ID and HMAC-signed token."""
+    raw_store = getattr(app.state, "session_store", None)
+    store = raw_store if isinstance(raw_store, SessionStore) else SessionStore()
+    app.state.session_store = store
+    state, token, expires_at = store.create_session(settings.token_secret)
+    return {
+        "session_id": state.session_id,
+        "token": token,
+        "expires_at": expires_at,
+    }
+
+
+@app.get("/v1/sessions/{session_id}")
+async def get_session_info(session_id: str, request: Request) -> Any:
+    """Retrieve session state; requires valid token (Security Rule 4: returns 404 on mismatch)."""
+    token = _get_token(request)
+    store: SessionStore = getattr(app.state, "session_store", None) or SessionStore()
+    state = store.get_session(session_id, token, settings.token_secret)
+    if state is None:
+        request_id = getattr(request.state, "request_id", "unknown")
+        envelope = ErrorEnvelope(
+            error=ErrorDetail(
+                code="SESSION_NOT_FOUND",
+                message="Session not found or authentication token is invalid.",
+                request_id=request_id,
+            )
+        )
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=envelope.model_dump())
+    return {
+        "session_id": state.session_id,
+        "current_version": state.current_version,
+        "answer": state.answer,
+        "citations": state.citations,
+        "claims": [c.model_dump() for c in state.claims],
+        "created_at": state.created_at,
+        "last_accessed": state.last_accessed,
+    }
+
+
+@app.get("/v1/sessions/{session_id}/diff")
+async def get_session_diff(
+    session_id: str, request: Request, from_v: int = 1, to_v: int = 2
+) -> Any:
+    """Retrieve version diff; requires valid token (404 on mismatch)."""
+    token = _get_token(request)
+    store: SessionStore = getattr(app.state, "session_store", None) or SessionStore()
+    state = store.get_session(session_id, token, settings.token_secret)
+    if state is None:
+        request_id = getattr(request.state, "request_id", "unknown")
+        envelope = ErrorEnvelope(
+            error=ErrorDetail(
+                code="SESSION_NOT_FOUND",
+                message="Session not found or authentication token is invalid.",
+                request_id=request_id,
+            )
+        )
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=envelope.model_dump())
+
+    diff = store.get_diff(session_id, from_v, to_v)
+    if diff is not None:
+        return diff.model_dump()
+    return VersionDiff().model_dump()
+
+
+@app.delete("/v1/sessions/{session_id}")
+async def delete_session(session_id: str, request: Request) -> Any:
+    """Explicitly wipe session state from memory."""
+    token = _get_token(request)
+    store: SessionStore = getattr(app.state, "session_store", None) or SessionStore()
+    state = store.get_session(session_id, token, settings.token_secret)
+    if state is None:
+        request_id = getattr(request.state, "request_id", "unknown")
+        envelope = ErrorEnvelope(
+            error=ErrorDetail(
+                code="SESSION_NOT_FOUND",
+                message="Session not found or authentication token is invalid.",
+                request_id=request_id,
+            )
+        )
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=envelope.model_dump())
+    store.clear_session(session_id)
+    return {"status": "cleared", "session_id": session_id}
+
+
+@app.websocket("/v1/stream")
+async def websocket_stream_endpoint(
+    websocket: WebSocket, session_id: str = "", token: str = ""
+) -> None:
+    """Live streaming WebSocket connection."""
+    raw_store = getattr(app.state, "session_store", None)
+    store = raw_store if isinstance(raw_store, SessionStore) else SessionStore()
+    app.state.session_store = store
+
+    raw_idx = getattr(app.state, "index_store", None)
+    if isinstance(raw_idx, IndexStore):
+        idx_store = raw_idx
+    else:
+        idx_store = IndexStore()
+        try:
+            idx_store.load()
+        except Exception:  # noqa: BLE001
+            idx_store.build()
+        app.state.index_store = idx_store
+
+    await handle_stream_websocket(websocket, session_id, token, store, idx_store)
 
 
 # Mount static frontend directory if present

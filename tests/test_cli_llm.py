@@ -1,4 +1,5 @@
 """Unit tests for CLI, LLM provider fallbacks, and security limits."""
+
 import sys
 from pathlib import Path
 from typing import Any
@@ -42,7 +43,9 @@ def test_llm_provider_fallback_dict() -> None:
 def test_llm_provider_external_types_fallback() -> None:
     for p_type in ["gemini", "openai_compatible", "ollama", "local"]:
         provider = LLMProvider(p_type, model_name="test-model")
-        res = provider.generate_json(SampleSchema, [{"role": "user", "content": "hello"}], limits={"tokens": 100})
+        res = provider.generate_json(
+            SampleSchema, [{"role": "user", "content": "hello"}], limits={"tokens": 100}
+        )
         assert res["count"] == 0
         assert res["is_valid"] is False
 
@@ -78,16 +81,22 @@ def test_cli_main_dispatch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> N
     index_dir = tmp_path / "index_main"
 
     # Test main index
-    monkeypatch.setattr(sys, "argv", ["kairos", "index", "--corpus", "data/corpus", "--index-dir", str(index_dir)])
+    monkeypatch.setattr(
+        sys, "argv", ["kairos", "index", "--corpus", "data/corpus", "--index-dir", str(index_dir)]
+    )
     main()
     assert (index_dir / "chunks.json").exists()
 
     # Test main query with positional
-    monkeypatch.setattr(sys, "argv", ["kairos", "query", "workshop in Pune", "--index-dir", str(index_dir)])
+    monkeypatch.setattr(
+        sys, "argv", ["kairos", "query", "workshop in Pune", "--index-dir", str(index_dir)]
+    )
     main()
 
     # Test main query with --q
-    monkeypatch.setattr(sys, "argv", ["kairos", "query", "--q", "workshop in Pune", "--index-dir", str(index_dir)])
+    monkeypatch.setattr(
+        sys, "argv", ["kairos", "query", "--q", "workshop in Pune", "--index-dir", str(index_dir)]
+    )
     main()
 
     # Test main query without query text exits
@@ -101,6 +110,8 @@ def test_cli_main_dispatch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> N
         main()
 
     # Test replay non-existent file exits
-    monkeypatch.setattr(sys, "argv", ["kairos", "replay", "--transcripts", "non_existent_path.jsonl"])
+    monkeypatch.setattr(
+        sys, "argv", ["kairos", "replay", "--transcripts", "non_existent_path.jsonl"]
+    )
     with pytest.raises(SystemExit):
         main()

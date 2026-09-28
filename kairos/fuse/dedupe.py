@@ -1,4 +1,5 @@
 """Cross-leg deduplication, near-duplicate collapse, and conflict detection (SPEC §6.1)."""
+
 from __future__ import annotations
 
 import re
@@ -6,7 +7,9 @@ import re
 from kairos.schemas import CorpusChunk
 
 # Regex to detect numbers/dates/percentages for factual density and conflict check
-NUMERIC_RE = re.compile(r"\b\d+(?:\.\d+)?(?:%|st|nd|rd|th|am|pm|days?|hours?|months?|years?)?\b", re.IGNORECASE)
+NUMERIC_RE = re.compile(
+    r"\b\d+(?:\.\d+)?(?:%|st|nd|rd|th|am|pm|days?|hours?|months?|years?)?\b", re.IGNORECASE
+)
 
 
 def compute_factual_density(text: str) -> float:
@@ -29,11 +32,13 @@ def check_conflicts(chunks: list[CorpusChunk]) -> list[dict[str, str]]:
             fact_key = f"{c.doc_id}"
             fact_val = ", ".join(numbers[:3])
             if fact_key in seen_facts and seen_facts[fact_key] != fact_val:
-                conflicts.append({
-                    "doc_id": c.doc_id,
-                    "chunk_id": c.chunk_id,
-                    "fact_difference": f"{seen_facts[fact_key]} vs {fact_val}",
-                })
+                conflicts.append(
+                    {
+                        "doc_id": c.doc_id,
+                        "chunk_id": c.chunk_id,
+                        "fact_difference": f"{seen_facts[fact_key]} vs {fact_val}",
+                    }
+                )
             else:
                 seen_facts[fact_key] = fact_val
     return conflicts

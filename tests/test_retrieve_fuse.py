@@ -1,4 +1,5 @@
 """Unit tests for hybrid retrieval, deadline cancellation, caching, and RRF fusion."""
+
 import asyncio
 from pathlib import Path
 
@@ -68,13 +69,16 @@ def test_retrieval_cache_hit_and_reused_status(tmp_path: Path) -> None:
     assert res2["dense_results"] == res1["dense_results"]
 
 
-def test_deadline_cancellation_under_strict_timeout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_deadline_cancellation_under_strict_timeout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     store = IndexStore(index_dir=tmp_path / "index", corpus_dir=Path("data/corpus"))
     store.build()
 
     # Simulate an artificially slow dense search
     def slow_search(query: str, top_k: int = 20):
         import time
+
         time.sleep(0.3)
         return []
 

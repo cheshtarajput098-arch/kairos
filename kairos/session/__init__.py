@@ -1,4 +1,17 @@
-"""Ephemeral session store, claim graph, answer versions, delta engine, diff. SPEC §7.
+"""Stage 5 Session Management & Delta Engine (SPEC §7).
 
-Stub created by the starter repo. Implement per the prompt that owns this package.
+Ephemeral in-memory session store, HMAC token validation, and state-preserving delta engine.
 """
+
+from kairos.session.delta import DeltaEngine
+from kairos.session.store import SessionState, SessionStore
+from kairos.session.token import generate_session_id, issue_token, verify_token
+
+__all__ = [
+    "DeltaEngine",
+    "SessionState",
+    "SessionStore",
+    "generate_session_id",
+    "issue_token",
+    "verify_token",
+]

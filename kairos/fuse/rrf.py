@@ -1,4 +1,5 @@
 """Reciprocal Rank Fusion (RRF) for hybrid retrieval results (SPEC §6.1)."""
+
 from __future__ import annotations
 
 

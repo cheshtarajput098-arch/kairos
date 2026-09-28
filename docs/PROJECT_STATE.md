@@ -12,7 +12,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 03 | `build/steps/p02-index.md` | done | Corpus ingest, integrity & hybrid index |
 | 04 | `build/steps/p03-controller.md` | done | Replay harness & retrieval controller |
 | 05 | `build/steps/p04-decomposer.md` | done | Multi-intent decomposer, deduplication & parallel dispatch |
-| 06 | `build/steps/p05-synthesis-session.md` | todo | |
+| 06 | `build/steps/p05-synthesis-session.md` | done | Grounded synthesis, drafting, session store & delta engine |
 | 07 | `build/steps/p06-mvp.md` | todo | |
 | 08 | `build/steps/p07-evaluation.md` | todo | |
 | 09 | `build/steps/p07b-generative.md` | todo | |
@@ -23,7 +23,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 14 | `build/steps/p11-release.md` | todo | |
 
 ## Current tier
-Tier 1: Multi-intent decomposer, deduplication, incremental diffing, and parallel retrieval dispatch complete.
+Tier 1: Differentiator MVP pipeline complete (Controller, Decomposer, Dispatcher, Hybrid Retriever, RRF Fusion, Grounded Extractive Synthesizer, Answer Drafting Manager, Grounding Gate, Session Store, and Delta Engine).
 
 ## Done
 - Starter repo: rules, autopilot workflows, spec, config, folder layout, placeholder corpus, demo scenarios, docs templates, repo-rule tests.
@@ -33,9 +33,19 @@ Tier 1: Multi-intent decomposer, deduplication, incremental diffing, and paralle
 - Step 04: Replay harness (`kairos/stream/replay.py`) with virtual clock cadence scaling (0.75x/1.0x/1.5x), instantaneous evaluation mode, partial revision handling (`revises=<index>`), and config-driven limits. Stage 1 retrieval controller (`kairos/controller/features.py`, `kairos/controller/rules.py`) with entity saturation, embedding drift tracking, syntactic openness, BM25 probe stability, and presentation intent classification. Reversible speculation manager (`kairos/controller/speculation.py`) with per-turn budgets and automatic entity-disappearance cancellation. Dev dataset (`data/replay/dev/`) with 16 turns across 5 turn types. `kairos replay --split dev` CLI. 52 tests passing (92% coverage) with zero lint or security warnings.
 - Steps 01–03 Fixes: Pinned runtime dependencies in `pyproject.toml` and verified `uv.lock`. Multi-stage Dockerfile now installs solely from `uv.lock` with GNU `make` and pre-cached FastEmbed model. Added FastAPI startup lifespan and readiness auto-build on missing/changed corpus with writable tmpfs index volume. Added comprehensive tests for `kairos/cli.py`, `kairos/llm/provider.py`, and `kairos/security/limits.py` bringing coverage to 92%. Added `docker-smoke` CI job validating readiness and Pune query top-3 grounding (`Doc_12 §2`). Updated autopilot rules enforcing that all verification commands must be run as written and coverage must be >= 85%. All container `make` targets (`lint`, `typecheck`, `test`, `security`, `index`) verified working.
 - Step 05: Multi-intent decomposer in `kairos/decompose/`: generic speech disfluency normalizer (`disfluency.py`) stripping fillers, repetitions, and self-repairs ("in Pune — no, Mumbai"); offline rule-based clause splitter (`rule_splitter.py`) with location, head entity, and quantity context inheritance preventing context loss; LLM decomposer (`llm_splitter.py`) with `<user_utterance>` spotlighting and automatic fallback; decomposition manager (`manager.py`) with BGE embedding deduplication (cosine > 0.9), hard cap (max 4 legs), stable leg IDs (`L1, L2...`), and incremental diffing; parallel retrieval dispatcher (`dispatcher.py`) running concurrent hybrid retrieval legs via `asyncio.gather`. Replay CLI (`kairos replay --split dev`) updated to display legs per turn with first-dispatch timestamps. 64 tests passing with 92% coverage and zero lint, typecheck, or security warnings.
+- Step 06: Grounded Speed-1 synthesis, answer drafting, grounding gate, session store, and delta engine:
+  - `kairos/security/spotlight.py`: Delimits untrusted corpus chunks in `<untrusted_corpus id="...">`, escapes tags, down-weights flagged adversarial chunks, appends prompt rules.
+  - `kairos/synth/extractive.py`: Speed-1 extractive synthesizer producing natural lead-ins, <= 30-word evidence spans, and exact `[Doc_ID §Section]` citations.
+  - `kairos/synth/drafting.py`: Answer-as-you-speak drafting manager supporting mid-utterance draft synthesis, deterministic gate verification, commit/rollback at utterance end, Ready-at-End calculation, and `draft_*` event logging.
+  - `kairos/grounding/gate.py`: Stage 1 deterministic grounding gate dropping ungrounded/fabricated citations and mismatched evidence spans with explicit uncertainty statements.
+  - `kairos/session/token.py` & `store.py`: Ephemeral session store with server-issued 128-bit IDs, HMAC-SHA256 tokens, TTL auto-cleanup, max-sessions cap, version snapshots, and 404 responses for token mismatches.
+  - `kairos/session/delta.py`: Session delta engine classifying turns (`presentation_only`, `constraint_on_existing`, `contradiction`, `new_topic`), patching only affected claims while preserving unaffected claims strictly byte-identical (Gate G5), and restructuring presentation without retrieval.
+  - `kairos/api/stream.py` & `app.py`: REST session endpoints (`POST /v1/sessions`, `GET /v1/sessions/{id}`, `GET /v1/sessions/{id}/diff`, `DELETE /v1/sessions/{id}`) and WebSocket streaming (`WS /v1/stream`) with origin checks, token validation, 4096-byte message limits, 60 msg/s rate limiting, and real-time event streaming.
+  - Replay CLI (`kairos replay demo`) replaying all 3 hackathon demo scenarios, printing answer v1, v2, version diffs, and Ready-at-End scores.
+  - 83 tests passing with 90% coverage in Docker container, clean mypy `--strict`, clean ruff, and zero bandit security issues.
 
 ## Next
-Step 06: `build/steps/p05-synthesis-session.md`. Type `/build-next` in a new conversation.
+Step 07: `build/steps/p06-mvp.md`. Type `/build-next` in a new conversation.
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).

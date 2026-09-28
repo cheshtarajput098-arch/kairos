@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   kairos:
     build:
@@ -11,11 +9,15 @@ services:
       - KAIROS_ENV=dev
       - KAIROS_TOKEN_SECRET=dev-secret-change-in-prod
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+      - RUFF_CACHE_DIR=/tmp/.ruff_cache
+      - MYPY_CACHE_DIR=/tmp/.mypy_cache
+      - PYTHONPYCACHEPREFIX=/tmp/pycache
+      - COVERAGE_FILE=/tmp/.coverage
     read_only: true
     tmpfs:
-      - /tmp
-      - /app/runs
-      - /app/index
+      - /tmp:mode=1777
+      - /app/runs:mode=1777
+      - /app/index:mode=1777
     security_opt:
       - no-new-privileges:true
     cap_drop:

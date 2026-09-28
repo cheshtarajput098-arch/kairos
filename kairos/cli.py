@@ -142,7 +142,8 @@ def main() -> None:
 
     # query command
     query_parser = subparsers.add_parser("query", help="Run hybrid search query against corpus")
-    query_parser.add_argument("--q", required=True, help="Query string")
+    query_parser.add_argument("query_pos", nargs="?", default=None, help="Query string")
+    query_parser.add_argument("--q", default=None, help="Query string flag")
     query_parser.add_argument("--index-dir", default="index", help="Path to index storage directory")
 
     # replay command
@@ -159,7 +160,11 @@ def main() -> None:
     if args.command == "index":
         run_index(args.corpus, args.index_dir)
     elif args.command == "query":
-        run_query(args.q, args.index_dir)
+        q_text = args.query_pos or args.q
+        if not q_text:
+            print("Error: query text is required")
+            sys.exit(1)
+        run_query(q_text, args.index_dir)
     elif args.command == "replay":
         run_replay(args.split, args.transcripts, args.out)
 

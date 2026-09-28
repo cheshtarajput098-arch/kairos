@@ -33,14 +33,19 @@ def generate_corpus_manifest(corpus_dir: Path, manifest_path: Path) -> dict[str,
     return manifest
 
 
-def verify_corpus_manifest(corpus_dir: Path, manifest_path: Path) -> tuple[bool, str]:
+def verify_corpus_manifest(corpus_dir: Path, manifest_path: Path | None = None) -> tuple[bool, str]:
     """Verify that current corpus files match the manifest SHA-256 hashes.
 
     Returns:
         (is_valid, error_reason)
     """
-    if not manifest_path.exists():
-        return False, f"Manifest file missing at {manifest_path}"
+    if manifest_path is None or not manifest_path.exists():
+        if Path("index/corpus.manifest.json").exists():
+            manifest_path = Path("index/corpus.manifest.json")
+        elif Path("data/corpus.manifest.json").exists():
+            manifest_path = Path("data/corpus.manifest.json")
+        else:
+            return False, f"Manifest file missing at {manifest_path or 'index/corpus.manifest.json'}"
 
     try:
         with open(manifest_path, "r", encoding="utf-8") as f:

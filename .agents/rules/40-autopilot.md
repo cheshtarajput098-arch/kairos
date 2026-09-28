@@ -14,6 +14,7 @@ The team builds Kairos by typing `/build-next` in a new conversation, again and 
 - Still write the plan artifact the step asks for (it's the audit trail), then continue without waiting for approval.
 
 ## 2. Verify, fix, and only then call it done
+- A step can only be marked done when every Verification command has been run exactly as written (including any docker compose commands) and test coverage is at least 85%.
 - Run the step's Verification commands yourself and read the real output.
 - If anything fails, fix the cause and re-run. Up to **5 fix attempts** per failure.
 - Never weaken a test, gate, threshold check or CI job to make it pass. Never edit the frozen test set to pass a gate. Never mark a step done with a failing verification.

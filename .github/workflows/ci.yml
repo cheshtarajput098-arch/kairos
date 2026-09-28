@@ -1,8 +1,6 @@
-# Starter CI: runs the repository-rule tests on every push.
-# Prompt 1 replaces this with the full pipeline (ruff, mypy, pytest+coverage, bandit, pip-audit,
-# gitleaks, docker build, Trivy), and later prompts add the web, e2e and eval jobs.
 name: ci
 on: [push, pull_request]
+
 jobs:
   repo-rules:
     runs-on: ubuntu-latest
@@ -13,3 +11,53 @@ jobs:
           python-version: "3.11"
       - run: pip install pytest pyyaml
       - run: pytest -q tests/test_repo_rules.py
+
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --all-extras
+      - run: uv run ruff check kairos/ tests/
+      - run: uv run mypy --strict kairos/
+      - run: uv run pytest -v --cov=kairos --cov-report=term-missing tests/
+      - run: uv run bandit -r kairos/ -c .bandit.yml
+
+  docker-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start container
+        run: docker compose up -d --build
+      - name: Wait for /v1/ready probe
+        run: |
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/v1/ready || true)
+            if [ "$STATUS" = "200" ]; then
+              echo "Kairos service is ready (status 200)!"
+              exit 0
+            fi
+            echo "Waiting for /v1/ready (status=$STATUS)... attempt $i"
+            sleep 2
+          done
+          echo "Timeout waiting for /v1/ready"
+          docker compose logs kairos
+          exit 1
+      - name: Verify health and readiness endpoints
+        run: |
+          curl -f http://localhost:8000/v1/health
+          curl -f http://localhost:8000/v1/ready
+      - name: Verify Pune workshop query in container (top 3 must contain Doc_12 §2)
+        run: |
+          OUTPUT=$(docker compose exec -T kairos kairos query "What is the capacity of workshop venues in Pune?")
+          echo "$OUTPUT"
+          # Check that Doc_12 is present in the top 3 results
+          echo "$OUTPUT" | head -n 12 | grep -E "Doc_12.*2" || {
+            echo "Doc_12 §2 not found in top 3 results!"
+            exit 1
+          }
+      - name: Teardown
+        if: always()
+        run: docker compose down

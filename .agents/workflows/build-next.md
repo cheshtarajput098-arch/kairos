@@ -14,7 +14,7 @@ When the user types `/build-next`, do the following. Follow `.agents/rules/40-au
 5. **Read the step file** in `build/steps/` and only the SPEC.md sections it names.
 6. **Plan.** Write a short implementation plan artifact (files, tests, verification commands). Don't wait for approval.
 7. **Build.** Implement the step. Write tests with or before the code.
-8. **Verify.** Run the step's Verification commands, plus `pytest -q tests/test_repo_rules.py` and (once it exists) `make test`. Fix and re-run until green, up to 5 attempts per failure (autopilot rule 2).
+8. **Verify.** A step can only be marked done when every Verification command has been run exactly as written (including any docker compose commands) and test coverage is at least 85%. Run the step's Verification commands, plus `pytest -q tests/test_repo_rules.py` and `make test`. Fix and re-run until green, up to 5 attempts per failure (autopilot rule 2).
 9. **Record.**
    - `docs/PROJECT_STATE.md`: set the step to `done` (or `in_progress (part k of n)` / `blocked` with details), update "Done", "Next" and "Known issues".
    - `docs/COMPLIANCE.md`: update Status and Evidence for every row this step touched.

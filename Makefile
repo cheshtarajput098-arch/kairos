@@ -6,13 +6,13 @@ install:
 	$(PYTHON) -m pip install -e .[dev]
 
 test:
-	$(PYTHON) -m pytest -v --cov=kairos --cov-report=term-missing tests/
+	COVERAGE_FILE=/tmp/.coverage $(PYTHON) -m pytest -o cache_dir=/tmp/.pytest_cache -v --cov=kairos --cov-report=term-missing tests/
 
 lint:
-	$(PYTHON) -m ruff check kairos/ tests/
+	$(PYTHON) -m ruff check --cache-dir /tmp/.ruff_cache kairos/ tests/
 
 typecheck:
-	$(PYTHON) -m mypy --strict kairos/
+	$(PYTHON) -m mypy --cache-dir /tmp/.mypy_cache --strict kairos/
 
 index:
 	$(PYTHON) -m kairos.cli index --corpus data/corpus

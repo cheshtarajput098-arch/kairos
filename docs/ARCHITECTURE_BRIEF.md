@@ -1,7 +1,7 @@
 # Architecture Brief — Kairos: Streaming Live RAG Engine
 
 **Theme 04: Streaming Live RAG · Team Coding Agent RIT**  
-*Cheshta Rajput & Chiranjeevi U Jadhav · M S Ramaiah Institute of Technology*
+*Cheshta Rajput · M S Ramaiah Institute of Technology*
 
 ---
 

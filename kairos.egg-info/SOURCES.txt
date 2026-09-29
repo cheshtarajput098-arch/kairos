@@ -1,4 +1,5 @@
 LICENSE
+NOTICE
 README.md
 pyproject.toml
 kairos/__init__.py
@@ -30,6 +31,7 @@ kairos/fuse/dedupe.py
 kairos/fuse/rrf.py
 kairos/grounding/__init__.py
 kairos/grounding/gate.py
+kairos/grounding/relevance.py
 kairos/index/__init__.py
 kairos/index/dense.py
 kairos/index/sparse.py
@@ -46,7 +48,9 @@ kairos/retrieve/__init__.py
 kairos/retrieve/cache.py
 kairos/retrieve/hybrid.py
 kairos/security/__init__.py
+kairos/security/integrity.py
 kairos/security/limits.py
+kairos/security/sanitizer.py
 kairos/security/spotlight.py
 kairos/session/__init__.py
 kairos/session/delta.py
@@ -62,6 +66,7 @@ kairos/synth/rewrite.py
 kairos/telemetry/__init__.py
 kairos/telemetry/events.py
 kairos/telemetry/otel.py
+kairos/telemetry/redact.py
 tests/test_adapter.py
 tests/test_answer_bugs.py
 tests/test_api.py
@@ -70,12 +75,15 @@ tests/test_cli_llm.py
 tests/test_config.py
 tests/test_controller.py
 tests/test_decompose.py
+tests/test_edge_cases_audit.py
 tests/test_eval.py
 tests/test_grounding.py
 tests/test_index.py
 tests/test_ingest.py
 tests/test_llm_local.py
+tests/test_relevance_gate.py
 tests/test_repo_rules.py
+tests/test_resilience.py
 tests/test_retrieve_fuse.py
 tests/test_schemas.py
 tests/test_session_delta.py

@@ -2,14 +2,14 @@
 
 **Theme 04: Streaming Live RAG · Samsung PRISM GenAI Hackathon 2026**  
 **Team Coding Agent RIT (M S Ramaiah Institute of Technology)**  
-*Cheshta Rajput & Chiranjeevi U Jadhav*
+*Cheshta Rajput*
 
 ---
 
 ## Slide 1: Title Slide
 - **Title:** KAIROS: Streaming Live RAG That Answers While You Speak
 - **Subtitle:** Event-Driven Speculative Retrieval, Intent Decomposition & In-Place Conversational Evolution on CPU
-- **Presenter Team:** Cheshta Rajput & Chiranjeevi U Jadhav
+- **Presenter:** Cheshta Rajput
 - **Institution:** M S Ramaiah Institute of Technology, Bengaluru
 - **Logo:** `docs/kairos-logo.jpg`
 - **Speaker Note:** *"Good morning judges. We are Team Coding Agent RIT. Today we present Kairos — an event-driven live streaming RAG engine that eliminates the awkward conversational silence of voice assistants by answering while you speak."*

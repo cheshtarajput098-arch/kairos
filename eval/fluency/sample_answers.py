@@ -107,7 +107,7 @@ def sample_and_create_ratings_sheet(
                     "reviewed": True,
                 },
                 "rater_2": {
-                    "name": "Chiranjeevi U Jadhav",
+                    "name": "Independent Peer Reviewer",
                     "score_A": rater2_a,
                     "score_B": rater2_b,
                     "reviewed": True,

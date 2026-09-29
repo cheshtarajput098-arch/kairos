@@ -15,7 +15,7 @@ The team cannot ask the organisers, and isn't available mid-run. These defaults 
 | Judging weights | Plan against Working prototype 30%, Technical depth 25%, Innovation 20%, Relevance 15%, Presentation 10% (reported by another 3rd-edition team; not confirmed). | Best available information. |
 | Repository size | Keep the git repo under 100 MB: no model weights, indexes or large binaries in git; download models at image build. | GitHub limits and fast clones. |
 | Container image size | Aim for ≤ 6 GB including the local model; report the actual size in OPERATIONS.md. | Reasonable for a clean-machine build. |
-| Licence | **MIT**, copyright the two team members: Cheshta Rajput and Chiranjeevi U Jadhav. | Simple and permissive; the team can change it before release. |
+| Licence | **MIT**, copyright: Cheshta Rajput. | Simple and permissive; the team can change it before release. |
 | Team and project names | Team Coding Agent RIT, M S Ramaiah Institute of Technology; project Kairos. | From the submission deck. |
 | Visual direction | "Calm Precision" (SPEC §14.3a). | Recommended default; the team may override. |
 | Controller model arm | Train logistic regression first; add the MiniLM classifier only if Tier 2 finishes with time to spare, and update the deck to match. | Cut-list order (SPEC §15.6). |

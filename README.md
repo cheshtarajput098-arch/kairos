@@ -5,7 +5,7 @@
 # Kairos — Live RAG That Answers While You Speak
 
 **Theme 04: Streaming Live RAG · Team Coding Agent RIT (M S Ramaiah Institute of Technology)**  
-*Cheshta Rajput & Chiranjeevi U Jadhav*
+*Cheshta Rajput*
 
 [![CI](https://github.com/kairos-rag/kairos/actions/workflows/ci.yml/badge.svg)](https://github.com/kairos-rag/kairos/actions)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)

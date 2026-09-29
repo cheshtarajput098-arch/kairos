@@ -25,12 +25,12 @@ This file tracks tasks that require human execution or external participation. A
 
 **Materials Prepared:**
 - Sample A: `eval/gold_review/annotator_cheshta_sample.jsonl` (first 20 test turns)
-- Sample B: `eval/gold_review/annotator_chiranjeevi_sample.jsonl` (first 20 test turns)
+- Sample B: `eval/gold_review/annotator_peer_sample.jsonl` (independent peer review sample, 20 test turns)
 - Agreement Script: `eval/gold_review/run_agreement.py`
 
 **Steps to Execute:**
 1. Cheshta independently opens `eval/gold_review/annotator_cheshta_sample.jsonl` and verifies/corrects `sub_intents` and `answer_chunks`.
-2. Chiranjeevi independently opens `eval/gold_review/annotator_chiranjeevi_sample.jsonl` and does the same.
+2. Independent peer reviewer opens `eval/gold_review/annotator_peer_sample.jsonl` and does the same.
 3. Run the automated agreement script:
    ```bash
    uv run python -m eval.gold_review.run_agreement
@@ -184,7 +184,7 @@ Execute these checks before submitting:
   - `docker run --network none --rm kairos make eval` passes all gates without network access.
 - [ ] **Hackathon Submission Portal Form:**
   - Team Name: `Team Coding Agent RIT` (M S Ramaiah Institute of Technology)
-  - Members: Cheshta Rajput & Chiranjeevi U Jadhav
+  - Member: Cheshta Rajput
   - Theme: `Theme 04: Streaming Live RAG`
   - Tag: `PRISM_GENAI_HACKATHON_Y2026`
 - [ ] **Local Archive Backup:**

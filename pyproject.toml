@@ -9,8 +9,7 @@ description = "Streaming Live RAG Engine (Samsung PRISM GenAI Hackathon 2026, Th
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
-    { name = "Cheshta Rajput" },
-    { name = "Chiranjeevi U Jadhav" }
+    { name = "Cheshta Rajput" }
 ]
 license = "MIT"
 dependencies = [

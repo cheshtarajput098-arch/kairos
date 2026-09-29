@@ -6,7 +6,7 @@ from eval.iaa import evaluate_iaa_sample
 
 def main() -> None:
     sample_a = Path("eval/gold_review/annotator_cheshta_sample.jsonl")
-    sample_b = Path("eval/gold_review/annotator_chiranjeevi_sample.jsonl")
+    sample_b = Path("eval/gold_review/annotator_peer_sample.jsonl")
     
     if not sample_a.exists() or not sample_b.exists():
         print("Annotator sample files not found in eval/gold_review/")

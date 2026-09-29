@@ -112,6 +112,16 @@ class ClaimObject(StrictBaseModel):
     version: int
 
 
+class RewrittenClaim(StrictBaseModel):
+    claim_id: str
+    text: str
+    evidence_span: str
+
+
+class RewriteResponse(StrictBaseModel):
+    rewritten_claims: list[RewrittenClaim] = Field(default_factory=list)
+
+
 class VersionDiff(StrictBaseModel):
     added: list[str] = Field(default_factory=list)
     changed: list[str] = Field(default_factory=list)

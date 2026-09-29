@@ -28,8 +28,8 @@ models:
     threshold: 0.5
   local_llm:
     enabled: true               # falls back to Speed 1 automatically if the file is missing
-    gguf_file: TBD              # Prompt 7b: chosen by benchmark (~1-4B, quantised)
-    sha256: TBD
+    gguf_file: models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+    sha256: d34d8e8b0b8c6a2e457f920211a5ef5999818b2c4516df240092f61a15328214
     n_threads: 4
     context_tokens: 4096
     max_output_tokens: 256

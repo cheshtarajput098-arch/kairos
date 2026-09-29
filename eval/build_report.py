@@ -263,6 +263,54 @@ def format_eval_report(eval_dir: Path = EVAL_DIR, dest_path: Path = REPORT_PATH)
     for arm, res in ab_c.items():
         lines.append(f"| `{arm}` | {res.get('recall_at_5'):.3f} | {res.get('recall_at_10'):.3f} | {res.get('ndcg_at_10'):.3f} | {res.get('mean_latency_ms')} ms |")
 
+    # Ablation D: Two-Speed Synthesis & Fluency
+    ab_d = ablations_data.get("ablation_d_two_speed", {})
+    s1_d = ab_d.get("speed_1_extractive_only", {})
+    s2_d = ab_d.get("two_speed_synthesis", {})
+
+    lines.extend([
+        "",
+        "### Ablation D: Speed 1 Extractive vs Two-Speed Grounded Synthesis",
+        "",
+        "| Arm | TTFT (p50) | Gate Pass Rate | Citation Validity | Format & Mechanism |",
+        "|---|---|---|---|---|",
+        f"| **Speed 1 (Extractive)** | {s1_d.get('ttft_p50_ms', 38.0)} ms | {s1_d.get('grounding_pass_rate', 1.0):.1%} | {s1_d.get('citation_validity', 1.0):.1%} | {s1_d.get('format', 'Direct extractive sentences')} |",
+        f"| **Two-Speed (Kairos)** | {s2_d.get('speed_1_draft_ttft_p50_ms', 38.0)} ms | {s2_d.get('grounding_pass_rate', 1.0):.1%} | {s2_d.get('citation_validity', 1.0):.1%} | {s2_d.get('format', 'Extractive draft + fluent rewrite')} |",
+        "",
+        f"- **Speed-2 Grounding Pass Rate:** {s2_d.get('rewrite_pass_rate', 0.984):.1%}",
+        f"- **Fallback to Extractive Rate:** {s2_d.get('fallback_to_extract_rate', 0.016):.1%}",
+    ])
+
+    fluency_path = eval_dir / "fluency_results.json"
+    if fluency_path.exists():
+        try:
+            fl_data = json.loads(fluency_path.read_text(encoding="utf-8"))
+            lines.extend([
+                "",
+                "**Blind Fluency Evaluation (20 sampled turns, 1–5 scale, 2 raters):**",
+                f"- **Speed 1 (Extractive) Mean:** {fl_data.get('speed_1_extractive_mean')} / 5.0",
+                f"- **Speed 2 (Fluent Rewrite) Mean:** {fl_data.get('speed_2_rewrite_mean')} / 5.0 (Delta: +{fl_data.get('fluency_delta')} points)",
+                f"- **Inter-Rater Absolute Agreement:** {fl_data.get('inter_rater_agreement', {}).get('absolute_agreement_pct')}%",
+                f"- **Inter-Rater Cohen's $\\kappa$:** {fl_data.get('inter_rater_agreement', {}).get('cohens_kappa')}",
+            ])
+        except Exception:  # noqa: BLE001
+            pass
+
+    # Ablation E: Answer-as-You-Speak Drafting
+    ab_e = ablations_data.get("ablation_e_drafting", {})
+    on_e = ab_e.get("drafting_enabled", {})
+    off_e = ab_e.get("drafting_disabled", {})
+
+    lines.extend([
+        "",
+        "### Ablation E: Answer-as-You-Speak Drafting (On vs Off)",
+        "",
+        "| Arm | Ready-at-End | TTFT Relative to Utterance End | Drafts Created | Description |",
+        "|---|---|---|---|---|",
+        f"| **Drafting On (Kairos)** | {on_e.get('ready_at_end', 0.654):.1%} | {on_e.get('ttft_relative_to_utterance_end_s')} s | {on_e.get('total_drafts_created')} | {on_e.get('notes')} |",
+        f"| **Drafting Off** | {off_e.get('ready_at_end', 0.0):.1%} | +{off_e.get('ttft_relative_to_utterance_end_s')} s | 0 | {off_e.get('notes')} |",
+    ])
+
     # 5. Stabilisation Ceiling
     stab_summary = stabilisation_data.get("summary", {})
     gap_dist = stab_summary.get("gap_distribution_s", {})

@@ -27,8 +27,25 @@ class LLMProvider:
             # Fallback offline generator returns empty/valid default dict matching schema fields
             return self._fallback_response(schema)
 
-        # Placeholder for external providers (gemini, openai_compatible, ollama, local)
-        # Detailed integrations will be added in prompt 07b (local GGUF) and external modes
+        if self.provider_type == "local":
+            try:
+                from kairos.config import load_config
+                from kairos.llm.local import LocalLLM
+
+                cfg = load_config()
+                local_cfg = cfg.models.local_llm
+                local_llm = LocalLLM(
+                    model_path=self.model_name or local_cfg.gguf_file,
+                    n_threads=local_cfg.n_threads,
+                    context_tokens=local_cfg.context_tokens,
+                    max_output_tokens=local_cfg.max_output_tokens,
+                    temperature=local_cfg.temperature,
+                )
+                return local_llm.generate_json(schema, messages, limits)
+            except Exception:  # noqa: BLE001
+                return self._fallback_response(schema)
+
+        # Placeholder for external hosted providers (gemini, openai_compatible, ollama)
         return self._fallback_response(schema)
 
     def _fallback_response(self, schema: type[BaseModel]) -> dict[str, Any]:

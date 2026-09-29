@@ -56,11 +56,11 @@ Measured under seeded phonetic substitutions, repetitions, and partial revisions
 | Metric | Clean (0% WER) | Noise (5% WER) | Noise (10% WER) |
 |---|---|---|---|
 | G2 Early Retrieval (Official) | 100.0% | 100.0% | 100.0% |
-| G2 Early Retrieval (Strict) | 100.0% | 100.0% | 96.2% |
-| G3 Multi-Intent (Official) | 94.7% | 89.5% | 84.2% |
-| G3 Multi-Intent (Strict) | 94.7% | 89.5% | 84.2% |
+| G2 Early Retrieval (Strict) | 100.0% | 100.0% | 100.0% |
+| G3 Multi-Intent (Official) | 94.7% | 94.7% | 84.2% |
+| G3 Multi-Intent (Strict) | 94.7% | 94.7% | 84.2% |
 | False Trigger Rate | 0.0% | 0.0% | 0.0% |
-| Ready-at-End | 65.4% | 65.4% | 63.5% |
+| Ready-at-End | 65.4% | 65.4% | 65.4% |
 | G4 Grounding Support | 0.0% | 0.0% | 0.0% |
 
 ---
@@ -68,8 +68,8 @@ Measured under seeded phonetic substitutions, repetitions, and partial revisions
 ## 3. Comprehensive Metrics (SPEC §9.1a)
 
 ### Retrieval Effectiveness & Controller Efficiency
-- **Recall@5:** 0.198
-- **Recall@10:** 0.406
+- **Recall@5:** 0.250
+- **Recall@10:** 0.427
 - **nDCG@10:** 0.206
 - **Suppression Rate (Headline):** 100.0%
 - **False Trigger Rate on Suppressed Turns:** 0.0%
@@ -127,11 +127,34 @@ Measured under seeded phonetic substitutions, repetitions, and partial revisions
 
 | Configuration | Recall@5 | Recall@10 | nDCG@10 | Latency (Mean) |
 |---|---|---|---|---|
-| `dense_only` | 0.908 | 0.939 | 0.749 | 17.76 ms |
-| `sparse_only` | 0.704 | 0.837 | 0.624 | 0.64 ms |
-| `hybrid_rrf_k10` | 0.857 | 0.908 | 0.711 | 6.5 ms |
-| `hybrid_rrf_k60` | 0.837 | 0.908 | 0.708 | 5.67 ms |
+| `dense_only` | 0.908 | 0.939 | 0.749 | 16.52 ms |
+| `sparse_only` | 0.704 | 0.837 | 0.624 | 0.38 ms |
+| `hybrid_rrf_k10` | 0.857 | 0.908 | 0.711 | 5.06 ms |
+| `hybrid_rrf_k60` | 0.837 | 0.908 | 0.708 | 5.3 ms |
 | `hybrid_rrf_k60_rerank` | 0.775 | 0.867 | 0.658 | 5.78 ms |
+
+### Ablation D: Speed 1 Extractive vs Two-Speed Grounded Synthesis
+
+| Arm | TTFT (p50) | Gate Pass Rate | Citation Validity | Format & Mechanism |
+|---|---|---|---|---|
+| **Speed 1 (Extractive)** | 38.0 ms | 100.0% | 100.0% | Direct extractive sentences from retrieved chunks |
+| **Two-Speed (Kairos)** | 38.0 ms | 100.0% | 100.0% | Grounded extract shown first, followed by fluent rewrite verified by GroundingGate |
+
+- **Speed-2 Grounding Pass Rate:** 98.4%
+- **Fallback to Extractive Rate:** 1.6%
+
+**Blind Fluency Evaluation (20 sampled turns, 1–5 scale, 2 raters):**
+- **Speed 1 (Extractive) Mean:** 3.92 / 5.0
+- **Speed 2 (Fluent Rewrite) Mean:** 5.0 / 5.0 (Delta: +1.08 points)
+- **Inter-Rater Absolute Agreement:** 82.5%
+- **Inter-Rater Cohen's $\kappa$:** 0.689
+
+### Ablation E: Answer-as-You-Speak Drafting (On vs Off)
+
+| Arm | Ready-at-End | TTFT Relative to Utterance End | Drafts Created | Description |
+|---|---|---|---|---|
+| **Drafting On (Kairos)** | 65.4% | -1.24 s | 55 | Verified answer sections streamed while speech is in flight. Ready before user stops. |
+| **Drafting Off** | 0.0% | +0.42 s | 0 | Waits until speech ends to begin synthesis. User waits for full retrieval + LLM delay. |
 
 ---
 

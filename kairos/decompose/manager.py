@@ -78,7 +78,8 @@ class DecompositionManager:
 
         # 2. Split clauses into candidate sub-queries
         if self.mode == "llm":
-            candidates = self.llm_decomposer.decompose(clean_text)
+            rule_candidates = self.rule_splitter.split(clean_text)
+            candidates = self.llm_decomposer.decompose(clean_text, proposed_legs=rule_candidates)
         else:
             candidates = self.rule_splitter.split(clean_text)
 

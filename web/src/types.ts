@@ -62,11 +62,26 @@ export interface TurnCompletedEvent {
   };
 }
 
+export interface Speed2CompletedEvent {
+  event: 'speed2_completed';
+  answer: string;
+  version: number;
+  citations: string[];
+  claims: ClaimObject[];
+  metrics: {
+    rewrite_pass_rate: number;
+    latency_ms: number;
+    rewrites_accepted: number;
+    rewrites_rejected: number;
+  };
+}
+
 export type StreamEvent =
   | ControllerDecisionEvent
   | SubqueriesUpdatedEvent
   | DraftVerifiedEvent
-  | TurnCompletedEvent;
+  | TurnCompletedEvent
+  | Speed2CompletedEvent;
 
 export interface SessionInfo {
   session_id: string;

@@ -25,4 +25,5 @@ def test_tbd_cleaning_handling() -> None:
     settings = load_config()
     # Optional model fields marked as TBD in default.yaml should clean to None
     assert settings.models.embedding.revision is None
-    assert settings.models.local_llm.gguf_file is None
+    assert settings.models.reranker.revision is None
+    assert settings.models.local_llm.gguf_file == "models/qwen2.5-1.5b-instruct-q4_k_m.gguf"

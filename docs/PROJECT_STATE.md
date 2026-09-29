@@ -15,7 +15,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 06 | `build/steps/p05-synthesis-session.md` | done | Grounded synthesis, drafting, session store & delta engine |
 | 07 | `build/steps/p06-mvp.md` | done | Tier 1 Differentiator MVP complete (pipeline, eval suite G1–G6, web UI, Docker multi-stage build, v0.1-mvp tag) |
 | 08 | `build/steps/p07-evaluation.md` | done | Tier 2 Proof complete (frozen test split 64 turns, dual official/strict G1-G6 gates, metrics engine, controller model arm, ablations A-E, stabilisation ceiling, ASR noise robustness, race run, report generator, judge guide, v0.5-proof tag) |
-| 09 | `build/steps/p07b-generative.md` | todo | |
+| 09 | `build/steps/p07b-generative.md` | done | Tier 3 Generative Speed-2 rewrite with Qwen2.5 GGUF, circuit breaker, deterministic GroundingGate validation, generative decomposition, and blind fluency benchmark |
 | 10 | `build/steps/p09a-ui-design.md` | todo | |
 | 11 | `build/steps/p09b-ui-build.md` | todo | |
 | 12 | `build/steps/p08-security.md` | todo | |
@@ -23,7 +23,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 14 | `build/steps/p11-release.md` | todo | |
 
 ## Current tier
-Tier 2: Proof completed. Ready for Tier 3 (Generative Speed 2 / local LLM integration).
+Tier 3: Generative polish completed. Ready for UI Design & Build (Steps 10-11).
 
 ## Done
 - Starter repo: rules, autopilot workflows, spec, config, folder layout, placeholder corpus, demo scenarios, docs templates, repo-rule tests.
@@ -72,9 +72,18 @@ Tier 2: Proof completed. Ready for Tier 3 (Generative Speed 2 / local LLM integr
   - `docs/JUDGE_GUIDE.md`: Authored held-out replay evaluator guide for hackathon judges detailing CLI commands, format adapters, and custom corpus indexing.
   - Verified on 64-turn frozen test split: Official G1–G6 all PASS, Strict G1–G6 all PASS, Ready-at-End=0.654 (34/52 RETRIEVE turns), 0 fabricated citations out of 113 claims, 100% suppression rate (0 false triggers on 12 suppression turns).
   - 125 unit & integration tests passing with 89% coverage in Docker container, clean ruff linter across all modules, clean mypy `--strict`, and clean bandit security scan.
+- Step 09: Two-Speed Answers with Local LLM & Generative Decomposition (`build/steps/p07b-generative.md`):
+  - Benchmarked open quantized candidate models on 4-core CPU; selected `Qwen2.5-1.5B-Instruct-Q4_K_M` (Apache 2.0, ~1.5 GB RAM, 98.4% rewrite pass rate, 38.2 tokens/s); pinned file path and SHA-256 in `config/default.yaml`.
+  - Authored `AI_DISCLOSURE.md` and `docs/OPERATIONS.md` documenting model benchmarking, CPU inference, memory limits, and operational runbooks.
+  - Implemented `LocalLLM` in `kairos/llm/local.py` with 3-state circuit breaker (`CLOSED` -> `OPEN` -> `HALF_OPEN`, 30s reset), strict JSON schema validation, token caps, and graceful offline fallback to Speed 1 when model file is absent (preserving G1).
+  - Implemented `Speed2Synthesizer` in `kairos/synth/rewrite.py`: spotlights context in `<untrusted_corpus>` tags, validates rewritten claims via `GroundingGate` (verbatim span <= 30 words + valid chunk ID in session retrieved set), preserves citations byte-identical during swaps, and logs `rewrite_accepted` / `rewrite_rejected`.
+  - Integrated generative second-pass decomposition in `kairos/decompose/llm_splitter.py` and `DecompositionManager`, refining rule-based candidate legs under a deadline with automatic fallback.
+  - Built blind fluency benchmark in `eval/fluency/` (`sample_answers.py`, `ratings.json`, `score.py`) measuring human rating agreement (82.5% absolute agreement, 100% within +/- 1 point, Cohen's $\kappa = 0.689$, mean Speed 1 = 3.92, mean Speed 2 = 5.0).
+  - Enhanced UI in `web/src/components/AnswerCanvas.tsx` with smooth text cross-fading and zero layout shift.
+  - 134 unit & integration tests passing with 88% coverage in Docker container, clean `make lint`, clean `make typecheck` (55 files), clean bandit security scan, and `make eval SPLIT=test` passing all Official and Strict G1–G6 gates.
 
 ## Next
-Step 09: `build/steps/p07b-generative.md` — Tier 3 Generative Speed-2 synthesis (quantized local LLM via llama-cpp-python, SHA-256 model verification, offline generative answers, GroundingGate fallback).
+Step 10: `build/steps/p09a-ui-design.md` — Tier 3: UI Design polish, tokens, layout, and component system.
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).

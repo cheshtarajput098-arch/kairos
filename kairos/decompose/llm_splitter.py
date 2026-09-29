@@ -34,18 +34,30 @@ class LLMDecomposer:
         fallback_splitter: RuleBasedSplitter | None = None,
         max_legs: int = 4,
     ) -> None:
-        self.provider = provider or LLMProvider()
+        self.provider = provider or LLMProvider(provider_type="local")
         self.deadline_ms = deadline_ms
         self.fallback = fallback_splitter or RuleBasedSplitter(max_legs=max_legs)
         self.max_legs = max_legs
 
-    def decompose(self, text: str) -> list[SubQuery]:
-        """Decompose text using LLM with automatic fallback to RuleBasedSplitter."""
+    def decompose(
+        self, text: str, proposed_legs: list[SubQuery] | None = None
+    ) -> list[SubQuery]:
+        """Decompose text using LLM with automatic fallback to proposed legs or RuleBasedSplitter."""
         if not text.strip():
             return []
 
+        base_legs = proposed_legs if proposed_legs is not None else self.fallback.split(text)
+
         # Spotlight user utterance inside delimited untrusted tags (Security Rule 2)
-        user_message = f"<user_utterance>\n{text.strip()}\n</user_utterance>"
+        proposed_desc = ""
+        if base_legs:
+            legs_str = ", ".join(f"[{sq.leg_id}: {sq.text}]" for sq in base_legs)
+            proposed_desc = f"\nProposed initial candidate legs: {legs_str}\n"
+
+        user_message = (
+            f"<user_utterance>\n{text.strip()}\n</user_utterance>{proposed_desc}"
+            "Decompose into standalone sub-queries matching the requested schema."
+        )
         messages = [
             {"role": "system", "content": _SYSTEM_PROMPT},
             {"role": "user", "content": user_message},
@@ -66,4 +78,4 @@ class LLMDecomposer:
                 f"LLM decomposition failed or timed out: {e}; falling back to rule-based splitter."
             )
 
-        return self.fallback.split(text)
+        return base_legs

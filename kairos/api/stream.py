@@ -30,6 +30,7 @@ from kairos.session.delta import DeltaEngine
 from kairos.session.store import SessionStore
 from kairos.synth.drafting import DraftingManager
 from kairos.synth.extractive import ExtractiveSynthesizer
+from kairos.synth.rewrite import Speed2Synthesizer
 
 logger = logging.getLogger("kairos.api.stream")
 
@@ -73,6 +74,7 @@ async def handle_stream_websocket(
     gate = GroundingGate()
     drafting_mgr = DraftingManager(synthesizer, gate)
     delta_engine = DeltaEngine(synthesizer)
+    speed2_synth = Speed2Synthesizer(gate=gate) if cfg.synthesis.speed2.enabled else None
 
     prefix_buffer = ""
     turn_decisions: list[str] = []
@@ -263,6 +265,34 @@ async def handle_stream_websocket(
                             }
                         )
                     )
+
+                    # Stage 5 Speed-2 Grounded Rewrite (SPEC §6.2)
+                    if (
+                        speed2_synth is not None
+                        and cfg.synthesis.speed2.enabled
+                        and cfg.synthesis.speed2.run_policy != "off"
+                        and committed_claims
+                    ):
+                        s2_claims, s2_metrics = speed2_synth.rewrite_claims(
+                            committed_claims, index_store.chunks_map
+                        )
+                        if s2_metrics.get("rewrites_accepted", 0) > 0:
+                            s2_answer = " ".join(c.text for c in s2_claims)
+                            v_s2 = session_store.save_version(
+                                session_id, s2_answer, s2_claims, citations
+                            )
+                            await websocket.send_text(
+                                json.dumps(
+                                    {
+                                        "event": "speed2_completed",
+                                        "answer": s2_answer,
+                                        "version": v_s2,
+                                        "citations": citations,
+                                        "claims": [c.model_dump() for c in s2_claims],
+                                        "metrics": s2_metrics,
+                                    }
+                                )
+                            )
 
                 # Reset turn state
                 prefix_buffer = ""

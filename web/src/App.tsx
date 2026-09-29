@@ -115,6 +115,15 @@ export const App: React.FC = () => {
           setReadyAtEnd(event.metrics.ready_at_end);
         }
         break;
+
+      case 'speed2_completed':
+        setFinalAnswer(event.answer);
+        setVersion(event.version);
+        setCitations(event.citations);
+        if (event.claims) {
+          setFinalClaims(event.claims);
+        }
+        break;
     }
   };
 

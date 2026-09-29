@@ -51,6 +51,7 @@ from kairos.session.store import SessionStore
 from kairos.stream.replay import ReplayReader
 from kairos.synth.drafting import DraftingManager
 from kairos.synth.extractive import ExtractiveSynthesizer
+from kairos.synth.rewrite import Speed2Synthesizer
 
 # ---------------------------------------------------------------------------
 # Gold label loader
@@ -92,6 +93,7 @@ def _run_turn(
     drafting_mgr: DraftingManager,
     delta_engine: DeltaEngine,
     session_store: SessionStore,
+    speed2_synth: Speed2Synthesizer | None = None,
 ) -> dict[str, Any]:
     """Execute the full pipeline for one turn and return a gate-measurement record."""
     session_id = reader.transcript.session_id
@@ -219,6 +221,11 @@ def _run_turn(
             version=session_state.current_version,
         )
         ready_at_end_val = float(drafting_metrics.get("ready_at_end", 0.0))
+        if speed2_synth is not None and committed_claims:
+            rewritten_claims, _ = speed2_synth.rewrite_claims(
+                committed_claims, store.chunks_map
+            )
+            committed_claims = rewritten_claims
         final_ans = " ".join(c.text for c in committed_claims)
         all_cites = list(dict.fromkeys(cite for c in committed_claims for cite in c.citations))
         session_state.active_legs = {lo.leg_id: lo for lo in active_legs_list}
@@ -320,6 +327,7 @@ def run_suite(split: str = "dev", out_dir: str = "runs/eval") -> int:
     gate = GroundingGate()
     delta_engine = DeltaEngine(synthesizer=synthesizer)
     drafting_mgr = DraftingManager(gate=gate, synthesizer=synthesizer)
+    speed2_synth = Speed2Synthesizer(gate=gate)
     session_store = SessionStore()
 
     # Run freeze check if running against frozen test split
@@ -352,6 +360,7 @@ def run_suite(split: str = "dev", out_dir: str = "runs/eval") -> int:
             drafting_mgr=drafting_mgr,
             delta_engine=delta_engine,
             session_store=session_store,
+            speed2_synth=speed2_synth,
         )
         # Attach gold label annotations for stratification
         gold_item = _gold.get(record["turn_id"])

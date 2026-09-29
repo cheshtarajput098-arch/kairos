@@ -77,10 +77,10 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
                 return (
                   <div
                     key={claim.claim_id}
-                    className="pl-3.5 border-l-2 text-slate-800 dark:text-slate-100 text-sm leading-relaxed transition-all"
+                    className="pl-3.5 border-l-2 text-slate-800 dark:text-slate-100 text-sm leading-relaxed transition-all duration-300"
                     style={{ borderColor: intentStyle.hex }}
                   >
-                    <span>{claim.text}</span>
+                    <span className="transition-opacity duration-300 ease-in-out">{claim.text}</span>
                     {claim.citations.map((cite, cIdx) => (
                       <SourcePopover
                         key={cite}

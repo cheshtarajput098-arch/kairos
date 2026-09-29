@@ -1,0 +1,51 @@
+{
+  "app": {
+    "title": "Kairos",
+    "subtitle": "Streaming Live RAG Engine",
+    "tagline": "Answers formed while you speak"
+  },
+  "header": {
+    "assistant": "Assistant",
+    "inspector": "Inspector",
+    "playDemo": "Play the demo",
+    "status": {
+      "connected": "Connected",
+      "connecting": "Connecting...",
+      "offline": "Offline"
+    }
+  },
+  "assistant": {
+    "welcome": "Ask anything about Veloria Systems. Speak or type naturally — you can add constraints as you go.",
+    "privacy": "This session is ephemeral and stored in memory only.",
+    "suggestedTitle": "Suggested questions",
+    "searching": "Already searching...",
+    "readyWhenStopped": "{{ready}} of {{total}} parts were ready before you finished speaking",
+    "timeSaved": "saved {{time}}s vs batch",
+    "updatedBadge": "Updated · v{{version}}",
+    "seeWhatChanged": "See what changed",
+    "quickActions": {
+      "shorter": "Shorter",
+      "asBullets": "As bullets",
+      "explainSimply": "Explain simply",
+      "noNewSearch": "No new search needed"
+    },
+    "gapCard": {
+      "title": "I couldn't find complete evidence for this in the documents.",
+      "askDifferently": "Ask differently"
+    }
+  },
+  "storyMode": {
+    "scenario1": {
+      "name": "Scenario 1: Compound Multi-Intent",
+      "caption": "Kairos detects multiple intents in real time and retrieves each parallel leg concurrently before utterance end."
+    },
+    "scenario2": {
+      "name": "Scenario 2: Late-Arriving Detail",
+      "caption": "A late constraint arrives mid-session: only the affected claim rewrites in place, preserving unaffected claims byte-identically."
+    },
+    "scenario3": {
+      "name": "Scenario 3: Presentation Suppression",
+      "caption": "Reformatting request detected: zero new retrieval calls needed, re-synthesizes presentation instantly."
+    }
+  }
+}

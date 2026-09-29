@@ -13,3 +13,4 @@ The agent adds items here instead of stopping. None of them block the build. The
 | H7 | Record the ≤ 5-minute demo video (after step 14) | A required deliverable. | Follow `docs/DEMO_SCRIPT.md`; record the screen while Story mode plays and narrate. | open |
 | H8 | Fill in the presentation deck (after step 14) | A required deliverable; blanks look unfinished. | Use the numbers sheet in `docs/presentation/`. | open |
 | H9 | Final push with the release tag | The judged commit must carry the tag. | `git push origin main --tags`. | open |
+| H10 | Capture 20-second Story mode demo GIF | Gives judges an immediate visual preview of live streaming RAG in README. | Run Story mode at http://localhost:8000, record 20s GIF, save to `docs/img/story_mode_demo.gif`. | open |

@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  @keyframes gentle-shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .drafting-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(37, 99, 235, 0.04) 25%,
+      rgba(37, 99, 235, 0.12) 50%,
+      rgba(37, 99, 235, 0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: gentle-shimmer 2.5s infinite linear;
+  }
+}

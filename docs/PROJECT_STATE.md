@@ -13,7 +13,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 04 | `build/steps/p03-controller.md` | done | Replay harness & retrieval controller |
 | 05 | `build/steps/p04-decomposer.md` | done | Multi-intent decomposer, deduplication & parallel dispatch |
 | 06 | `build/steps/p05-synthesis-session.md` | done | Grounded synthesis, drafting, session store & delta engine |
-| 07 | `build/steps/p06-mvp.md` | in_progress (part 1 of 2) | Part 1 done (adapters, eval suite G1–G6, mvp-replay CI job); Part 2 next (web UI, Docker frontend build, v0.1-mvp tag) |
+| 07 | `build/steps/p06-mvp.md` | done | Tier 1 Differentiator MVP complete (pipeline, eval suite G1–G6, web UI, Docker multi-stage build, v0.1-mvp tag) |
 | 08 | `build/steps/p07-evaluation.md` | todo | |
 | 09 | `build/steps/p07b-generative.md` | todo | |
 | 10 | `build/steps/p09a-ui-design.md` | todo | |
@@ -23,7 +23,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 14 | `build/steps/p11-release.md` | todo | |
 
 ## Current tier
-Tier 1: Differentiator MVP pipeline complete & evaluated; frontend web assembly in progress.
+Tier 1: Differentiator MVP (`v0.1-mvp`) complete. All acceptance gates G1–G6 passing.
 
 ## Done
 - Starter repo: rules, autopilot workflows, spec, config, folder layout, placeholder corpus, demo scenarios, docs templates, repo-rule tests.
@@ -43,16 +43,21 @@ Tier 1: Differentiator MVP pipeline complete & evaluated; frontend web assembly 
   - `kairos/api/stream.py` & `app.py`: REST session endpoints (`POST /v1/sessions`, `GET /v1/sessions/{id}`, `GET /v1/sessions/{id}/diff`, `DELETE /v1/sessions/{id}`) and WebSocket streaming (`WS /v1/stream`) with origin checks, token validation, 4096-byte message limits, 60 msg/s rate limiting, and real-time event streaming.
   - Replay CLI (`kairos replay demo`) replaying all 3 hackathon demo scenarios, printing answer v1, v2, version diffs, and Ready-at-End scores.
   - 83 tests passing with 90% coverage in Docker container, clean mypy `--strict`, clean ruff, and zero bandit security issues.
-- Step 07 (Part 1 of 2):
+- Step 07: Differentiator MVP assembly and web UI (`v0.1-mvp`):
+  - `web/`: Built complete React + TypeScript + Vite + Tailwind frontend conforming to Calm Precision design tokens (SPEC §14.2, §14.3a).
+    - Assistant Mode: live transcript with intent color threading, real-time "Already searching..." chip, Answer Canvas with ghost sections → drafting shimmer → settled state, source pills with popovers, "Ready when you stopped" line, and Shorter/As bullets quick actions.
+    - Inspector Mode: interactive Timeline with decision markers, intent-colored leg Gantt bars, draft markers, utterance-end line, and shaded lead time; Answer panel with `[Doc_ID §Section]` chips and diffing; Telemetry panel with live event stream, Ready-at-End score, and Jaeger UI links.
+    - Story Mode: autoplays the 3 hackathon demo scenarios over live authenticated WebSocket with scenario captions from `strings.en.json`.
+    - Strict text-only rendering (Security Rule 1).
+  - Multi-stage Dockerfile: Node builds `web/` to `dist/`, copied to `kairos/api/static` in final python image. Zero Node at runtime, zero CDN dependencies.
   - `kairos/stream/adapters.py`: Tolerant held-out transcript format adapter supporting native JSONL, theme-guide Example 1 table format, flat transcript wrappers, and raw text fallback with synthetic timestamps (SPEC §9.6a).
-  - `eval/`: Offline evaluation suite with `eval/gates.py`, `eval/baseline.py`, and `eval/run_suite.py` computing official acceptance gates G1–G6 with honest denominators and Ready-at-End metric. `make eval` runs completely offline with no network or API key.
-  - Verified evaluation gate results on dev split: G1=PASS (1.0), G2=PASS (1.0), G3=PASS (1.0), G4=PASS (0.000, 0 fabricated citations out of 28 total claims), G5=PASS (1.0), G6=PASS (1.0), Ready-at-End=0.769 (10/13 RETRIEVE turns).
-  - Enhanced `kairos/synth/extractive.py` to eliminate unretrieved chunk fallbacks, ensuring zero hallucinated citations.
+  - `eval/`: Complete offline evaluation suite (`eval/gates.py`, `eval/baseline.py`, `eval/run_suite.py`) computing official acceptance gates G1–G6 with honest denominators and Ready-at-End metric. `make eval` runs completely offline with no network or API key.
+  - Verified evaluation gate results on dev split: G1=PASS (1.0), G2=PASS (1.0), G3=PASS (1.0), G4=PASS (0.000, 0 fabricated citations), G5=PASS (1.0), G6=PASS (1.0), Ready-at-End=0.769 (10/13 RETRIEVE turns).
   - `.github/workflows/ci.yml`: Added `mvp-replay` CI job asserting headless demo replay, controller decisions, leg counts, late-constraint version bumps, zero-retrieval suppression, and offline `make eval` gate execution.
-  - 112 unit & integration tests passing with 89% coverage in Docker container, clean `make lint`, clean `make typecheck` (53 files), clean `make security`.
+  - 112 unit & integration tests passing with 89% coverage in Docker container, clean `make lint`, clean `make typecheck` (53 files), clean `make security`. Tagged `v0.1-mvp`.
 
 ## Next
-Step 07 (Part 2 of 2): Complete Differentiator MVP assembly in `web/` (React + TypeScript + Vite + Tailwind with Assistant, Inspector, and Story modes), multi-stage Docker build for static frontend serving, README quick start with demo GIF, and local `v0.1-mvp` git tag.
+Step 08: `build/steps/p07-evaluation.md` — Offline evaluation suite, baseline benchmarking & ablation analysis.
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).
@@ -60,3 +65,4 @@ Step 07 (Part 2 of 2): Complete Differentiator MVP assembly in `web/` (React + T
 ## Tags
 | Tag | Date | Notes |
 |---|---|---|
+| `v0.1-mvp` | 2026-09-29 | Tier 1 Differentiator MVP end-to-end (SPEC §15.1) |

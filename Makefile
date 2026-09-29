@@ -30,9 +30,9 @@ security:
 	$(PYTHON) -m bandit -r kairos/ -c .bandit.yml || true
 
 web:
-	@echo "Building frontend placeholder in web/..."
-	@mkdir -p web/dist kairos/api/static
-	@echo "<h1>Kairos UI Placeholder</h1>" > kairos/api/static/index.html
+	@echo "Syncing frontend dist to kairos/api/static..."
+	@mkdir -p kairos/api/static
+	@cp -r web/dist/* kairos/api/static/ 2>/dev/null || true
 
 clean:
 	rm -rf build/ dist/ *.egg-info .pytest_cache .mypy_cache .ruff_cache .coverage htmlcov runs/ index/

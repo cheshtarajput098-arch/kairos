@@ -1,4 +1,15 @@
-# Multi-stage Dockerfile for Kairos (SPEC §13.3)
+# Multi-stage Dockerfile for Kairos (SPEC §13.3, §15.1)
+
+# Stage 1: Build React web frontend with Node (no Node at runtime)
+FROM node:20-slim AS web-builder
+
+WORKDIR /web
+COPY web/package.json web/package-lock.json* ./
+RUN npm install
+COPY web/ ./
+RUN npm run build
+
+# Stage 2: Build Python virtualenv with frozen dependencies
 FROM python:3.11-slim AS builder
 
 WORKDIR /app
@@ -17,7 +28,7 @@ COPY pyproject.toml uv.lock ./
 ENV UV_LINK_MODE=copy
 RUN uv sync --frozen --all-extras --no-install-project
 
-# Final runtime image
+# Stage 3: Final runtime image (pure Python, non-root, read-only root)
 FROM python:3.11-slim AS runtime
 
 WORKDIR /app
@@ -49,6 +60,9 @@ COPY --from=builder /app/.venv /app/.venv
 
 # Copy source repository
 COPY . /app
+
+# Copy compiled frontend from web-builder
+COPY --from=web-builder /web/dist /app/kairos/api/static
 
 # Pre-download and cache FastEmbed model during build (offline-capable rule)
 RUN python -c "from fastembed import TextEmbedding; TextEmbedding('BAAI/bge-small-en-v1.5')"

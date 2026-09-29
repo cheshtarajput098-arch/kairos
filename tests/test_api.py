@@ -42,6 +42,8 @@ def test_error_envelope_no_stack_trace(monkeypatch: pytest.MonkeyPatch) -> None:
     async def error_route() -> None:
         raise ValueError("Secret internal calculation failure!")
 
+    app.router.routes.insert(0, app.router.routes.pop())
+
     response = client.get("/v1/test-error", headers={"X-Request-ID": "err-req-999"})
     assert response.status_code == 500
     data = response.json()

@@ -12,7 +12,44 @@ Kairos is an event-driven streaming RAG engine. It listens to a transcript as it
 - Progress: `docs/PROJECT_STATE.md` · decisions: `docs/DECISIONS.md` · things only people can do: `docs/HUMAN_TASKS.md`.
 - Requirement tracking: `docs/COMPLIANCE.md`.
 
-## Quick check
+## Quick Start
+
+Bring up the engine and interactive web UI in one command:
+
+```bash
+docker compose up -d --build
+```
+
+- **Interactive UI (Assistant & Inspector):** Open [http://localhost:8000](http://localhost:8000)
+- **Story Mode:** Click **"Play the demo"** in the top navigation to watch all three hackathon theme scenarios stream through the real pipeline in real time.
+- **Distributed Traces:** Open Jaeger UI at [http://localhost:16686](http://localhost:16686)
+
+![Kairos Story Mode Demo](docs/img/story_mode_demo.gif)
+*(To record or update this GIF, see task H10 in `docs/HUMAN_TASKS.md`)*
+
+## Offline Evaluation (G1–G6 Acceptance Gates)
+
+Run the official evaluation suite offline (no API key or network required):
+
+```bash
+docker compose run --rm kairos make eval
+```
+
+Output is written to `runs/eval/gates.json` and `runs/eval/turn_records.json`.
+
+## Development & Test Commands
+
+Inside the container environment:
+
+```bash
+docker compose run --rm kairos make test       # Run 112+ pytest tests with coverage
+docker compose run --rm kairos make lint       # Ruff linting
+docker compose run --rm kairos make typecheck  # mypy --strict across 53+ modules
+docker compose run --rm kairos make security   # Bandit AST security audit
+```
+
+## Quick Check (Host Python)
+
 ```bash
 pip install pytest pyyaml
 pytest -q tests/test_repo_rules.py

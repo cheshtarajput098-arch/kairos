@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    background-color: #0E1014;
+    color: #ECE9E2;
+    font-family: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
 @layer utilities {
   @keyframes gentle-shimmer {
     0% {
@@ -15,9 +25,9 @@
   .drafting-shimmer {
     background: linear-gradient(
       90deg,
-      rgba(37, 99, 235, 0.04) 25%,
-      rgba(37, 99, 235, 0.12) 50%,
-      rgba(37, 99, 235, 0.04) 75%
+      rgba(143, 179, 255, 0.03) 25%,
+      rgba(143, 179, 255, 0.10) 50%,
+      rgba(143, 179, 255, 0.03) 75%
     );
     background-size: 200% 100%;
     animation: gentle-shimmer 2.5s infinite linear;

@@ -23,7 +23,7 @@ export const SourcePopover: React.FC<SourcePopoverProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         onMouseEnter={() => setIsOpen(true)}
         onMouseLeave={() => setIsOpen(false)}
-        className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-mono font-bold rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 hover:bg-blue-200 transition-colors"
+        className="inline-flex items-center justify-center w-[18px] h-[18px] text-[10px] font-mono font-bold rounded bg-[#1C2028] border border-[#282D3A] text-[#ECE9E2] hover:border-[#8FB3FF] transition-colors align-baseline"
         aria-label={`Source citation ${citation}`}
       >
         {index}
@@ -33,24 +33,24 @@ export const SourcePopover: React.FC<SourcePopoverProps> = ({
         <div
           onMouseEnter={() => setIsOpen(true)}
           onMouseLeave={() => setIsOpen(false)}
-          className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 text-left text-xs"
+          className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3.5 bg-[#15181E] rounded-xl shadow-2xl border border-[#1E2330] text-left text-xs"
         >
-          <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-700 text-slate-500 font-mono text-[11px]">
-            <span className="flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400">
-              <BookOpen className="w-3 h-3" />
-              {docId} {section ? `§ Section ${section}` : ''}
+          <div className="flex items-center justify-between pb-2 border-b border-[#1E2330] font-mono text-[11px]">
+            <span className="flex items-center gap-1.5 font-semibold text-[#8FB3FF]">
+              <BookOpen className="w-3.5 h-3.5" />
+              {docId} {section ? `§ ${section}` : ''}
             </span>
-            <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400">
-              <ShieldCheck className="w-3 h-3" /> Verified
+            <span className="flex items-center gap-1 text-[#6FD39A] font-medium">
+              <ShieldCheck className="w-3.5 h-3.5" /> Verified
             </span>
           </div>
 
-          <div className="mt-2 text-slate-700 dark:text-slate-200 italic line-clamp-3">
+          <div className="mt-2 text-[#ECE9E2] font-serif italic text-xs leading-relaxed line-clamp-3">
             "{evidenceSpan || 'Verified corpus evidence chunk in approved index.'}"
           </div>
 
-          <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-700 flex justify-end">
-            <span className="text-[10px] text-slate-400 font-mono">Corpus Verified [Doc_ID §Section]</span>
+          <div className="mt-2 pt-1.5 border-t border-[#1E2330] flex justify-end">
+            <span className="text-[10px] text-[#7D8594] font-mono">Corpus Verified [Doc_ID §Section]</span>
           </div>
         </div>
       )}

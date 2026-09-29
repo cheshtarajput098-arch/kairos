@@ -8,34 +8,42 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          900: '#1e3a8a',
+        canvas: '#0E1014',
+        surface: {
+          1: '#15181E',
+          2: '#1C2028',
+          3: '#12151B',
         },
-        slate: {
-          850: '#151e2e',
-          900: '#0f172a',
-          950: '#0b0f19',
+        kairosBorder: {
+          DEFAULT: '#1E2330',
+          subtle: '#282D3A',
         },
-        decision: {
-          retrieve: '#2563EB',
-          wait: '#64748B',
-          suppress: '#8B5CF6',
+        kairosText: {
+          primary: '#ECE9E2',
+          secondary: '#A3A9B5',
+          tertiary: '#7D8594',
         },
         intent: {
-          1: '#3B82F6', // Blue
-          2: '#10B981', // Emerald
-          3: '#8B5CF6', // Violet
-          4: '#F97316', // Orange
-        }
+          1: '#8FB3FF',
+          2: '#62D6B4',
+          3: '#B98CFF',
+          4: '#F0B455',
+        },
+        kairosStatus: {
+          verified: '#6FD39A',
+          gap: '#F0B455',
+          error: '#EF4444',
+          updated: '#8FB3FF',
+        },
+        accent: {
+          blue: '#5B8DEF',
+          green: '#4ADE80',
+        },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['Geist', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['Newsreader', 'Georgia', 'serif'],
+        mono: ['Geist Mono', 'JetBrains Mono', 'monospace'],
       },
     },
   },

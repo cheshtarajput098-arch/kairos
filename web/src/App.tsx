@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Header } from './components/Header';
+import { StoryBar } from './components/StoryBar';
 import { AssistantMode } from './components/AssistantMode';
 import { InspectorMode } from './components/InspectorMode';
-import { StoryMode, SCENARIOS } from './components/StoryMode';
+import { SCENARIOS } from './components/StoryMode';
 import { createSession, KairosStreamClient } from './api';
 import {
   ClaimObject,
@@ -14,7 +15,6 @@ import {
 
 export const App: React.FC = () => {
   const [mode, setMode] = useState<'assistant' | 'inspector'>('assistant');
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [status, setStatus] = useState<'connected' | 'connecting' | 'closed' | 'error'>('connecting');
 
   // Live session state
@@ -67,15 +67,6 @@ export const App: React.FC = () => {
       }
     };
   }, []);
-
-  // Theme effect
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme]);
 
   // Handle incoming stream events from WebSocket
   const handleIncomingEvent = (event: StreamEvent) => {
@@ -147,15 +138,18 @@ export const App: React.FC = () => {
     setIsPlayingStory(true);
     setIsStoryActive(true);
 
-    // Reset turn display: new scenario starts at v1
+    // Turn 1 starts at v1, Turn 2 is late detail (v2)
+    if (index === 0) {
+      setVersion(1);
+      setDiff(undefined);
+    }
+
     setTranscript('');
     setDecisions([]);
     setLegs([]);
     setDrafts({});
     setFinalAnswer('');
     setFinalClaims([]);
-    setVersion(1);
-    setDiff(undefined);
     setReadyAtEnd(undefined);
     setReadyCount(undefined);
     setTotalParts(undefined);
@@ -203,52 +197,51 @@ export const App: React.FC = () => {
       action === 'shorter'
         ? 'Can you make the response more concise?'
         : action === 'bullets'
-        ? 'Format the existing explanation as bullet points.'
-        : 'Explain the answer in simpler terms.';
+        ? 'Format that as bullet points.'
+        : 'Explain simply.';
 
     setTranscript(prompt);
     setUtteranceEndT(1.5);
     clientRef.current.sendChunk(0.0, prompt, true);
   };
 
+  const currentScenario = SCENARIOS[currentScenarioIndex] || SCENARIOS[0];
+
   return (
-    <div className="min-h-screen flex flex-col font-sans">
+    <div className="min-h-screen flex flex-col font-sans bg-[#0E1014] text-[#ECE9E2]">
+      {/* Top Header */}
       <Header
         mode={mode}
         onModeChange={setMode}
         onPlayDemo={() => playScenario(0)}
         status={status}
         isStoryActive={isStoryActive}
-        theme={theme}
-        onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')}
       />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 space-y-6">
-        {/* Story Mode Banner if active */}
-        {isStoryActive && (
-          <StoryMode
-            currentScenarioIndex={currentScenarioIndex}
-            isPlaying={isPlayingStory}
-            onStartScenario={playScenario}
-            onPause={() => {
-              clearStoryTimers();
-              setIsPlayingStory(false);
-            }}
-            onResume={() => playScenario(currentScenarioIndex)}
-            onReset={() => {
-              clearStoryTimers();
-              setIsPlayingStory(false);
-              setTranscript('');
-              setFinalAnswer('');
-              setFinalClaims([]);
-              setDecisions([]);
-              setLegs([]);
-              setDrafts({});
-            }}
-          />
-        )}
+      {/* Slim 56px Story Mode Top Bar if active */}
+      {isStoryActive && (
+        <StoryBar
+          currentScenarioIndex={currentScenarioIndex}
+          totalScenarios={SCENARIOS.length}
+          title={currentScenario.title}
+          description={currentScenario.caption}
+          isPlaying={isPlayingStory}
+          onPause={() => {
+            clearStoryTimers();
+            setIsPlayingStory(false);
+          }}
+          onResume={() => playScenario(currentScenarioIndex)}
+          onNext={() => playScenario((currentScenarioIndex + 1) % SCENARIOS.length)}
+          onExit={() => {
+            clearStoryTimers();
+            setIsStoryActive(false);
+            setIsPlayingStory(false);
+          }}
+        />
+      )}
 
-        {/* View Mode Switching */}
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-[1280px] w-full mx-auto px-6 py-8">
         {mode === 'assistant' ? (
           <AssistantMode
             transcript={transcript}

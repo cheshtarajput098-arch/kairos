@@ -17,7 +17,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 08 | `build/steps/p07-evaluation.md` | done | Tier 2 Proof complete (frozen test split 64 turns, dual official/strict G1-G6 gates, metrics engine, controller model arm, ablations A-E, stabilisation ceiling, ASR noise robustness, race run, report generator, judge guide, v0.5-proof tag) |
 | 09 | `build/steps/p07b-generative.md` | done | Tier 3 Generative Speed-2 rewrite with Qwen2.5 GGUF, circuit breaker, deterministic GroundingGate validation, generative decomposition, and blind fluency benchmark |
 | 10 | `build/steps/p09a-ui-design.md` | done | Tier 3: Complete UI Design plan (Calm Precision), component matrix, motion spec, microcopy & WCAG 2.2 AA plan |
-| 11 | `build/steps/p09b-ui-build.md` | todo | |
+| 11 | `build/steps/p09b-ui-build.md` | in_progress (part 1 of 2) | Approved design system built: Assistant mode, StoryBar, Sources & Change panels, mobile responsive |
 | 12 | `build/steps/p08-security.md` | todo | |
 | 13 | `build/steps/p10-industry.md` | todo | |
 | 14 | `build/steps/p11-release.md` | todo | |
@@ -96,9 +96,18 @@ Tier 3: UI Design completed. Ready for UI Build, Assistant & Inspector modes, Ra
   - Converted 5-board design PDF to 2x PNGs in `docs/design/board_01.png`–`board_05.png`.
   - Rewrote `docs/UI_DESIGN.md` to match the approved design exactly: colours (#0E1014, #15181E, #1C2028, #12151B, #ECE9E2, #A3A9B5, #7D8594), fonts (Geist, Newsreader, Geist Mono), layout (760px answer + 340px sources, 56px story bar), no coloured left-border cards. Removed unused Warm Editorial and Technical Clarity directions.
   - 138 tests passing, clean ruff and mypy --strict.
+- Step 11 (Part 1 of 2): UI Build — Approved Design System & Assistant Experience:
+  - Tokens and Theme: Fully integrated Calm Precision dark palette into `tokens.ts`, `tailwind.config.js`, and `index.css`.
+  - Header: Integrated logo `(○)`, "Kairos" with "Answers while you speak", mode toggle ("Assistant" | "Show how it works"), `● Connected` indicator, `▶ Play the demo` pill button, and settings trigger.
+  - StoryBar: Built 56px top bar with `[DEMO]` badge, scenario counter, progress indicators, and playback controls (Pause/Resume, Next, Exit) matching Board 1.
+  - Assistant Mode: 2-column desktop layout (760px main + 340px sidebar) and single-column mobile view (Board 5).
+  - Transcript Area: Real-time speaking state with waveform `║║║`, timers, semantic intent underlines, and live status chips ("found", "looking it up").
+  - Answer Canvas: Eliminated all colored left-borders. Implemented intent number badges (`1`, `2`, `3`), right-aligned status, Newsreader prose, numbered citation pills, skeleton pulse loading, strikethrough/highlight in v2, honest amber gap cards, and "Ready when you stopped" line.
+  - Sources & Change Panels: Built right sidebar components matching Boards 1, 2, and 3 with expandable source chunks and v2 diff breakdowns.
+  - Zero hardcoding compliance verified (passes `test_no_transcript_text_in_app_code`), bundle compiled to 57.9 kB gzip, and 138/138 Python tests passing.
 
 ## Next
-Step 11: `build/steps/p09b-ui-build.md` — Tier 3: UI build to match approved design boards, Assistant & Inspector modes, Story mode, Race view, Playwright e2e, and tag `v0.8-polish`.
+Step 11 (Part 2 of 2): `build/steps/p09b-ui-build.md` — Inspector mode (Timeline Gantt with scrubber, Race view vs batch, Results dashboard, Corpus explorer, Playground), Playwright e2e test suite (Story mode 10x loop test), axe accessibility audit, `docs/UX_TEST.md`, and local git tag `v0.8-polish`.
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).

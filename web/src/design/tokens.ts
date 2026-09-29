@@ -1,42 +1,44 @@
 /**
- * Design tokens for Kairos (SPEC §14.2, §14.3a "Calm Precision").
+ * Design tokens for Kairos — Adopted from Approved Design Boards (docs/UI_DESIGN.md).
+ * Calm Precision theme (Dark).
  */
 
 export const colors = {
-  neutral: {
-    bgLight: '#F8FAFC',
-    bgDark: '#0B0F19',
-    cardLight: '#FFFFFF',
-    cardDark: '#131B2E',
-    borderLight: '#E2E8F0',
-    borderDark: '#1E293B',
-    textLight: '#0F172A',
-    textDark: '#F1F5F9',
-    mutedLight: '#64748B',
-    mutedDark: '#94A3B8',
+  canvas: '#0E1014',
+  surface: {
+    1: '#15181E', // Primary cards & panels
+    2: '#1C2028', // Elevated cards, input bar
+    3: '#12151B', // Recessed areas, sidebars, story bar
   },
-  brand: {
-    primary: '#2563EB', // Confident deep blue
-    hover: '#1D4ED8',
-    subtle: '#EFF6FF',
-    subtleDark: '#1E3A8A20',
+  text: {
+    primary: '#ECE9E2', // Warm ivory
+    secondary: '#A3A9B5', // Subheadings, labels
+    tertiary: '#7D8594', // Timestamps, placeholders
   },
-  decision: {
-    RETRIEVE: '#2563EB',
-    WAIT: '#64748B',
-    NO_RETRIEVAL: '#8B5CF6',
+  border: {
+    default: '#1E2330',
+    subtle: '#282D3A',
   },
   intent: [
-    { id: 1, name: 'Intent A', hex: '#3B82F6', bg: 'rgba(59, 130, 246, 0.1)', border: '#3B82F6' },
-    { id: 2, name: 'Intent B', hex: '#10B981', bg: 'rgba(16, 185, 129, 0.1)', border: '#10B981' },
-    { id: 3, name: 'Intent C', hex: '#8B5CF6', bg: 'rgba(139, 92, 246, 0.1)', border: '#8B5CF6' },
-    { id: 4, name: 'Intent D', hex: '#F97316', bg: 'rgba(249, 115, 22, 0.1)', border: '#F97316' },
+    { id: 1, name: 'Intent 1', hex: '#8FB3FF', bg: 'rgba(143, 179, 255, 0.15)', border: '#8FB3FF' },
+    { id: 2, name: 'Intent 2', hex: '#62D6B4', bg: 'rgba(98, 214, 180, 0.15)', border: '#62D6B4' },
+    { id: 3, name: 'Intent 3', hex: '#B98CFF', bg: 'rgba(185, 140, 255, 0.15)', border: '#B98CFF' },
+    { id: 4, name: 'Intent 4', hex: '#F0B455', bg: 'rgba(240, 180, 85, 0.15)', border: '#F0B455' },
   ],
   status: {
-    verified: '#10B981',
-    uncertain: '#F59E0B',
-    dropped: '#EF4444',
+    verified: '#6FD39A',
+    gap: '#F0B455',
+    error: '#EF4444',
+    updated: '#8FB3FF',
   },
+  accent: {
+    blue: '#5B8DEF',
+    greenDot: '#4ADE80',
+  },
+  button: {
+    ivory: '#ECE9E2',
+    ivoryBg: '#1C2028',
+  }
 };
 
 export const getIntentColor = (index: number) => {

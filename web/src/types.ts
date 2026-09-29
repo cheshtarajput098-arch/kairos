@@ -42,6 +42,7 @@ export interface VersionDiff {
   retracted: string[];
   unchanged: string[];
   citations_added: string[];
+  v1_text?: string;
 }
 
 export interface TurnCompletedEvent {

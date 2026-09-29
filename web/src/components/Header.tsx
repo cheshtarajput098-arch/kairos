@@ -7,6 +7,7 @@ interface HeaderProps {
   onPlayDemo: () => void;
   status: 'connected' | 'connecting' | 'closed' | 'error';
   isStoryActive: boolean;
+  onOpenSettings?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -15,6 +16,7 @@ export const Header: React.FC<HeaderProps> = ({
   onPlayDemo,
   status,
   isStoryActive,
+  onOpenSettings,
 }) => {
   return (
     <header className="border-b border-[#1E2330] bg-[#0E1014] sticky top-0 z-50 px-6 py-3.5">
@@ -88,10 +90,13 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Play the demo</span>
           </button>
 
-          {/* Settings button */}
+          {/* Settings button (Item 8) */}
           <button
-            className="p-1.5 text-[#7D8594] hover:text-[#ECE9E2] rounded-lg transition-colors"
+            type="button"
+            onClick={onOpenSettings}
+            className="p-1.5 text-[#7D8594] hover:text-[#ECE9E2] hover:bg-[#1C2028] rounded-lg transition-colors cursor-pointer"
             title="Settings"
+            aria-label="Settings"
           >
             <Settings className="w-4 h-4" />
           </button>

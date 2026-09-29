@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Play, RotateCcw, Zap, Clock, ShieldCheck } from 'lucide-react';
+import { RACE_BENCHMARKS } from '../../fixtures/inspectorMocks';
 
 export const RaceTab: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -31,11 +32,22 @@ export const RaceTab: React.FC = () => {
     setRaceProgress(0);
   };
 
-  // Timings:
-  // Kairos: Speech 0.0 - 2.1s. First retrieval 0.8s. First verified draft 1.02s. Settled at 2.1s.
-  // Batch: Waits until 2.1s. Retrieval starts at 2.1s, ends 2.95s. Synth starts 2.95s, ends 3.61s.
-  const kairosDraftProgress = Math.min(100, Math.max(0, ((raceProgress - 0.8) / 1.3) * 100));
-  const batchProgress = Math.min(100, Math.max(0, ((raceProgress - 2.1) / 1.51) * 100));
+  const kairosDraftProgress = Math.min(
+    100,
+    Math.max(
+      0,
+      ((raceProgress - RACE_BENCHMARKS.firstRetrievalS) /
+        (RACE_BENCHMARKS.utteranceEndS - RACE_BENCHMARKS.firstRetrievalS)) *
+        100
+    )
+  );
+  const batchProgress = Math.min(
+    100,
+    Math.max(
+      0,
+      ((raceProgress - RACE_BENCHMARKS.utteranceEndS) / RACE_BENCHMARKS.medianTimeSavingsS) * 100
+    )
+  );
 
   return (
     <div className="space-y-6">
@@ -127,9 +139,9 @@ export const RaceTab: React.FC = () => {
             >
               {kairosDraftProgress > 30 && '✓ 2 of 3 parts verified before speech end'}
             </div>
-            {raceProgress >= 2.1 && (
+            {raceProgress >= RACE_BENCHMARKS.utteranceEndS && (
               <span className="absolute right-3 text-xs font-mono text-[#6FD39A] font-bold">
-                FINISHED at 2.10 s (0.00s wait)
+                FINISHED at {RACE_BENCHMARKS.utteranceEndS.toFixed(2)} s (0.00s wait)
               </span>
             )}
           </div>
@@ -146,11 +158,11 @@ export const RaceTab: React.FC = () => {
               </span>
             </div>
             <span className="font-mono text-[#7D8594]">
-              {raceProgress < 2.1
+              {raceProgress < RACE_BENCHMARKS.utteranceEndS
                 ? 'Idle (waiting for utterance end…)'
-                : raceProgress < 3.61
+                : raceProgress < RACE_BENCHMARKS.batchSettledS
                 ? 'Retrieval & generation in progress…'
-                : 'Finished at 3.61 s (+1.51 s lag)'}
+                : `Finished at ${RACE_BENCHMARKS.batchSettledS.toFixed(2)} s (+${RACE_BENCHMARKS.medianTimeSavingsS.toFixed(2)} s lag)`}
             </span>
           </div>
 

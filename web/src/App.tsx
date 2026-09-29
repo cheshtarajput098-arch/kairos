@@ -3,12 +3,20 @@ import { Header } from './components/Header';
 import { StoryBar } from './components/StoryBar';
 import { AssistantMode } from './components/AssistantMode';
 import { InspectorMode } from './components/InspectorMode';
+import { SettingsSheet } from './components/SettingsSheet';
 import { SCENARIOS } from './components/StoryMode';
-import { createSession, KairosStreamClient } from './api';
+import {
+  createSession,
+  getSuggestions,
+  sendFeedback,
+  executePresentationTurn,
+  KairosStreamClient,
+} from './api';
 import {
   ClaimObject,
   ControllerDecisionEvent,
   LegInfo,
+  SessionInfo,
   StreamEvent,
   VersionDiff,
 } from './types';
@@ -16,6 +24,17 @@ import {
 export const App: React.FC = () => {
   const [mode, setMode] = useState<'assistant' | 'inspector'>('assistant');
   const [status, setStatus] = useState<'connected' | 'connecting' | 'closed' | 'error'>('connecting');
+
+  // Session authentication & API
+  const [session, setSession] = useState<SessionInfo | null>(null);
+
+  // Settings state (Item 8)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showDraftsWhileSpeaking, setShowDraftsWhileSpeaking] = useState(true);
+  const [textSize, setTextSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
+
+  // Suggested questions from index headings (Item 6)
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   // Live session state
   const [transcript, setTranscript] = useState('');
@@ -37,6 +56,12 @@ export const App: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [events, setEvents] = useState<StreamEvent[]>([]);
 
+  // Status & error banners (Item 7)
+  const [micPermissionDenied, setMicPermissionDenied] = useState(false);
+  const [rateLimitError, setRateLimitError] = useState<{ message: string; requestId: string } | null>(null);
+  const [outOfScopeError, setOutOfScopeError] = useState<{ message: string; requestId: string } | null>(null);
+  const [generalError, setGeneralError] = useState<{ code: string; message: string; requestId: string } | null>(null);
+
   // Story mode
   const [isStoryActive, setIsStoryActive] = useState(false);
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
@@ -44,13 +69,48 @@ export const App: React.FC = () => {
 
   const clientRef = useRef<KairosStreamClient | null>(null);
   const storyTimerRef = useRef<number[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch suggested questions from index headings on mount
+  useEffect(() => {
+    getSuggestions().then((items) => {
+      if (items.length > 0) {
+        setSuggestions(items);
+      }
+    });
+  }, []);
+
+  // Global Keyboard Shortcuts (Item 11: Space talk/stop, / focus, I toggle Inspector, Esc close)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeTag = (document.activeElement?.tagName || '').toLowerCase();
+      const isInput = activeTag === 'input' || activeTag === 'textarea';
+
+      if (e.key === ' ' && !isInput) {
+        e.preventDefault();
+        setIsSearching((prev) => !prev);
+      } else if (e.key === '/' && !isInput) {
+        e.preventDefault();
+        inputRef.current?.focus();
+      } else if (e.key.toLowerCase() === 'i' && !isInput) {
+        e.preventDefault();
+        setMode((prev) => (prev === 'assistant' ? 'inspector' : 'assistant'));
+      } else if (e.key === 'Escape') {
+        setIsSettingsOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Initialize session & WebSocket
-  useEffect(() => {
-    let isMounted = true;
+  const initSession = () => {
+    setStatus('connecting');
+    setGeneralError(null);
     createSession()
       .then((sess) => {
-        if (!isMounted) return;
+        setSession(sess);
         const client = new KairosStreamClient(sess, handleIncomingEvent, setStatus);
         client.connect();
         clientRef.current = client;
@@ -58,10 +118,17 @@ export const App: React.FC = () => {
       .catch((err) => {
         console.error('Session initialization error:', err);
         setStatus('error');
+        setGeneralError({
+          code: 'SESSION_INIT_FAILED',
+          message: 'Failed to establish session with engine.',
+          requestId: `err_${Date.now().toString(36)}`,
+        });
       });
+  };
 
+  useEffect(() => {
+    initSession();
     return () => {
-      isMounted = false;
       if (clientRef.current) {
         clientRef.current.disconnect();
       }
@@ -104,6 +171,12 @@ export const App: React.FC = () => {
         if (event.diff) {
           setDiff(event.diff);
         }
+        if (event.turn_type === 'out_of_corpus') {
+          setOutOfScopeError({
+            message: event.answer,
+            requestId: `turn_${event.version}_${Date.now().toString(36)}`,
+          });
+        }
         if (event.metrics) {
           if (event.metrics.ready_at_end !== undefined) {
             setReadyAtEnd(event.metrics.ready_at_end);
@@ -138,7 +211,6 @@ export const App: React.FC = () => {
     setIsPlayingStory(true);
     setIsStoryActive(true);
 
-    // Turn 1 starts at v1, Turn 2 is late detail (v2)
     if (index === 0) {
       setVersion(1);
       setDiff(undefined);
@@ -187,22 +259,33 @@ export const App: React.FC = () => {
     setTranscript(text);
     setFinalAnswer('');
     setFinalClaims([]);
+    setOutOfScopeError(null);
+    setRateLimitError(null);
     setUtteranceEndT(2.0);
     clientRef.current.sendChunk(0.0, text, true);
   };
 
-  const handleQuickAction = (action: 'shorter' | 'bullets' | 'simple') => {
-    if (!clientRef.current) return;
-    const prompt =
-      action === 'shorter'
-        ? 'Can you make the response more concise?'
-        : action === 'bullets'
-        ? 'Format that as bullet points.'
-        : 'Explain simply.';
+  // Item 2: Quick actions run as presentation-only turns with zero searches
+  const handleQuickAction = async (action: 'shorter' | 'bullets' | 'simple') => {
+    if (!session) return;
+    try {
+      const result = await executePresentationTurn(session.session_id, session.token, action);
+      if (result && 'answer' in result) {
+        setFinalAnswer(result.answer as string);
+        if ('claims' in result && Array.isArray(result.claims)) {
+          setFinalClaims(result.claims as ClaimObject[]);
+        }
+      }
+    } catch (err) {
+      console.debug('Presentation turn failed:', err);
+    }
+  };
 
-    setTranscript(prompt);
-    setUtteranceEndT(1.5);
-    clientRef.current.sendChunk(0.0, prompt, true);
+  // Item 9: Thumbs up/down per answer, kept in session telemetry only
+  const handleFeedback = (rating: 'up' | 'down') => {
+    if (session) {
+      sendFeedback(session.session_id, version, rating);
+    }
   };
 
   const currentScenario = SCENARIOS[currentScenarioIndex] || SCENARIOS[0];
@@ -216,6 +299,17 @@ export const App: React.FC = () => {
         onPlayDemo={() => playScenario(0)}
         status={status}
         isStoryActive={isStoryActive}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+      />
+
+      {/* Settings Sheet (Item 8) */}
+      <SettingsSheet
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        showDraftsWhileSpeaking={showDraftsWhileSpeaking}
+        onToggleDraftsWhileSpeaking={setShowDraftsWhileSpeaking}
+        textSize={textSize}
+        onChangeTextSize={setTextSize}
       />
 
       {/* Slim 56px Story Mode Top Bar if active */}
@@ -257,9 +351,22 @@ export const App: React.FC = () => {
             readyCount={readyCount}
             totalParts={totalParts}
             isDrafting={isDrafting}
+            currentTime={currentTime}
+            suggestions={suggestions}
             onSendText={handleSendText}
             onQuickAction={handleQuickAction}
             onSeeDiff={() => setMode('inspector')}
+            onFeedback={handleFeedback}
+            connectionStatus={status}
+            onRetryConnection={initSession}
+            micPermissionDenied={micPermissionDenied}
+            onTypeInstead={() => setMicPermissionDenied(false)}
+            rateLimitError={rateLimitError}
+            outOfScopeError={outOfScopeError}
+            generalError={generalError}
+            textSize={textSize}
+            showProvisionalDrafts={showDraftsWhileSpeaking}
+            inputRef={inputRef}
           />
         ) : (
           <InspectorMode

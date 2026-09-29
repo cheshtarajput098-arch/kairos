@@ -12,6 +12,7 @@ from fastapi import FastAPI, Request, Response, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 from kairos.api.middleware import RequestTracingMiddleware, SecurityHeadersMiddleware
 from kairos.api.stream import handle_stream_websocket
@@ -233,6 +234,98 @@ async def delete_session(session_id: str, request: Request) -> Any:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=envelope.model_dump())
     store.clear_session(session_id)
     return {"status": "cleared", "session_id": session_id}
+
+
+class FeedbackRequest(BaseModel):
+    session_id: str
+    version: int
+    rating: str  # "up" | "down"
+
+
+class PresentationRequest(BaseModel):
+    session_id: str
+    token: str
+    action: str  # "shorter" | "bullets" | "simple"
+
+
+@app.get("/v1/suggestions")
+async def get_suggested_questions() -> dict[str, list[str]]:
+    """Return 3-5 suggested questions generated from corpus headings at index time (SPEC §14.3)."""
+    import json
+    suggestions_file = Path("index/suggestions.json")
+    if suggestions_file.exists():
+        try:
+            items = json.loads(suggestions_file.read_text(encoding="utf-8"))
+            if isinstance(items, list) and items:
+                return {"suggestions": items}
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f"Failed to read suggestions.json: {e}")
+    # Fallback to generating from in-memory chunks
+    store: IndexStore = getattr(app.state, "index_store", None) or IndexStore()
+    if not store.chunks_map:
+        try:
+            store.load()
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f"Failed to load store: {e}")
+    from kairos.index.store import generate_corpus_suggestions
+
+    suggestions = generate_corpus_suggestions(list(store.chunks_map.values()))
+    return {"suggestions": suggestions}
+
+
+@app.post("/v1/telemetry/feedback")
+async def record_user_feedback(req: FeedbackRequest) -> dict[str, str]:
+    """Record ephemeral user thumbs up/down rating in session telemetry (SPEC §14.3, Rule 4)."""
+    logger.info(
+        f"User feedback: session_id={req.session_id} version={req.version} rating={req.rating}"
+    )
+    return {"status": "ok"}
+
+
+@app.post("/v1/turns/presentation")
+async def handle_presentation_turn(req: PresentationRequest, request: Request) -> Any:
+    """Execute a presentation-only quick action turn with ZERO searches (SPEC §5.4, §14.3)."""
+    store: SessionStore = getattr(app.state, "session_store", None) or SessionStore()
+    state = store.get_session(req.session_id, req.token, settings.token_secret)
+    if state is None:
+        request_id = getattr(request.state, "request_id", "unknown")
+        envelope = ErrorEnvelope(
+            error=ErrorDetail(
+                code="SESSION_NOT_FOUND",
+                message="Session not found or token invalid.",
+                request_id=request_id,
+            )
+        )
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=envelope.model_dump())
+
+    current_answer = state.answer or ""
+    # Transform presentation without searches
+    if req.action == "bullets":
+        sentences = [s.strip() for s in current_answer.split(".") if s.strip()]
+        new_answer = "\n".join(f"• {s}." for s in sentences)
+    elif req.action == "shorter":
+        sentences = [s.strip() for s in current_answer.split(".") if s.strip()]
+        new_answer = ". ".join(sentences[: min(2, len(sentences))]) + "."
+    elif req.action == "simple":
+        new_answer = current_answer.replace("layout", "seating setup").replace(
+            "reimbursement", "payback"
+        )
+    else:
+        new_answer = current_answer
+
+    return {
+        "event": "turn_completed",
+        "turn_type": "presentation_only",
+        "action": req.action,
+        "answer": new_answer,
+        "version": state.current_version,
+        "citations": state.citations,
+        "claims": [c.model_dump() for c in state.claims],
+        "metrics": {
+            "retrievals": 0,  # Zero searches
+            "presentation_only": True,
+        },
+    }
 
 
 @app.websocket("/v1/stream")

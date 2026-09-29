@@ -5,26 +5,38 @@ interface SourcePopoverProps {
   citation: string;
   index: number;
   evidenceSpan?: string;
+  onSelectSource?: (citation: string, evidenceSpan?: string) => void;
 }
 
 export const SourcePopover: React.FC<SourcePopoverProps> = ({
   citation,
   index,
   evidenceSpan,
+  onSelectSource,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   // Parse doc and section
   const [docId, section] = citation.split('§');
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onSelectSource) {
+      onSelectSource(citation, evidenceSpan);
+    }
+  };
+
   return (
     <span className="relative inline-block ml-1">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        type="button"
+        onClick={handleClick}
         onMouseEnter={() => setIsOpen(true)}
         onMouseLeave={() => setIsOpen(false)}
-        className="inline-flex items-center justify-center w-[18px] h-[18px] text-[10px] font-mono font-bold rounded bg-[#1C2028] border border-[#282D3A] text-[#ECE9E2] hover:border-[#8FB3FF] transition-colors align-baseline"
-        aria-label={`Source citation ${citation}`}
+        onFocus={() => setIsOpen(true)}
+        onBlur={() => setIsOpen(false)}
+        className="inline-flex items-center justify-center w-[18px] h-[18px] text-[10px] font-mono font-bold rounded bg-[#1C2028] border border-[#282D3A] text-[#ECE9E2] hover:border-[#8FB3FF] hover:bg-[#252B36] focus:border-[#8FB3FF] focus:outline-none transition-colors align-baseline cursor-pointer"
+        aria-label={`Source citation ${citation}. Click to view document with sentence highlighted.`}
       >
         {index}
       </button>
@@ -33,7 +45,7 @@ export const SourcePopover: React.FC<SourcePopoverProps> = ({
         <div
           onMouseEnter={() => setIsOpen(true)}
           onMouseLeave={() => setIsOpen(false)}
-          className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3.5 bg-[#15181E] rounded-xl shadow-2xl border border-[#1E2330] text-left text-xs"
+          className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3.5 bg-[#15181E] rounded-xl shadow-2xl border border-[#1E2330] text-left text-xs pointer-events-auto"
         >
           <div className="flex items-center justify-between pb-2 border-b border-[#1E2330] font-mono text-[11px]">
             <span className="flex items-center gap-1.5 font-semibold text-[#8FB3FF]">
@@ -49,8 +61,9 @@ export const SourcePopover: React.FC<SourcePopoverProps> = ({
             "{evidenceSpan || 'Verified corpus evidence chunk in approved index.'}"
           </div>
 
-          <div className="mt-2 pt-1.5 border-t border-[#1E2330] flex justify-end">
-            <span className="text-[10px] text-[#7D8594] font-mono">Corpus Verified [Doc_ID §Section]</span>
+          <div className="mt-2 pt-1.5 border-t border-[#1E2330] flex items-center justify-between">
+            <span className="text-[10px] text-[#7D8594] font-mono">Click to open source</span>
+            <span className="text-[10px] text-[#8FB3FF] font-medium">View passage →</span>
           </div>
         </div>
       )}

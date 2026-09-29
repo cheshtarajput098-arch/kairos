@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Mic, ArrowRight, BookOpen } from 'lucide-react';
+import { Mic, ArrowRight, BookOpen, Square } from 'lucide-react';
 import { AnswerCanvas } from './AnswerCanvas';
 import { SourcesPanel } from './SourcesPanel';
 import { ChangePanel } from './ChangePanel';
+import { FirstRunScreen } from './FirstRunScreen';
+import { StatusBanners } from './StatusBanners';
 import { ClaimObject, LegInfo, VersionDiff } from '../types';
+import { getIntentColor } from '../design/tokens';
 
 interface AssistantModeProps {
   transcript: string;
@@ -19,9 +22,22 @@ interface AssistantModeProps {
   readyCount?: number;
   totalParts?: number;
   isDrafting: boolean;
+  currentTime?: number;
+  suggestions?: string[];
   onSendText: (text: string) => void;
   onQuickAction: (action: 'shorter' | 'bullets' | 'simple') => void;
   onSeeDiff: () => void;
+  onFeedback?: (rating: 'up' | 'down') => void;
+  connectionStatus?: 'connected' | 'connecting' | 'closed' | 'error';
+  onRetryConnection?: () => void;
+  micPermissionDenied?: boolean;
+  onTypeInstead?: () => void;
+  rateLimitError?: { message: string; requestId: string } | null;
+  outOfScopeError?: { message: string; requestId: string } | null;
+  generalError?: { code: string; message: string; requestId: string } | null;
+  textSize?: 'normal' | 'large' | 'xlarge';
+  showProvisionalDrafts?: boolean;
+  inputRef?: React.RefObject<HTMLInputElement>;
 }
 
 export const AssistantMode: React.FC<AssistantModeProps> = ({
@@ -38,192 +54,225 @@ export const AssistantMode: React.FC<AssistantModeProps> = ({
   readyCount,
   totalParts,
   isDrafting,
+  currentTime = 0,
+  suggestions = [],
   onSendText,
   onQuickAction,
   onSeeDiff,
+  onFeedback,
+  connectionStatus = 'connected',
+  onRetryConnection = () => {},
+  micPermissionDenied = false,
+  onTypeInstead,
+  rateLimitError = null,
+  outOfScopeError = null,
+  generalError = null,
+  textSize = 'normal',
+  showProvisionalDrafts = true,
+  inputRef,
 }) => {
   const [inputText, setInputText] = useState('');
   const [isMobileSourcesOpen, setIsMobileSourcesOpen] = useState(false);
+  const [selectedCitation, setSelectedCitation] = useState<string | null>(null);
+  const [isListeningManual, setIsListeningManual] = useState(false);
+
+  const isSpeaking = isDrafting || (isSearching && !finalAnswer) || isListeningManual;
+  const isV2 = version > 1;
+  const isFirstRun = !transcript && !finalAnswer && legs.length === 0;
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
     onSendText(inputText.trim());
     setInputText('');
+    setIsListeningManual(false);
   };
 
-  const isSpeaking = isDrafting || (isSearching && !finalAnswer);
-  const isV2 = version > 1;
+  const handleMicToggle = () => {
+    if (isSpeaking) {
+      setIsListeningManual(false);
+    } else {
+      setIsListeningManual(true);
+    }
+  };
 
-  // Render highlighted / underlined phrases matching intent colours
+  const handleSourceSelect = (cite: string) => {
+    setSelectedCitation(cite);
+    setIsMobileSourcesOpen(true);
+  };
+
+  // Render highlighted / underlined phrases matching dynamic intent subqueries
   const renderHighlightedTranscript = (text: string) => {
     if (!text) {
       return (
         <span className="text-[#7D8594] font-normal italic font-serif">
-          "Tap the mic or type to ask about Pune venues, cancellation policy, or catering..."
+          "Tap the mic or type to ask about policies, venue rules, or equipment..."
         </span>
       );
     }
 
-    // Match keywords for semantic intent underline
-    const regex = /(workshop in Pune for 30 people|cancellation policy|catering options|catering|45 people)/gi;
-    const parts = text.split(regex);
+    if (!legs || legs.length === 0) {
+      return <span>{text}</span>;
+    }
 
-    return parts.map((part, i) => {
-      const lower = part.toLowerCase();
-      if (lower.includes('pune') || lower.includes('30 people')) {
-        return (
-          <span
-            key={i}
-            className="border-b-2 font-medium pb-0.5"
-            style={{ borderColor: '#8FB3FF', color: '#ECE9E2' }}
-          >
-            {part}
-            {isSpeaking && (
-              <span className="inline-flex items-center justify-center w-3.5 h-3.5 ml-1 text-[9px] font-mono rounded-full bg-[#8FB3FF] text-[#0E1014] align-top">
-                1
-              </span>
-            )}
-          </span>
-        );
-      }
-      if (lower.includes('cancellation')) {
-        return (
-          <span
-            key={i}
-            className="border-b-2 font-medium pb-0.5"
-            style={{ borderColor: '#62D6B4', color: '#ECE9E2' }}
-          >
-            {part}
-            {isSpeaking && (
-              <span className="inline-flex items-center justify-center w-3.5 h-3.5 ml-1 text-[9px] font-mono rounded-full bg-[#62D6B4] text-[#0E1014] align-top">
-                2
-              </span>
-            )}
-          </span>
-        );
-      }
-      if (lower.includes('cater')) {
-        return (
-          <span
-            key={i}
-            className="border-b-2 font-medium pb-0.5"
-            style={{ borderColor: '#B98CFF', color: '#ECE9E2' }}
-          >
-            {part}
-          </span>
-        );
-      }
-      if (lower.includes('45 people')) {
-        return (
-          <span
-            key={i}
-            className="border-b-2 font-medium pb-0.5"
-            style={{ borderColor: '#8FB3FF', color: '#ECE9E2' }}
-          >
-            {part}
-          </span>
-        );
-      }
-      return <span key={i}>{part}</span>;
-    });
+    // Dynamic matching of leg subquery keywords
+    return (
+      <span>
+        {legs.map((leg, idx) => {
+          const color = getIntentColor(idx);
+          return (
+            <span
+              key={leg.leg_id}
+              className="border-b-2 font-medium pb-0.5 mr-2 inline-block"
+              style={{ borderColor: color.hex, color: '#ECE9E2' }}
+            >
+              {leg.text}
+              {isSpeaking && (
+                <span
+                  className="inline-flex items-center justify-center w-3.5 h-3.5 ml-1 text-[9px] font-mono font-bold rounded-full text-[#0E1014] align-top"
+                  style={{ backgroundColor: color.hex }}
+                >
+                  {idx + 1}
+                </span>
+              )}
+            </span>
+          );
+        })}
+      </span>
+    );
   };
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 max-w-[1140px] mx-auto items-start">
       {/* 760px Left/Center Main Column */}
       <div className="w-full lg:max-w-[760px] flex-1 space-y-4">
-        {/* Prior question in v2 (Board 3: dimmed) */}
-        {isV2 && (
-          <div className="flex items-center gap-2 text-xs text-[#7D8594] px-1 font-serif">
-            <span className="text-[#A3A9B5] font-sans font-medium">Earlier</span>
-            <span className="truncate">
-              Organising a customer workshop in Pune for 30 attendees, with cancellation terms and catering options.
-            </span>
-          </div>
-        )}
+        {/* Status Banners (Item 7: offline, mic permission, rate limit, out of scope, request_id) */}
+        <StatusBanners
+          connectionStatus={connectionStatus}
+          onRetryConnection={onRetryConnection}
+          micPermissionDenied={micPermissionDenied}
+          onTypeInstead={() => {
+            if (onTypeInstead) onTypeInstead();
+            inputRef?.current?.focus();
+          }}
+          rateLimitError={rateLimitError}
+          outOfScopeError={outOfScopeError}
+          generalError={generalError}
+        />
 
-        {/* Live Transcript / Speech Area (Boards 1, 2, 3) */}
-        <div className="bg-[#15181E] border border-[#1E2330] rounded-2xl p-5 space-y-3">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-[#A3A9B5] font-medium">
-              {isSpeaking ? (
-                <>
-                  <div className="flex items-center gap-0.5 text-[#8FB3FF]">
-                    <span className="w-0.5 h-3 bg-[#8FB3FF] animate-pulse" />
-                    <span className="w-0.5 h-4 bg-[#8FB3FF] animate-pulse delay-75" />
-                    <span className="w-0.5 h-2.5 bg-[#8FB3FF] animate-pulse delay-150" />
-                  </div>
-                  <span>You're speaking</span>
-                </>
-              ) : isV2 ? (
-                <>
-                  <span>You added a detail</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#8FB3FF]/15 text-[#8FB3FF] border border-[#8FB3FF]/30">
-                    changes part 1
-                  </span>
-                </>
-              ) : (
-                <span>You said</span>
+        {/* First-Run Screen (Item 6: Suggestions generated from corpus headings at index time) */}
+        {isFirstRun ? (
+          <FirstRunScreen
+            suggestions={suggestions}
+            onSelectSuggestion={(q) => onSendText(q)}
+          />
+        ) : (
+          <>
+            {/* Prior question in v2 (Board 3: dimmed) */}
+            {isV2 && (
+              <div className="flex items-center gap-2 text-xs text-[#7D8594] px-1 font-serif">
+                <span className="text-[#A3A9B5] font-sans font-medium">Earlier</span>
+                <span className="truncate">
+                  {diff?.v1_text ? `Prior turn: ${diff.v1_text}` : 'Earlier question'}
+                </span>
+              </div>
+            )}
+
+            {/* Live Transcript / Speech Area (Boards 1, 2, 3) */}
+            <div className="bg-[#15181E] border border-[#1E2330] rounded-2xl p-5 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-[#A3A9B5] font-medium">
+                  {isSpeaking ? (
+                    <>
+                      <div className="flex items-center gap-0.5 text-[#8FB3FF]">
+                        <span className="w-0.5 h-3 bg-[#8FB3FF] animate-pulse" />
+                        <span className="w-0.5 h-4 bg-[#8FB3FF] animate-pulse delay-75" />
+                        <span className="w-0.5 h-2.5 bg-[#8FB3FF] animate-pulse delay-150" />
+                      </div>
+                      <span>You're speaking</span>
+                    </>
+                  ) : isV2 ? (
+                    <>
+                      <span>You added a detail</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#8FB3FF]/15 text-[#8FB3FF] border border-[#8FB3FF]/30">
+                        changes part 1
+                      </span>
+                    </>
+                  ) : (
+                    <span>You said</span>
+                  )}
+                </div>
+
+                <span className="text-xs font-mono text-[#7D8594]">
+                  {currentTime > 0 ? `${currentTime.toFixed(1)} s` : ''}
+                </span>
+              </div>
+
+              <div className="min-h-[44px] text-base leading-relaxed text-[#ECE9E2] font-serif">
+                {renderHighlightedTranscript(transcript)}
+              </div>
+
+              {/* Dynamic Real-time Intent Status Chips (Item 12: real events, no hardcoded text) */}
+              {isSpeaking && legs.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#1E2330] text-xs">
+                  {legs.map((leg, idx) => {
+                    const isFound = Boolean(drafts[leg.leg_id]);
+                    const color = getIntentColor(idx);
+                    return (
+                      <div
+                        key={leg.leg_id}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#1C2028] border border-[#282D3A]"
+                      >
+                        <span
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ backgroundColor: color.hex }}
+                        />
+                        <span className="text-[#ECE9E2]">{leg.text}</span>
+                        <span className="text-[#7D8594]">·</span>
+                        <span
+                          className={isFound ? 'text-[#6FD39A] font-medium' : 'text-[#7D8594]'}
+                        >
+                          {isFound ? 'found' : 'looking it up'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  <span className="text-xs text-[#7D8594] ml-1">Listening for more…</span>
+                </div>
               )}
             </div>
 
-            <span className="text-xs font-mono text-[#7D8594]">
-              {isSpeaking ? '1.6 s' : isV2 ? '1.2 s' : '2.1 s'}
-            </span>
-          </div>
+            {/* Answer Canvas */}
+            <AnswerCanvas
+              legs={legs}
+              drafts={drafts}
+              finalAnswer={finalAnswer}
+              finalClaims={finalClaims}
+              citations={citations}
+              version={version}
+              diff={diff}
+              readyAtEnd={readyAtEnd}
+              readyCount={readyCount}
+              totalParts={totalParts}
+              isDrafting={isDrafting}
+              onQuickAction={onQuickAction}
+              onSeeDiff={onSeeDiff}
+              onSelectSource={handleSourceSelect}
+              onFeedback={onFeedback}
+              textSize={textSize}
+              showProvisionalDrafts={showProvisionalDrafts}
+            />
+          </>
+        )}
 
-          <div className="min-h-[44px] text-base leading-relaxed text-[#ECE9E2] font-serif">
-            {renderHighlightedTranscript(transcript)}
-          </div>
-
-          {/* Real-time Intent Status Chips (Board 1) */}
-          {isSpeaking && (
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#1E2330] text-xs">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#1C2028] border border-[#282D3A]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#8FB3FF]" />
-                <span className="text-[#ECE9E2]">Venue for 30 people</span>
-                <span className="text-[#7D8594]">·</span>
-                <span className="text-[#6FD39A] font-medium">found</span>
-              </div>
-
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#1C2028] border border-[#282D3A]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#62D6B4]" />
-                <span className="text-[#ECE9E2]">Cancellation terms</span>
-                <span className="text-[#7D8594]">·</span>
-                <span className="text-[#7D8594]">looking it up</span>
-              </div>
-
-              <span className="text-xs text-[#7D8594] ml-1">Listening for more…</span>
-            </div>
-          )}
-        </div>
-
-        {/* Answer Canvas */}
-        <AnswerCanvas
-          legs={legs}
-          drafts={drafts}
-          finalAnswer={finalAnswer}
-          finalClaims={finalClaims}
-          citations={citations}
-          version={version}
-          diff={diff}
-          readyAtEnd={readyAtEnd}
-          readyCount={readyCount}
-          totalParts={totalParts}
-          isDrafting={isDrafting}
-          onQuickAction={onQuickAction}
-          onSeeDiff={onSeeDiff}
-        />
-
-        {/* Mobile-only "Sources · 5" trigger button (Board 5) */}
+        {/* Mobile-only "Sources" trigger button (Board 5) */}
         <div className="block lg:hidden pt-2">
           <button
             onClick={() => setIsMobileSourcesOpen(!isMobileSourcesOpen)}
             className="w-full py-2.5 px-4 rounded-xl border border-[#282D3A] bg-[#1C2028] text-xs font-medium text-[#ECE9E2] flex items-center justify-center gap-2"
           >
             <BookOpen className="w-4 h-4 text-[#8FB3FF]" />
-            <span>Sources · {citations.length || 5}</span>
+            <span>Sources · {citations.length || 0}</span>
           </button>
         </div>
 
@@ -240,65 +289,86 @@ export const AssistantMode: React.FC<AssistantModeProps> = ({
                   Done
                 </button>
               </div>
-              <SourcesPanel citations={citations} claims={finalClaims} isStreaming={isDrafting} />
+              <SourcesPanel
+                citations={citations}
+                claims={finalClaims}
+                isStreaming={isDrafting}
+                selectedCitation={selectedCitation}
+                onSelectCitation={setSelectedCitation}
+              />
             </div>
           </div>
         )}
 
-        {/* Pill-Shaped Input Bar (Boards 1, 2, 3) */}
-        {isSpeaking ? (
-          /* Speaking Active Bar (Board 1 bottom) */
-          <div className="bg-[#15181E] border border-[#1E2330] rounded-2xl p-4 flex items-center justify-between shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#ECE9E2] text-[#0E1014] flex items-center justify-center">
-                <Mic className="w-5 h-5 fill-current" />
-              </div>
-              <div>
-                <div className="text-xs font-semibold text-[#ECE9E2]">Listening…</div>
-                <div className="text-[12px] text-[#7D8594]">
-                  Keep talking. Kairos is already looking things up.
+        {/* Item 1: Mic bar: 52–56px ivory mic with listening ring, "Listening… Keep talking. Kairos is already looking things up.", Stop button, text input and send button */}
+        <div className="bg-[#15181E] border border-[#1E2330] rounded-2xl p-3.5 space-y-3 shadow-lg">
+          {/* Active Listening Indicator Banner when speaking */}
+          {isSpeaking && (
+            <div className="flex items-center justify-between px-2 py-1 bg-[#1C2028]/80 border border-[#282D3A] rounded-xl">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8FB3FF] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#8FB3FF]"></span>
+                </span>
+                <div>
+                  <span className="font-semibold text-[#ECE9E2]">Listening…</span>{' '}
+                  <span className="text-[#7D8594]">Keep talking. Kairos is already looking things up.</span>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={handleMicToggle}
+                className="px-3 py-1 text-xs font-medium rounded-lg border border-[#282D3A] bg-[#15181E] text-[#ECE9E2] hover:bg-[#252B36] flex items-center gap-1.5 shrink-0"
+              >
+                <Square className="w-3 h-3 fill-current text-[#E5484D]" />
+                <span>Stop</span>
+              </button>
             </div>
-            <button className="px-4 py-1.5 text-xs font-medium rounded-lg border border-[#282D3A] bg-[#1C2028] text-[#ECE9E2] hover:bg-[#252B36]">
-              Stop
-            </button>
-          </div>
-        ) : (
-          /* Normal Input Bar (Boards 2, 3, 5) */
-          <form
-            onSubmit={handleSend}
-            className="flex items-center bg-[#15181E] border border-[#1E2330] rounded-full px-2 py-1.5 shadow-sm focus-within:border-[#282D3A]"
-          >
-            {/* Mic Orb */}
-            <button
-              type="button"
-              className="w-10 h-10 rounded-full bg-[#1C2028] border border-[#282D3A] flex items-center justify-center text-[#ECE9E2] hover:bg-[#252B36] transition-colors shrink-0"
-              title="Voice input"
-            >
-              <Mic className="w-4 h-4" />
-            </button>
+          )}
 
-            {/* Input Field */}
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Tap the mic, or type a question or a new detail…"
-              className="flex-1 bg-transparent px-4 py-2 text-xs text-[#ECE9E2] placeholder-[#7D8594] focus:outline-none"
-            />
+          {/* Unified Input Row: 52-56px Ivory Mic Orb + Text Input + Send Button */}
+          <form onSubmit={handleSend} className="flex items-center gap-3">
+            {/* 52-56px Ivory Mic with listening ring */}
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={handleMicToggle}
+                className={`w-[54px] h-[54px] rounded-full flex items-center justify-center transition-all ${
+                  isSpeaking
+                    ? 'bg-[#ECE9E2] text-[#0E1014] ring-4 ring-[#ECE9E2]/30 ring-offset-2 ring-offset-[#0E1014] animate-pulse shadow-lg'
+                    : 'bg-[#ECE9E2] text-[#0E1014] hover:bg-white hover:scale-105 shadow-md'
+                }`}
+                title={isSpeaking ? 'Stop listening' : 'Start speaking'}
+                aria-label={isSpeaking ? 'Stop listening' : 'Start speaking'}
+              >
+                <Mic className="w-6 h-6 fill-current" />
+              </button>
+            </div>
+
+            {/* Text Input Field */}
+            <div className="flex-1 relative flex items-center bg-[#12151B] border border-[#1E2330] rounded-xl px-4 py-2.5 focus-within:border-[#8FB3FF]/50 transition-colors">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Tap the mic or type a question or detail…"
+                className="w-full bg-transparent text-xs sm:text-sm text-[#ECE9E2] placeholder-[#7D8594] focus:outline-none"
+              />
+            </div>
 
             {/* Send Button */}
             <button
               type="submit"
               disabled={!inputText.trim()}
-              className="w-9 h-9 rounded-full bg-[#1C2028] border border-[#282D3A] flex items-center justify-center text-[#A3A9B5] hover:text-[#ECE9E2] hover:bg-[#252B36] disabled:opacity-40 transition-all shrink-0 mr-1"
-              title="Submit query"
+              className="w-11 h-11 rounded-xl bg-[#1C2028] border border-[#282D3A] flex items-center justify-center text-[#A3A9B5] hover:text-[#ECE9E2] hover:bg-[#252B36] hover:border-[#8FB3FF]/40 disabled:opacity-40 transition-all shrink-0 cursor-pointer"
+              title="Send question"
+              aria-label="Send question"
             >
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-5 h-5" />
             </button>
           </form>
-        )}
+        </div>
       </div>
 
       {/* 340px Right Column (Desktop only) */}
@@ -310,6 +380,8 @@ export const AssistantMode: React.FC<AssistantModeProps> = ({
             citations={citations}
             claims={finalClaims}
             isStreaming={isSpeaking}
+            selectedCitation={selectedCitation}
+            onSelectCitation={setSelectedCitation}
           />
         )}
       </div>

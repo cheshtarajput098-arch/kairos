@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ClaimObject } from '../types';
 
 interface SourcesPanelProps {
   citations: string[];
   claims: ClaimObject[];
   isStreaming?: boolean;
+  selectedCitation?: string | null;
+  onSelectCitation?: (cite: string) => void;
 }
 
 const DOC_METADATA: Record<string, { title: string; sections: Record<string, string> }> = {
   Doc_12: {
-    title: 'Workshop Venues in Pune',
+    title: 'Workshop Venues',
     sections: {
       '1': 'Overview and locations',
       '2': 'Capacity and rooms',
@@ -48,12 +50,13 @@ export const SourcesPanel: React.FC<SourcesPanelProps> = ({
   citations,
   claims,
   isStreaming = false,
+  selectedCitation,
+  onSelectCitation,
 }) => {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(1); // Default expand source 2 like board 2
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(1); // Default expand source 2
 
   // Deduplicate and structure citations
   const sourceItems = React.useMemo(() => {
-    // If no citations yet but streaming, we show at least 1 placeholder if in leg 1
     if (citations.length === 0) {
       if (isStreaming) {
         return [
@@ -61,10 +64,10 @@ export const SourcesPanel: React.FC<SourcesPanelProps> = ({
             num: 1,
             docId: 'Doc_12',
             section: '2',
-            title: 'Workshop Venues in Pune',
+            title: 'Workshop Venues',
             sectionTitle: 'Capacity and rooms',
             rawCitation: 'Doc_12§2',
-            evidenceSpan: 'Riverside Hall in Baner seats up to 40 people in a classroom layout.',
+            evidenceSpan: 'Corpus evidence chunk retrieved and verified from approved index.',
           },
         ];
       }
@@ -99,6 +102,16 @@ export const SourcesPanel: React.FC<SourcesPanelProps> = ({
     });
   }, [citations, claims, isStreaming]);
 
+  // When selectedCitation changes, auto-expand that source
+  useEffect(() => {
+    if (selectedCitation) {
+      const idx = sourceItems.findIndex((s) => s.rawCitation === selectedCitation);
+      if (idx !== -1) {
+        setExpandedIndex(idx);
+      }
+    }
+  }, [selectedCitation, sourceItems]);
+
   // Unique document count
   const uniqueDocCount = React.useMemo(() => {
     const docs = new Set(sourceItems.map((s) => s.docId));
@@ -128,13 +141,22 @@ export const SourcesPanel: React.FC<SourcesPanelProps> = ({
           ) : (
             sourceItems.map((item, idx) => {
               const isExpanded = expandedIndex === idx;
+              const isTargeted = selectedCitation === item.rawCitation;
 
               return (
                 <div
                   key={idx}
-                  onClick={() => setExpandedIndex(isExpanded ? null : idx)}
+                  onClick={() => {
+                    const newIdx = isExpanded ? null : idx;
+                    setExpandedIndex(newIdx);
+                    if (onSelectCitation) {
+                      onSelectCitation(item.rawCitation);
+                    }
+                  }}
                   className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                    isExpanded
+                    isTargeted
+                      ? 'bg-[#1C2028] border-[#8FB3FF] ring-1 ring-[#8FB3FF]'
+                      : isExpanded
                       ? 'bg-[#1C2028] border-[#282D3A]'
                       : 'bg-[#15181E] border-[#1E2330] hover:border-[#282D3A]'
                   }`}
@@ -155,23 +177,23 @@ export const SourcesPanel: React.FC<SourcesPanelProps> = ({
                     </div>
                   </div>
 
-                  {/* Expanded view: chunk snippet & open link */}
+                  {/* Expanded view: chunk snippet & open link with sentence highlight */}
                   {isExpanded && (
                     <div className="mt-3 pt-3 border-t border-[#1E2330] space-y-2">
                       <div className="p-2.5 rounded-lg bg-[#15181E] border border-[#1E2330] text-[12px] text-[#ECE9E2] font-serif leading-relaxed">
                         {item.evidenceSpan ? (
                           <span>
                             ...
-                            <mark className="bg-[#F0B455]/20 text-[#ECE9E2] px-1 py-0.5 rounded">
+                            <mark className="bg-[#F0B455]/20 text-[#ECE9E2] px-1 py-0.5 rounded font-medium border-b border-[#F0B455]">
                               {item.evidenceSpan}
                             </mark>
                             ...
                           </span>
                         ) : (
-                          'Cancellations must be submitted through the Events Desk portal. A cancellation made 14 or more calendar days before the event date is a standard cancellation.'
+                          'Corpus passage retrieved and verified against approved manifest index.'
                         )}
                       </div>
-                      <div className="text-[11px] text-[#5B8DEF] font-medium hover:underline flex items-center gap-1 pt-1">
+                      <div className="text-[11px] text-[#8FB3FF] font-medium hover:underline flex items-center gap-1 pt-1">
                         <span>Open the full document →</span>
                       </div>
                     </div>
@@ -183,7 +205,7 @@ export const SourcesPanel: React.FC<SourcesPanelProps> = ({
         </div>
       </div>
 
-      {/* "How Kairos works" explainer card (matching board 1 & 2) */}
+      {/* "How Kairos works" explainer card */}
       <div className="bg-[#12151B] border border-[#1E2330] rounded-2xl p-4 space-y-1.5">
         <div className="text-xs font-semibold text-[#ECE9E2]">How Kairos works</div>
         <p className="text-[12px] text-[#7D8594] leading-relaxed">

@@ -13,6 +13,49 @@ export async function createSession(): Promise<SessionInfo> {
   return res.json();
 }
 
+export async function getSuggestions(): Promise<string[]> {
+  try {
+    const res = await fetch(`${API_BASE}/v1/suggestions`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.suggestions || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function sendFeedback(
+  sessionId: string,
+  version: number,
+  rating: 'up' | 'down'
+): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/v1/telemetry/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId, version, rating }),
+    });
+  } catch (err) {
+    console.debug('Failed to send telemetry feedback:', err);
+  }
+}
+
+export async function executePresentationTurn(
+  sessionId: string,
+  token: string,
+  action: 'shorter' | 'bullets' | 'simple'
+): Promise<StreamEvent> {
+  const res = await fetch(`${API_BASE}/v1/turns/presentation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session_id: sessionId, token, action }),
+  });
+  if (!res.ok) {
+    throw new Error(`Presentation turn failed: ${res.statusText}`);
+  }
+  return res.json();
+}
+
 export class KairosStreamClient {
   private ws: WebSocket | null = null;
   private session: SessionInfo;

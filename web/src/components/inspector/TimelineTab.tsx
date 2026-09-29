@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ExternalLink } from 'lucide-react';
+import { DEFAULT_TIMELINE_CLAIMS, RACE_BENCHMARKS } from '../../fixtures/inspectorMocks';
 import { ClaimObject, ControllerDecisionEvent, LegInfo, StreamEvent } from '../../types';
 
 interface TimelineTabProps {
@@ -37,13 +38,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
           citation: c.citations[0] ? c.citations[0].replace('§', ' §') : 'no source',
           status: c.status === 'uncertain' ? 'not found' : 'verified',
         }))
-      : [
-          { num: 1, text: 'Both approved Pune venues fit your group…', citation: 'Doc_12 §2', status: 'verified' },
-          { num: 2, text: 'Cancelling 14 or more days before…', citation: 'Doc_31 §2', status: 'verified' },
-          { num: 2, text: 'Later cancellations get 50% back…', citation: 'Doc_31 §4', status: 'verified' },
-          { num: 3, text: 'Koregaon Studio has in-house catering…', citation: 'Doc_89 §1', status: 'verified' },
-          { num: 3, text: 'Catering at Riverside Hall', citation: 'no source', status: 'not found' },
-        ];
+      : DEFAULT_TIMELINE_CLAIMS;
 
   // Event log items (real stream events or board 4 defaults)
   const defaultLog = [
@@ -102,10 +97,10 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
 
         {/* Gantt Track Area */}
         <div className="relative space-y-3 pt-2">
-          {/* Vertical marker: Speaker stopped · 2.1 s */}
+          {/* Vertical marker: Speaker stopped */}
           <div className="absolute top-0 bottom-6 left-[96%] border-l-2 border-dashed border-[#F0B455] z-20 pointer-events-none">
             <span className="absolute -top-1 left-2 text-[11px] font-mono text-[#F0B455] whitespace-nowrap font-medium">
-              Speaker stopped · 2.1 s
+              Speaker stopped · {utteranceEndT ? utteranceEndT.toFixed(1) : RACE_BENCHMARKS.utteranceEndS.toFixed(1)} s
             </span>
           </div>
 
@@ -114,10 +109,10 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             <span className="w-28 text-[#7D8594] font-medium shrink-0">Speech</span>
             <div className="flex-1 relative h-8 flex items-center gap-1.5">
               <div className="w-[45%] h-7 bg-[#1C2028] border border-[#282D3A] rounded-lg px-2.5 flex items-center text-[11px] text-[#A3A9B5] truncate">
-                Organising a customer workshop in
+                Organising a customer workshop
               </div>
               <div className="w-[32%] h-7 bg-[#1C2028] border border-[#282D3A] rounded-lg px-2.5 flex items-center text-[11px] text-[#A3A9B5] truncate">
-                Pune for 30 attendees, along with
+                Attendee capacity and location, with
               </div>
               <div className="w-[18%] h-7 bg-[#1C2028] border border-[#282D3A] rounded-lg px-2.5 flex items-center text-[11px] text-[#A3A9B5] truncate">
                 the cancellation policy and…

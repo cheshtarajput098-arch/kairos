@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { CheckCircle2, Search, Copy, Check, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, Search, Copy, Check, ShieldCheck, ThumbsUp, ThumbsDown, RefreshCw } from 'lucide-react';
 import { ClaimObject, LegInfo, VersionDiff } from '../types';
 import { SourcePopover } from './SourcePopover';
 import { getIntentColor } from '../design/tokens';
@@ -18,6 +18,10 @@ interface AnswerCanvasProps {
   isDrafting: boolean;
   onQuickAction: (action: 'shorter' | 'bullets' | 'simple') => void;
   onSeeDiff: () => void;
+  onSelectSource?: (citation: string, evidenceSpan?: string) => void;
+  onFeedback?: (rating: 'up' | 'down') => void;
+  textSize?: 'normal' | 'large' | 'xlarge';
+  showProvisionalDrafts?: boolean;
 }
 
 export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
@@ -26,20 +30,27 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
   finalAnswer,
   finalClaims,
   version,
+  diff,
   readyCount,
   totalParts,
   isDrafting,
   onQuickAction,
   onSeeDiff,
+  onSelectSource,
+  onFeedback,
+  textSize = 'normal',
+  showProvisionalDrafts = true,
 }) => {
   const hasSettledAnswer = Boolean(finalAnswer);
   const [hasTriggeredQuickAction, setHasTriggeredQuickAction] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState<'up' | 'down' | null>(null);
 
   // Reset quick action state when answer changes
   useEffect(() => {
     setHasTriggeredQuickAction(false);
     setCopied(false);
+    setFeedbackRating(null);
   }, [finalAnswer]);
 
   const handleAction = (action: 'shorter' | 'bullets' | 'simple') => {
@@ -57,6 +68,21 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleFeedback = (rating: 'up' | 'down') => {
+    setFeedbackRating(rating);
+    if (onFeedback) {
+      onFeedback(rating);
+    }
+  };
+
+  // Font size class mapping
+  const textSizeClass =
+    textSize === 'xlarge'
+      ? 'text-[19px] leading-loose'
+      : textSize === 'large'
+      ? 'text-[17px] leading-relaxed'
+      : 'text-[15px] leading-relaxed';
 
   // Sequential numbering (1, 2, 3...) in order of first appearance across claims
   const citationNumberMap = useMemo(() => {
@@ -87,17 +113,9 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
         }
       });
 
-      // Default section titles based on content or leg_id
       return regularClaims.map((claim, idx) => {
-        let title = `Part ${idx + 1}`;
-        const lower = claim.text.toLowerCase();
-        if (lower.includes('venue') || lower.includes('hall') || lower.includes('seats')) {
-          title = version > 1 ? 'Venue for 45 people' : 'Venue for 30 people';
-        } else if (lower.includes('cancel') || lower.includes('refund')) {
-          title = 'Cancellation terms';
-        } else if (lower.includes('cater') || lower.includes('menu')) {
-          title = 'Catering';
-        }
+        const associatedLeg = legs.find((l) => l.leg_id === claim.leg_id);
+        const title = associatedLeg ? associatedLeg.text : `Part ${idx + 1}`;
 
         const isUpdated = version > 1 && idx === 0;
         const isUnchanged = version > 1 && idx > 0;
@@ -117,16 +135,7 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
     // While streaming / drafting
     if (legs.length > 0) {
       return legs.map((leg) => {
-        let title = leg.text;
-        const lower = leg.text.toLowerCase();
-        if (lower.includes('venue') || lower.includes('workshop')) {
-          title = 'Venue for 30 people';
-        } else if (lower.includes('cancellation') || lower.includes('policy')) {
-          title = 'Cancellation terms';
-        } else if (lower.includes('catering')) {
-          title = 'Catering';
-        }
-
+        const title = leg.text;
         const draft = drafts[leg.leg_id];
         return {
           id: leg.leg_id,
@@ -144,7 +153,7 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
   }, [hasSettledAnswer, finalClaims, legs, drafts, version]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" aria-live="polite" aria-atomic="false">
       {/* Header bar: Answer state title */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -171,7 +180,7 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
             <div className="flex items-center gap-1.5 text-xs text-[#6FD39A]">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>
-                Every sentence checked against {citationNumberMap.size || 5} sources
+                Every sentence checked against {citationNumberMap.size || 3} sources
               </span>
             </div>
           ) : null}
@@ -195,6 +204,10 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
             if ('claim' in sec && sec.claim) {
               const claim = sec.claim;
               const prose = cleanProse(claim.text);
+              const isSpeed2 = (claim as unknown as { speed?: number }).speed === 2;
+              const speed1Prose = (claim as unknown as { speed1_text?: string }).speed1_text
+                ? cleanProse((claim as unknown as { speed1_text?: string }).speed1_text || '')
+                : prose;
 
               return (
                 <div
@@ -206,7 +219,6 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
                   {/* Card Header */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      {/* Intent Number Badge */}
                       <div
                         className="w-5 h-5 rounded flex items-center justify-center text-xs font-mono font-bold text-white shrink-0"
                         style={{ backgroundColor: intent.hex }}
@@ -231,15 +243,15 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
                     )}
                   </div>
 
-                  {/* Prose Body */}
-                  <div className="text-[15px] font-serif leading-relaxed text-[#ECE9E2] space-y-2">
+                  {/* Prose Body with Two-Speed Cross-Fade (Item 3) */}
+                  <div className={`${textSizeClass} font-serif text-[#ECE9E2] space-y-2`}>
                     {sec.isUpdated ? (
                       <div>
-                        {/* Strikethrough prior text in v2 */}
-                        <p className="line-through text-[#7D8594] text-[14px] mb-2 leading-relaxed">
-                          Both approved Pune venues fit your group: Riverside Hall in Baner seats up
-                          to 40 people in a classroom layout, and Koregaon Studio seats up to 35.
-                        </p>
+                        {diff?.v1_text && (
+                          <p className="line-through text-[#7D8594] text-[14px] mb-2 leading-relaxed">
+                            {diff.v1_text}
+                          </p>
+                        )}
                         <p className="bg-[#8FB3FF]/10 p-2 rounded-lg border border-[#8FB3FF]/20">
                           {prose}
                           {claim.citations.map((cite) => {
@@ -250,30 +262,50 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
                                 citation={cite}
                                 index={pillNumber}
                                 evidenceSpan={claim.evidence_span}
+                                onSelectSource={onSelectSource}
                               />
                             );
                           })}
                         </p>
                       </div>
                     ) : (
-                      <p>
-                        {prose}
-                        {claim.citations.map((cite) => {
-                          const pillNumber = citationNumberMap.get(cite) || idx + 1;
-                          return (
-                            <SourcePopover
-                              key={cite}
-                              citation={cite}
-                              index={pillNumber}
-                              evidenceSpan={claim.evidence_span}
-                            />
-                          );
-                        })}
-                      </p>
+                      <div className="relative inline">
+                        {/* Two-speed cross-fade without layout shift */}
+                        <div className="grid grid-cols-1 grid-rows-1 items-start inline">
+                          <span
+                            className={`col-start-1 row-start-1 transition-opacity duration-500 ease-in-out ${
+                              isSpeed2 ? 'opacity-0 pointer-events-none' : 'opacity-100'
+                            }`}
+                          >
+                            {speed1Prose}
+                          </span>
+                          {isSpeed2 && (
+                            <span className="col-start-1 row-start-1 transition-opacity duration-500 ease-in-out opacity-100">
+                              {prose}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Citations sit immediately adjacent without shifting */}
+                        <span className="inline-block ml-1 align-baseline">
+                          {claim.citations.map((cite) => {
+                            const pillNumber = citationNumberMap.get(cite) || idx + 1;
+                            return (
+                              <SourcePopover
+                                key={cite}
+                                citation={cite}
+                                index={pillNumber}
+                                evidenceSpan={claim.evidence_span}
+                                onSelectSource={onSelectSource}
+                              />
+                            );
+                          })}
+                        </span>
+                      </div>
                     )}
                   </div>
 
-                  {/* Gap / Uncertainty Card inside or beneath section (Board 2) */}
+                  {/* Gap / Uncertainty Card beneath section */}
                   {sec.gaps &&
                     sec.gaps.map((gapClaim) => (
                       <div
@@ -298,8 +330,13 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
               );
             }
 
-            // Case B: Streaming Draft Section (Board 1)
+            // Case B: Streaming Draft Section (Respects showProvisionalDrafts toggle)
+            if (!showProvisionalDrafts) {
+              return null;
+            }
+
             const draft = 'draft' in sec ? sec.draft : null;
+            const isRetracted = draft?.status === 'retracted';
 
             return (
               <div
@@ -332,15 +369,26 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
                   )}
                 </div>
 
-                {/* Body: Draft text or Skeleton loading bars */}
+                {/* Body: Draft text with rollback animation (Item 4) */}
                 {draft ? (
-                  <div className="text-[15px] font-serif leading-relaxed text-[#ECE9E2]">
-                    <p>
-                      {cleanProse(draft.text)}
-                      <span className="inline-flex items-center justify-center w-4 h-4 ml-1.5 text-[10px] font-mono font-bold rounded bg-[#1C2028] border border-[#282D3A] text-[#ECE9E2]">
-                        1
-                      </span>
-                    </p>
+                  <div
+                    className={`${textSizeClass} font-serif text-[#ECE9E2] transition-opacity duration-300 ${
+                      isRetracted ? 'opacity-30' : 'opacity-100'
+                    }`}
+                  >
+                    {isRetracted ? (
+                      <div className="flex items-center gap-2 text-xs text-[#F0B455] italic py-1">
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Refilling draft with updated details…</span>
+                      </div>
+                    ) : (
+                      <p>
+                        {cleanProse(draft.text)}
+                        <span className="inline-flex items-center justify-center w-4 h-4 ml-1.5 text-[10px] font-mono font-bold rounded bg-[#1C2028] border border-[#282D3A] text-[#ECE9E2]">
+                          1
+                        </span>
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-2 py-1">
@@ -365,41 +413,76 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
         </div>
       )}
 
-      {/* Quick Actions (Board 2: Shorter, As bullets, Explain simply, Copy) */}
+      {/* Quick Actions (Item 2: Shorter, As bullets, Explain simply, Copy) + Thumbs Feedback (Item 9) */}
       {hasSettledAnswer && (
-        <div className="flex flex-wrap items-center gap-2 pt-2">
-          <button
-            onClick={() => handleAction('shorter')}
-            className="px-3.5 py-1.5 text-xs rounded-lg border border-[#282D3A] bg-[#1C2028] hover:bg-[#252B36] text-[#ECE9E2] font-medium transition-colors"
-          >
-            Shorter
-          </button>
-          <button
-            onClick={() => handleAction('bullets')}
-            className="px-3.5 py-1.5 text-xs rounded-lg border border-[#282D3A] bg-[#1C2028] hover:bg-[#252B36] text-[#ECE9E2] font-medium transition-colors"
-          >
-            As bullets
-          </button>
-          <button
-            onClick={() => handleAction('simple')}
-            className="px-3.5 py-1.5 text-xs rounded-lg border border-[#282D3A] bg-[#1C2028] hover:bg-[#252B36] text-[#ECE9E2] font-medium transition-colors"
-          >
-            Explain simply
-          </button>
-          <button
-            onClick={handleCopy}
-            className="px-3.5 py-1.5 text-xs rounded-lg border border-[#282D3A] bg-[#1C2028] hover:bg-[#252B36] text-[#ECE9E2] font-medium transition-colors inline-flex items-center gap-1.5"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-[#6FD39A]" /> : <Copy className="w-3.5 h-3.5 text-[#A3A9B5]" />}
-            <span>{copied ? 'Copied' : 'Copy'}</span>
-          </button>
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => handleAction('shorter')}
+              className="px-3.5 py-1.5 text-xs rounded-lg border border-[#282D3A] bg-[#1C2028] hover:bg-[#252B36] text-[#ECE9E2] font-medium transition-colors"
+            >
+              Shorter
+            </button>
+            <button
+              onClick={() => handleAction('bullets')}
+              className="px-3.5 py-1.5 text-xs rounded-lg border border-[#282D3A] bg-[#1C2028] hover:bg-[#252B36] text-[#ECE9E2] font-medium transition-colors"
+            >
+              As bullets
+            </button>
+            <button
+              onClick={() => handleAction('simple')}
+              className="px-3.5 py-1.5 text-xs rounded-lg border border-[#282D3A] bg-[#1C2028] hover:bg-[#252B36] text-[#ECE9E2] font-medium transition-colors"
+            >
+              Explain simply
+            </button>
+            <button
+              onClick={handleCopy}
+              className="px-3.5 py-1.5 text-xs rounded-lg border border-[#282D3A] bg-[#1C2028] hover:bg-[#252B36] text-[#ECE9E2] font-medium transition-colors inline-flex items-center gap-1.5"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-[#6FD39A]" /> : <Copy className="w-3.5 h-3.5 text-[#A3A9B5]" />}
+              <span>{copied ? 'Copied' : 'Copy'}</span>
+            </button>
 
-          {/* "No new search needed" appears only after quick action */}
-          {hasTriggeredQuickAction && (
-            <span className="text-[11px] text-[#7D8594] font-mono ml-2 animate-fade-in">
-              No new search needed
-            </span>
-          )}
+            {/* "No new search needed" appears only after quick action (Item 2) */}
+            {hasTriggeredQuickAction && (
+              <span className="text-[11px] text-[#7D8594] font-mono ml-2 animate-fade-in">
+                No new search needed
+              </span>
+            )}
+          </div>
+
+          {/* Thumbs up/down per answer, kept in session telemetry only (Item 9) */}
+          <div className="flex items-center gap-1.5 text-xs text-[#7D8594]">
+            <button
+              type="button"
+              onClick={() => handleFeedback('up')}
+              className={`p-1.5 rounded-lg border transition-colors ${
+                feedbackRating === 'up'
+                  ? 'bg-[#6FD39A]/20 border-[#6FD39A] text-[#6FD39A]'
+                  : 'border-[#282D3A] bg-[#1C2028] hover:text-[#ECE9E2]'
+              }`}
+              title="Helpful answer"
+              aria-label="Thumbs up"
+            >
+              <ThumbsUp className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => handleFeedback('down')}
+              className={`p-1.5 rounded-lg border transition-colors ${
+                feedbackRating === 'down'
+                  ? 'bg-[#E5484D]/20 border-[#E5484D] text-[#E5484D]'
+                  : 'border-[#282D3A] bg-[#1C2028] hover:text-[#ECE9E2]'
+              }`}
+              title="Unhelpful answer"
+              aria-label="Thumbs down"
+            >
+              <ThumbsDown className="w-3.5 h-3.5" />
+            </button>
+            {feedbackRating && (
+              <span className="text-[11px] font-mono text-[#6FD39A] ml-1">Feedback saved</span>
+            )}
+          </div>
         </div>
       )}
     </div>

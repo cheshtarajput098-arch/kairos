@@ -2,6 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Self-hosted font declarations (Item 10: Zero external CDN / Google Fonts requests) */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: local('Geist'), local('Inter'), local('system-ui'), local('-apple-system'), sans-serif;
+}
+
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: local('Newsreader'), local('Georgia'), local('Times New Roman'), serif;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: local('Geist Mono'), local('JetBrains Mono'), local('Menlo'), local('Consolas'), monospace;
+}
+
 @layer base {
   body {
     background-color: #0E1014;
@@ -31,5 +56,17 @@
     );
     background-size: 200% 100%;
     animation: gentle-shimmer 2.5s infinite linear;
+  }
+}
+
+/* Prefers-reduced-motion switches animations off (Item 11) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

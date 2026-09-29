@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Step 07 (Part 1): Held-out transcript adapter, G1–G6 eval suite, and CI mvp-replay - 2026-09-29
+- Built tolerant held-out transcript format adapter (`kairos/stream/adapters.py`) supporting native JSONL, theme-guide Example 1 table format, flat transcript wrappers, and raw text with synthetic timestamps (SPEC §9.6a).
+- Built offline evaluation suite (`eval/gates.py`, `eval/baseline.py`, `eval/run_suite.py`) computing official acceptance gates G1–G6 and the Ready-at-End metric with honest denominators.
+- Verified all acceptance gates pass on dev split: G1=PASS (1.0), G2=PASS (1.0), G3=PASS (1.0), G4=PASS (0.000, 0 fabricated citations out of 28 total claims), G5=PASS (1.0), G6=PASS (1.0), Ready-at-End=0.769 (10/13 RETRIEVE turns).
+- Refined extractive synthesizer (`kairos/synth/extractive.py`) to eliminate arbitrary unretrieved chunk fallbacks, strictly enforcing corpus isolation (Rule 1) and rigorous grounding (Rule 3).
+- Added `mvp-replay` automated CI workflow (`.github/workflows/ci.yml`) validating headless replay of the 3 theme demo scenarios, controller decision markers, leg counts, late-constraint version updates, suppression zero-retrieval, and offline `make eval` execution.
+- Added 29 unit and gate integration tests across `tests/test_adapter.py` and `tests/test_eval.py`. Full suite now has 112 passing tests with 89% coverage in Docker container, clean `make lint`, clean `make typecheck` (53 files), and zero bandit security issues.
+
 ### Step 06: Grounded Speed-1 synthesis, drafting, session store & delta engine - 2026-09-29
 - Built context spotlighting (`kairos/security/spotlight.py`) enclosing chunks in `<untrusted_corpus id="...">`, escaping adversarial tags, down-weighting flagged chunks, and appending system prompt isolation instructions.
 - Implemented Speed-1 extractive synthesizer (`kairos/synth/extractive.py`) scoring candidate sentences by leg overlap, producing natural lead-ins, <= 30-word evidence spans, and exact `[Doc_ID §Section]` citations.

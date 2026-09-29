@@ -13,7 +13,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 04 | `build/steps/p03-controller.md` | done | Replay harness & retrieval controller |
 | 05 | `build/steps/p04-decomposer.md` | done | Multi-intent decomposer, deduplication & parallel dispatch |
 | 06 | `build/steps/p05-synthesis-session.md` | done | Grounded synthesis, drafting, session store & delta engine |
-| 07 | `build/steps/p06-mvp.md` | todo | |
+| 07 | `build/steps/p06-mvp.md` | in_progress (part 1 of 2) | Part 1 done (adapters, eval suite G1–G6, mvp-replay CI job); Part 2 next (web UI, Docker frontend build, v0.1-mvp tag) |
 | 08 | `build/steps/p07-evaluation.md` | todo | |
 | 09 | `build/steps/p07b-generative.md` | todo | |
 | 10 | `build/steps/p09a-ui-design.md` | todo | |
@@ -23,7 +23,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 14 | `build/steps/p11-release.md` | todo | |
 
 ## Current tier
-Tier 1: Differentiator MVP pipeline complete (Controller, Decomposer, Dispatcher, Hybrid Retriever, RRF Fusion, Grounded Extractive Synthesizer, Answer Drafting Manager, Grounding Gate, Session Store, and Delta Engine).
+Tier 1: Differentiator MVP pipeline complete & evaluated; frontend web assembly in progress.
 
 ## Done
 - Starter repo: rules, autopilot workflows, spec, config, folder layout, placeholder corpus, demo scenarios, docs templates, repo-rule tests.
@@ -43,9 +43,16 @@ Tier 1: Differentiator MVP pipeline complete (Controller, Decomposer, Dispatcher
   - `kairos/api/stream.py` & `app.py`: REST session endpoints (`POST /v1/sessions`, `GET /v1/sessions/{id}`, `GET /v1/sessions/{id}/diff`, `DELETE /v1/sessions/{id}`) and WebSocket streaming (`WS /v1/stream`) with origin checks, token validation, 4096-byte message limits, 60 msg/s rate limiting, and real-time event streaming.
   - Replay CLI (`kairos replay demo`) replaying all 3 hackathon demo scenarios, printing answer v1, v2, version diffs, and Ready-at-End scores.
   - 83 tests passing with 90% coverage in Docker container, clean mypy `--strict`, clean ruff, and zero bandit security issues.
+- Step 07 (Part 1 of 2):
+  - `kairos/stream/adapters.py`: Tolerant held-out transcript format adapter supporting native JSONL, theme-guide Example 1 table format, flat transcript wrappers, and raw text fallback with synthetic timestamps (SPEC §9.6a).
+  - `eval/`: Offline evaluation suite with `eval/gates.py`, `eval/baseline.py`, and `eval/run_suite.py` computing official acceptance gates G1–G6 with honest denominators and Ready-at-End metric. `make eval` runs completely offline with no network or API key.
+  - Verified evaluation gate results on dev split: G1=PASS (1.0), G2=PASS (1.0), G3=PASS (1.0), G4=PASS (0.000, 0 fabricated citations out of 28 total claims), G5=PASS (1.0), G6=PASS (1.0), Ready-at-End=0.769 (10/13 RETRIEVE turns).
+  - Enhanced `kairos/synth/extractive.py` to eliminate unretrieved chunk fallbacks, ensuring zero hallucinated citations.
+  - `.github/workflows/ci.yml`: Added `mvp-replay` CI job asserting headless demo replay, controller decisions, leg counts, late-constraint version bumps, zero-retrieval suppression, and offline `make eval` gate execution.
+  - 112 unit & integration tests passing with 89% coverage in Docker container, clean `make lint`, clean `make typecheck` (53 files), clean `make security`.
 
 ## Next
-Step 07: `build/steps/p06-mvp.md`. Type `/build-next` in a new conversation.
+Step 07 (Part 2 of 2): Complete Differentiator MVP assembly in `web/` (React + TypeScript + Vite + Tailwind with Assistant, Inspector, and Story modes), multi-stage Docker build for static frontend serving, README quick start with demo GIF, and local `v0.1-mvp` git tag.
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).

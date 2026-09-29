@@ -61,3 +61,73 @@ jobs:
       - name: Teardown
         if: always()
         run: docker compose down
+
+  mvp-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start container
+        run: docker compose up -d --build
+      - name: Wait for /v1/ready
+        run: |
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/v1/ready || true)
+            if [ "$STATUS" = "200" ]; then echo "ready"; exit 0; fi
+            sleep 2
+          done
+          docker compose logs kairos; exit 1
+      - name: Replay three demo scenarios headlessly
+        run: docker compose exec -T kairos kairos replay demo --out /tmp/replay_out
+      - name: Assert controller decisions present in replay output
+        run: |
+          OUTPUT=$(docker compose exec -T kairos cat /tmp/replay_out/replay_summary.json)
+          echo "$OUTPUT"
+          echo "$OUTPUT" | python3 -c "
+          import json, sys
+          records = json.load(sys.stdin)
+          assert len(records) >= 5, f'Expected >=5 turns, got {len(records)}'
+          for r in records:
+              assert 'decisions' in r, f'Missing decisions in {r[\"turn_id\"]}'
+          print('decisions check: PASS')
+          "
+      - name: Assert >= 1 leg on compound turn (S1)
+        run: |
+          OUTPUT=$(docker compose exec -T kairos cat /tmp/replay_out/replay_summary.json)
+          echo "$OUTPUT" | python3 -c "
+          import json, sys
+          records = json.load(sys.stdin)
+          compound = [r for r in records if r['type'] == 'compound']
+          assert compound, 'No compound turn found'
+          assert len(compound[0]['legs']) >= 1, f'No legs on compound turn: {compound[0]}'
+          print('leg count check: PASS')
+          "
+      - name: Assert version bump on late_constraint turn (S2-T2)
+        run: |
+          OUTPUT=$(docker compose exec -T kairos cat /tmp/replay_out/replay_summary.json)
+          echo "$OUTPUT" | python3 -c "
+          import json, sys
+          records = json.load(sys.stdin)
+          lc = [r for r in records if r['type'] == 'late_constraint']
+          assert lc, 'No late_constraint turn found'
+          assert lc[0]['version'] >= 2, f'Expected version >=2, got {lc[0][\"version\"]}'
+          print('version bump check: PASS')
+          "
+      - name: Assert zero retrievals on presentation_only turn (S3-T2)
+        run: |
+          OUTPUT=$(docker compose exec -T kairos cat /tmp/replay_out/replay_summary.json)
+          echo "$OUTPUT" | python3 -c "
+          import json, sys
+          records = json.load(sys.stdin)
+          po = [r for r in records if r['type'] == 'presentation_only']
+          assert po, 'No presentation_only turn found'
+          assert po[0]['first_retrieval_t'] is None, f'Expected no retrieval, got {po[0][\"first_retrieval_t\"]}'
+          print('zero-retrieval suppression check: PASS')
+          "
+      - name: Run eval suite in container
+        run: docker compose exec -T kairos make eval
+      - name: Verify gates.json exists
+        run: |
+          docker compose exec -T kairos test -f runs/eval/gates.json && echo "gates.json exists: PASS"
+      - name: Teardown
+        if: always()
+        run: docker compose down

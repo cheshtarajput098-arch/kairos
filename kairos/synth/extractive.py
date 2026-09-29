@@ -65,12 +65,6 @@ class ExtractiveSynthesizer:
                 candidate_ids.append(cid)
 
         if not candidate_ids:
-            # Fallback check any available chunk
-            for cid in chunks_map:
-                candidate_ids.append(cid)
-                break
-
-        if not candidate_ids:
             return None
 
         best_sentence = ""

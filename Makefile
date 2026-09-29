@@ -21,7 +21,7 @@ replay:
 	$(PYTHON) -m kairos.cli replay --split $(or $(SPLIT),dev)
 
 eval:
-	$(PYTHON) -m eval.run_suite
+	$(PYTHON) -m eval.run_suite --split $(or $(SPLIT),dev) --out $(or $(OUT),runs/eval)
 
 serve:
 	$(PYTHON) -m uvicorn kairos.api.app:app --host 0.0.0.0 --port 8000 --reload

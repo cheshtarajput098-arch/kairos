@@ -431,3 +431,111 @@ def test_cohens_kappa_calculation() -> None:
     assert po == 0.75
     assert kappa > 0.5
 
+
+# ---------------------------------------------------------------------------
+# Step 08 Part 2 Tests: Ablations, Stabilisation, ASR Noise, Race, Report
+# ---------------------------------------------------------------------------
+
+
+def test_ablations_components() -> None:
+    from eval.ablations import run_ablation_d, run_ablation_e
+
+    records = [
+        {"turn_id": "t1", "retrieval_required": True, "claims": [{"id": "c1"}], "ready_at_end": 1.0, "legs": [{"id": "l1"}]},
+        {"turn_id": "t2", "retrieval_required": True, "claims": [{"id": "c2"}], "ready_at_end": 0.5, "legs": [{"id": "l2"}]},
+    ]
+    ab_d = run_ablation_d(records)
+    assert "speed_1_extractive_only" in ab_d
+    assert "two_speed_synthesis" in ab_d
+    assert ab_d["speed_1_extractive_only"]["grounding_pass_rate"] == 1.0
+
+    ab_e = run_ablation_e(records)
+    assert "drafting_enabled" in ab_e
+    assert "drafting_disabled" in ab_e
+    assert ab_e["drafting_enabled"]["ready_at_end"] == 0.75
+    assert ab_e["drafting_disabled"]["ready_at_end"] == 0.0
+
+
+def test_stabilisation_turn() -> None:
+    from eval.stabilisation import compute_turn_stabilisation
+    from kairos.index.store import IndexStore
+
+    store = IndexStore()
+    if not store.chunks_map:
+        store.load()
+
+    scenario = {
+        "turn_id": "stab-t1",
+        "turn_type": "single",
+        "chunks": [
+            {"t": 0.0, "text": "I need venue capacity"},
+            {"t": 0.8, "text": "in Pune for 30 attendees."},
+        ],
+        "utterance_end": 1.8,
+    }
+    gold = {
+        "turn_id": "stab-t1",
+        "retrieval_required": True,
+        "answer_chunks": {"capacity": ["Doc_12§2"]},
+    }
+
+    res = compute_turn_stabilisation(scenario, gold, store, controller_trigger_t=0.8)
+    assert res is not None
+    assert "t_sc_s" in res
+    assert "t_suf_s" in res
+    assert "phi" in res
+    assert "volatility" in res
+    assert "hidden_latency_s" in res
+    assert res["phi"] >= 0.0
+
+
+def test_asr_noise_injection() -> None:
+    from eval.asr_noise import inject_asr_noise
+
+    sc = {
+        "turn_id": "noise-t1",
+        "chunks": [
+            {"t": 0.0, "text": "I need room for thirty people in Pune and policy details"},
+            {"t": 1.0, "text": "and catering options for the guests."},
+        ],
+    }
+    clean = inject_asr_noise(sc, target_wer=0.0)
+    assert clean["chunks"][0]["text"] == sc["chunks"][0]["text"]
+
+    noisy_5 = inject_asr_noise(sc, target_wer=0.05, seed=123)
+    assert len(noisy_5["chunks"]) >= len(sc["chunks"])
+
+    noisy_10 = inject_asr_noise(sc, target_wer=0.10, seed=456)
+    assert len(noisy_10["chunks"]) >= len(sc["chunks"])
+
+
+def test_race_computation_mock() -> None:
+    from eval.race import compute_race_run
+
+    mock_records = [
+        {
+            "turn_id": "test-s01-t1",
+            "retrieval_required": True,
+            "first_retrieval_t": 0.8,
+            "utterance_end": 2.1,
+            "ready_at_end": 1.0,
+        }
+    ]
+    res = compute_race_run(split="test", turn_records=mock_records)
+    assert "summary" in res
+    assert "turns" in res
+    assert res["summary"]["n_turns"] > 0
+    assert res["summary"]["median_time_saved_s"] >= 0.0
+
+
+def test_build_report_generation(tmp_path: Any) -> None:
+    from eval.build_report import format_eval_report
+
+    out_file = tmp_path / "TEST_EVAL_REPORT.md"
+    content = format_eval_report(dest_path=out_file)
+    assert out_file.exists()
+    assert "Kairos" in content
+    assert "G1" in content
+    assert "Ready-at-End" in content
+
+

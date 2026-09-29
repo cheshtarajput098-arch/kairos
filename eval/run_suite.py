@@ -412,6 +412,27 @@ def run_suite(split: str = "dev", out_dir: str = "runs/eval") -> int:
     with open(out_path / "metrics.json", "w", encoding="utf-8") as fh:
         json.dump(metrics, fh, indent=2)
 
+    # Run complete evaluation suite deliverables (SPEC §9.2 - §9.7)
+    print("\n[eval] Running Ablations A-E (SPEC §9.3)...")
+    from eval.ablations import run_all_ablations
+    run_all_ablations(split=split, out_file=out_path / "ablations.json", store=store, turn_records=turn_records)
+
+    print("[eval] Running Stabilisation Ceiling Analysis (arXiv:2606.20113)...")
+    from eval.stabilisation import run_stabilisation_suite
+    run_stabilisation_suite(split=split, out_file=out_path / "stabilisation.json", store=store, turn_records=turn_records)
+
+    print("[eval] Running ASR Noise Robustness (SPEC §9.4b)...")
+    from eval.asr_noise import run_robustness_suite
+    run_robustness_suite(split=split, out_file=out_path / "robustness.json", store=store)
+
+    print("[eval] Running Race View & Measured Time Savings (SPEC §9.2)...")
+    from eval.race import compute_race_run
+    compute_race_run(split=split, out_file=out_path / "race.json", turn_records=turn_records, store=store)
+
+    print("[eval] Generating docs/EVAL_REPORT.md (SPEC §9.7)...")
+    from eval.build_report import format_eval_report
+    format_eval_report(eval_dir=out_path)
+
     # Print summary
     print("\n" + "=" * 70)
     print(f"EVAL RESULTS -- split={split}, n={len(turn_records)}")

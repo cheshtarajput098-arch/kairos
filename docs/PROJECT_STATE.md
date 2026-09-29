@@ -14,7 +14,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 05 | `build/steps/p04-decomposer.md` | done | Multi-intent decomposer, deduplication & parallel dispatch |
 | 06 | `build/steps/p05-synthesis-session.md` | done | Grounded synthesis, drafting, session store & delta engine |
 | 07 | `build/steps/p06-mvp.md` | done | Tier 1 Differentiator MVP complete (pipeline, eval suite G1–G6, web UI, Docker multi-stage build, v0.1-mvp tag) |
-| 08 | `build/steps/p07-evaluation.md` | in_progress (part 1 of 2) | Part 1 done (test set 64 turns, freeze script & manifest, IAA tool, dual official/strict G1-G6 gates with stratification, metrics engine, controller model arm); Part 2 next (ablations A/B/C, stabilisation ceiling, ASR noise, race run, report generator, v0.5-proof tag) |
+| 08 | `build/steps/p07-evaluation.md` | done | Tier 2 Proof complete (frozen test split 64 turns, dual official/strict G1-G6 gates, metrics engine, controller model arm, ablations A-E, stabilisation ceiling, ASR noise robustness, race run, report generator, judge guide, v0.5-proof tag) |
 | 09 | `build/steps/p07b-generative.md` | todo | |
 | 10 | `build/steps/p09a-ui-design.md` | todo | |
 | 11 | `build/steps/p09b-ui-build.md` | todo | |
@@ -23,7 +23,7 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 14 | `build/steps/p11-release.md` | todo | |
 
 ## Current tier
-Tier 2: Proof in progress (eval foundation, frozen test split, dual gates & metrics complete).
+Tier 2: Proof completed. Ready for Tier 3 (Generative Speed 2 / local LLM integration).
 
 ## Done
 - Starter repo: rules, autopilot workflows, spec, config, folder layout, placeholder corpus, demo scenarios, docs templates, repo-rule tests.
@@ -55,7 +55,7 @@ Tier 2: Proof in progress (eval foundation, frozen test split, dual gates & metr
   - Verified evaluation gate results on dev split: G1=PASS (1.0), G2=PASS (1.0), G3=PASS (1.0), G4=PASS (0.000, 0 fabricated citations), G5=PASS (1.0), G6=PASS (1.0), Ready-at-End=0.769 (10/13 RETRIEVE turns).
   - `.github/workflows/ci.yml`: Added `mvp-replay` CI job asserting headless demo replay, controller decisions, leg counts, late-constraint version bumps, zero-retrieval suppression, and offline `make eval` gate execution.
   - 112 unit & integration tests passing with 89% coverage in Docker container, clean `make lint`, clean `make typecheck` (53 files), clean `make security`. Tagged `v0.1-mvp`.
-- Step 08 (Part 1 of 2):
+- Step 08: Full Evaluation Suite, Dual Gates, Ablations, Stabilisation, Robustness & Report (`v0.5-proof`):
   - `eval/make_transcripts.py`: Generated 64 diverse test turns in `data/replay/test/` (scenarios.jsonl & gold.jsonl) covering compound (19), late-constraint (18), presentation-only (12), single (11), and out-of-corpus (4) queries. Stratified by source (42.2% `human_external`, 57.8% `llm_drafted`, all unreviewed) and decisive-word position (24 early, 24 middle, 16 last third).
   - `eval/external_turns/INSTRUCTIONS.md`: Authored external turn instructions with document topics for classmate contributions.
   - `eval/iaa.py`: Built inter-annotator agreement tool computing Cohen's Kappa and percent agreement.
@@ -63,11 +63,18 @@ Tier 2: Proof in progress (eval foundation, frozen test split, dual gates & metr
   - `eval/gates.py`: Rebuilt acceptance gates engine to compute BOTH Official and Strict variants for G1–G6, stratified reports (by source and decisive-word position), and 3-cadence Ready-at-End (0.75x, 1.0x, 1.5x).
   - `eval/metrics.py`: Built metrics calculator computing all SPEC §9.1a metrics: recall@k, nDCG@10, TTFT and lead time percentiles, suppression rate, retrievals per turn, redundant-leg rate, cost by turn class, savings vs restart, and cost-to-performance efficiency table.
   - `eval/controller_model.py`: Trained CPU-native NumPy Logistic Regression classifier on dev prefixes with corpus-derived labels (sufficiency stabilisation), generating the early-retrieval vs false-trigger ROC curve for Ablation A.
+  - `eval/ablations.py`: Implemented full ablations A–E (A: rule vs model controller ROC curve; B: end-of-utterance vs incremental decomposition; C: dense vs sparse vs hybrid RRF k=10 vs k=60 vs rerank; D: Speed 1 extractive vs two-speed; E: drafting on vs off). Outputs to `runs/eval/ablations.json`.
+  - `eval/stabilisation.py`: Evaluated prefix-level theoretical ceiling per arXiv:2606.20113 ($t_{sc}, t_{suf}, \phi, V, H$ hidden latency bound, controller trigger gap). Verified 0.0s median trigger gap and 100% hidden retrieval latency. Outputs to `runs/eval/stabilisation.json`.
+  - `eval/asr_noise.py`: Evaluated seeded ASR noise robustness across Clean (0%), 5% WER, and 10% WER with phonetic substitutions, repetitions, and partial revisions. Outputs to `runs/eval/robustness.json`.
+  - `eval/race.py`: Measured per-turn time saved vs sequential baseline on shared virtual clock (SPEC §9.2), saving median 1.508s per turn. Outputs to `runs/eval/race.json`.
+  - `kairos/api/app.py`: Implemented `GET /v1/results` exposing all evaluation results for Inspector dashboard and Race view, plus `GET /v1/corpus/chunks/{chunk_id}` and `GET /v1/corpus/search`.
+  - `eval/build_report.py`: Renders comprehensive `docs/EVAL_REPORT.md` reading purely from `runs/eval/` JSON outputs, including 3 real edge-case telemetry excerpts (late disambiguation, contradiction/retraction, evidence absent).
+  - `docs/JUDGE_GUIDE.md`: Authored held-out replay evaluator guide for hackathon judges detailing CLI commands, format adapters, and custom corpus indexing.
   - Verified on 64-turn frozen test split: Official G1–G6 all PASS, Strict G1–G6 all PASS, Ready-at-End=0.654 (34/52 RETRIEVE turns), 0 fabricated citations out of 113 claims, 100% suppression rate (0 false triggers on 12 suppression turns).
-  - 118 unit & gate tests passing with 89% coverage in Docker container, clean ruff linter across all modules, clean mypy `--strict`, and clean bandit security scan.
+  - 125 unit & integration tests passing with 89% coverage in Docker container, clean ruff linter across all modules, clean mypy `--strict`, and clean bandit security scan.
 
 ## Next
-Step 08 (Part 2 of 2): Complete Tier 2 Proof (ablations A/B/C, stabilisation ceiling metrics, ASR noise WER 5% & 10%, race run time savings, report generator docs/EVAL_REPORT.md, docs/JUDGE_GUIDE.md, and local git tag v0.5-proof).
+Step 09: `build/steps/p07b-generative.md` — Tier 3 Generative Speed-2 synthesis (quantized local LLM via llama-cpp-python, SHA-256 model verification, offline generative answers, GroundingGate fallback).
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).
@@ -76,3 +83,4 @@ Step 08 (Part 2 of 2): Complete Tier 2 Proof (ablations A/B/C, stabilisation cei
 | Tag | Date | Notes |
 |---|---|---|
 | `v0.1-mvp` | 2026-09-29 | Tier 1 Differentiator MVP end-to-end (SPEC §15.1) |
+| `v0.5-proof` | 2026-09-29 | Tier 2 Proof: evaluation suite, dual gates, ablations, stabilisation, robustness (SPEC §15.2) |

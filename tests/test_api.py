@@ -53,3 +53,30 @@ def test_error_envelope_no_stack_trace(monkeypatch: pytest.MonkeyPatch) -> None:
     assert data["error"]["request_id"] == "err-req-999"
     # Ensure stack trace / secret internal message is NOT exposed to client
     assert "Secret internal calculation failure!" not in response.text
+
+
+def test_results_endpoint() -> None:
+    response = client.get("/v1/results")
+    assert response.status_code == 200
+    data = response.json()
+    assert "status" in data
+    assert "gates" in data
+    assert "metrics" in data
+    assert "ablations" in data
+    assert "stabilisation" in data
+    assert "robustness" in data
+    assert "race" in data
+
+
+def test_corpus_search_and_chunk_endpoint() -> None:
+    # Search
+    response = client.get("/v1/corpus/search?q=workshop")
+    assert response.status_code == 200
+    data = response.json()
+    assert "query" in data
+    assert "results" in data
+
+    # Chunk not found
+    err_resp = client.get("/v1/corpus/chunks/NonExistentChunk")
+    assert err_resp.status_code == 404
+    assert err_resp.json()["error"]["code"] == "CHUNK_NOT_FOUND"

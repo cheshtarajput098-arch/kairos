@@ -258,6 +258,82 @@ async def websocket_stream_endpoint(
     await handle_stream_websocket(websocket, session_id, token, store, idx_store)
 
 
+@app.get("/v1/results")
+async def get_evaluation_results() -> dict[str, Any]:
+    """Expose latest offline evaluation results for Inspector dashboard and Race view (SPEC §10, §14.4)."""
+    import json
+    eval_dir = Path("runs/eval")
+    results: dict[str, Any] = {
+        "status": "available" if eval_dir.exists() else "pending",
+        "gates": {},
+        "metrics": {},
+        "ablations": {},
+        "stabilisation": {},
+        "robustness": {},
+        "race": {},
+    }
+    for key in ["gates", "metrics", "ablations", "stabilisation", "robustness", "race"]:
+        fpath = eval_dir / f"{key}.json"
+        if fpath.exists():
+            try:
+                results[key] = json.loads(fpath.read_text(encoding="utf-8"))
+            except Exception as e:  # noqa: BLE001
+                results[key] = {"error": str(e)}
+    return results
+
+
+@app.get("/v1/corpus/chunks/{chunk_id}")
+async def get_corpus_chunk(chunk_id: str, request: Request) -> Any:
+    """Retrieve full text and metadata for a chunk by ID for Inspector Corpus Explorer."""
+    store: IndexStore = getattr(app.state, "index_store", None) or IndexStore()
+    if not store.chunks_map:
+        try:
+            store.load()
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f"Index load skipped: {e}")
+    chunk = store.chunks_map.get(chunk_id)
+    if not chunk:
+        request_id = getattr(request.state, "request_id", "unknown")
+        envelope = ErrorEnvelope(
+            error=ErrorDetail(
+                code="CHUNK_NOT_FOUND",
+                message=f"Corpus chunk '{chunk_id}' not found.",
+                request_id=request_id,
+            )
+        )
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=envelope.model_dump())
+    return chunk.model_dump()
+
+
+@app.get("/v1/corpus/search")
+async def search_corpus(q: str, limit: int = 10) -> dict[str, Any]:
+    """Search corpus chunks for Inspector Corpus Explorer."""
+    store: IndexStore = getattr(app.state, "index_store", None) or IndexStore()
+    if not store.chunks_map:
+        try:
+            store.load()
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f"Index load skipped: {e}")
+    clean_q = q.strip()
+    if not clean_q:
+        return {"query": q, "results": []}
+
+    dense_res = store.dense_index.search(clean_q, top_k=limit)
+    results = []
+    for cid, score in dense_res:
+        chunk = store.chunks_map.get(cid)
+        if chunk:
+            results.append({
+                "chunk_id": cid,
+                "doc_id": chunk.doc_id,
+                "section": chunk.section,
+                "title": chunk.title,
+                "score": round(score, 4),
+                "text_snippet": chunk.text[:200] + ("..." if len(chunk.text) > 200 else ""),
+            })
+    return {"query": q, "results": results}
+
+
 # Mount static frontend directory if present
 static_dir = Path("kairos/api/static")
 if static_dir.exists():

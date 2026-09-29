@@ -7,7 +7,7 @@ export const AboutTab: React.FC = () => {
       {/* Title */}
       <div>
         <div className="text-xs text-[#7D8594] font-mono">
-          SPEC §11a & §14.4 · SAMSUNG PRISM GENAI HACKATHON 2026 · THEME 04
+          SPEC §11a & §14.4 · STREAMING LIVE RAG ENGINE · THEME 04
         </div>
         <h2 className="text-xl sm:text-2xl font-bold text-[#ECE9E2] mt-1 tracking-tight">
           System Architecture: Core vs. Harness

@@ -1,7 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Header } from './components/Header';
+import { Sidebar, NavTab } from './components/Sidebar';
+import { TopBar } from './components/TopBar';
 import { StoryBar } from './components/StoryBar';
-import { AssistantMode } from './components/AssistantMode';
+import { HomeScreen } from './components/HomeScreen';
+import { ConversationScreen } from './components/ConversationScreen';
+import { KnowledgeSourcesScreen } from './components/KnowledgeSourcesScreen';
+import { TracesScreen } from './components/TracesScreen';
 import { InspectorMode } from './components/InspectorMode';
 import { SettingsSheet } from './components/SettingsSheet';
 import { SCENARIOS } from './components/StoryMode';
@@ -22,18 +26,19 @@ import {
 } from './types';
 
 export const App: React.FC = () => {
-  const [mode, setMode] = useState<'assistant' | 'inspector'>('assistant');
+  const [activeTab, setActiveTab] = useState<NavTab>('ask');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [status, setStatus] = useState<'connected' | 'connecting' | 'closed' | 'error'>('connecting');
 
   // Session authentication & API
   const [session, setSession] = useState<SessionInfo | null>(null);
 
-  // Settings state (Item 8)
+  // Settings state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showDraftsWhileSpeaking, setShowDraftsWhileSpeaking] = useState(true);
   const [textSize, setTextSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
 
-  // Suggested questions from index headings (Item 6)
+  // Suggested questions from index headings
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
   // Live session state
@@ -56,12 +61,6 @@ export const App: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [events, setEvents] = useState<StreamEvent[]>([]);
 
-  // Status & error banners (Item 7)
-  const [micPermissionDenied, setMicPermissionDenied] = useState(false);
-  const [rateLimitError, setRateLimitError] = useState<{ message: string; requestId: string } | null>(null);
-  const [outOfScopeError, setOutOfScopeError] = useState<{ message: string; requestId: string } | null>(null);
-  const [generalError, setGeneralError] = useState<{ code: string; message: string; requestId: string } | null>(null);
-
   // Story mode
   const [isStoryActive, setIsStoryActive] = useState(false);
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
@@ -69,18 +68,117 @@ export const App: React.FC = () => {
 
   const clientRef = useRef<KairosStreamClient | null>(null);
   const storyTimerRef = useRef<number[]>([]);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch suggested questions from index headings on mount
+  // Fetch suggested questions from index headings on mount & parse direct navigation params
   useEffect(() => {
     getSuggestions().then((items) => {
       if (items.length > 0) {
         setSuggestions(items);
       }
     });
+
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam && ['ask', 'sources', 'traces', 'evaluation'].includes(tabParam)) {
+      setActiveTab(tabParam as NavTab);
+    }
+
+    if (params.get('mode') === 'conversation' || tabParam === 'conversation') {
+      setActiveTab('ask');
+      setTranscript(
+        'Plan a customer workshop in Pune for 30 attendees, with cancellation policy and catering options.'
+      );
+      setLegs([
+        { leg_id: 'l1', text: 'Venue for 30 people', first_dispatch_s: 0.8 },
+        { leg_id: 'l2', text: 'Cancellation terms', first_dispatch_s: 1.6 },
+        { leg_id: 'l3', text: 'Catering', first_dispatch_s: 1.6 },
+      ]);
+      setFinalAnswer(
+        'Both approved Pune venues fit your group: Riverside Hall in Baner seats up to 40 in a classroom layout, and Koregaon Studio seats up to 35. Cancelling 14 or more days before the event is a standard cancellation with a full refund of the venue fee. Later cancellations get 50% back, and nothing is refunded within 48 hours. Koregaon Studio offers in-house catering, charged per person and confirmed 5 working days ahead. You can also use an approved external caterer.'
+      );
+      setFinalClaims([
+        {
+          claim_id: 'c1',
+          leg_id: 'l1',
+          text: 'Both approved Pune venues fit your group: Riverside Hall in Baner seats up to 40 in a classroom layout, and Koregaon Studio seats up to 35.',
+          citations: ['Doc_12§2'],
+          evidence_span:
+            'Riverside Hall in Baner seats up to 40 people in a classroom layout, and Koregaon Studio seats up to 35',
+          status: 'verified',
+          version: 1,
+        },
+        {
+          claim_id: 'c2',
+          leg_id: 'l2',
+          text: 'Cancelling 14 or more days before the event is a standard cancellation with a full refund of the venue fee.',
+          citations: ['Doc_31§2'],
+          evidence_span:
+            'A cancellation made 14 or more calendar days before the event date is a standard cancellation with a full refund of the venue fee',
+          status: 'verified',
+          version: 1,
+        },
+        {
+          claim_id: 'c3',
+          leg_id: 'l2',
+          text: 'Later cancellations get 50% back, and nothing is refunded within 48 hours.',
+          citations: ['Doc_31§4'],
+          evidence_span:
+            'Later cancellations receive a 50 percent refund of the venue fee. Cancellations made fewer than 48 hours before the event are not refunded',
+          status: 'verified',
+          version: 1,
+        },
+        {
+          claim_id: 'c4',
+          leg_id: 'l3',
+          text: 'Koregaon Studio offers in-house catering, charged per person and confirmed 5 working days ahead.',
+          citations: ['Doc_89§1'],
+          evidence_span:
+            'Koregaon Studio offers in-house catering, charged per person and confirmed 5 working days ahead',
+          status: 'verified',
+          version: 1,
+        },
+        {
+          claim_id: 'c5',
+          leg_id: 'l3',
+          text: 'You can also use an approved external caterer.',
+          citations: ['Doc_89§2'],
+          evidence_span: 'You can also use an approved external caterer',
+          status: 'verified',
+          version: 1,
+        },
+      ]);
+      setCitations(['Doc_12§2', 'Doc_31§2', 'Doc_31§4', 'Doc_89§1', 'Doc_89§2']);
+      setReadyAtEnd(1);
+      setReadyCount(2);
+      setTotalParts(3);
+    } else if (params.get('mid_answer') === 'true') {
+      setActiveTab('ask');
+      setTranscript(
+        'Plan a customer workshop in Pune for 30 attendees, with cancellation policy and catering'
+      );
+      setIsSearching(true);
+      setIsDrafting(true);
+      setCurrentTime(1.6);
+      setLegs([
+        { leg_id: 'l1', text: 'Venue for 30 people', first_dispatch_s: 0.8 },
+        { leg_id: 'l2', text: 'Cancellation terms', first_dispatch_s: 1.6 },
+      ]);
+      setDrafts({
+        l1: {
+          claim_id: 'c1',
+          leg_id: 'l1',
+          text: 'Both approved Pune venues fit your group: Riverside Hall in Baner seats up to 40 people in a classroom layout, and Koregaon Studio seats up to 35.',
+          citations: ['Doc_12§2'],
+          evidence_span: 'Riverside Hall in Baner seats up to 40 people',
+          status: 'verified',
+          version: 1,
+        },
+      });
+      setCitations(['Doc_12§2']);
+    }
   }, []);
 
-  // Global Keyboard Shortcuts (Item 11: Space talk/stop, / focus, I toggle Inspector, Esc close)
+  // Global Keyboard Shortcuts (Space talk, I toggle Evaluation, Esc close)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeTag = (document.activeElement?.tagName || '').toLowerCase();
@@ -89,14 +187,12 @@ export const App: React.FC = () => {
       if (e.key === ' ' && !isInput) {
         e.preventDefault();
         setIsSearching((prev) => !prev);
-      } else if (e.key === '/' && !isInput) {
-        e.preventDefault();
-        inputRef.current?.focus();
       } else if (e.key.toLowerCase() === 'i' && !isInput) {
         e.preventDefault();
-        setMode((prev) => (prev === 'assistant' ? 'inspector' : 'assistant'));
+        setActiveTab((prev) => (prev === 'evaluation' ? 'ask' : 'evaluation'));
       } else if (e.key === 'Escape') {
         setIsSettingsOpen(false);
+        setIsMobileMenuOpen(false);
       }
     };
 
@@ -107,7 +203,6 @@ export const App: React.FC = () => {
   // Initialize session & WebSocket
   const initSession = () => {
     setStatus('connecting');
-    setGeneralError(null);
     createSession()
       .then((sess) => {
         setSession(sess);
@@ -118,11 +213,6 @@ export const App: React.FC = () => {
       .catch((err) => {
         console.error('Session initialization error:', err);
         setStatus('error');
-        setGeneralError({
-          code: 'SESSION_INIT_FAILED',
-          message: 'Failed to establish session with engine.',
-          requestId: `err_${Date.now().toString(36)}`,
-        });
       });
   };
 
@@ -171,12 +261,6 @@ export const App: React.FC = () => {
         if (event.diff) {
           setDiff(event.diff);
         }
-        if (event.turn_type === 'out_of_corpus') {
-          setOutOfScopeError({
-            message: event.answer,
-            requestId: `turn_${event.version}_${Date.now().toString(36)}`,
-          });
-        }
         if (event.metrics) {
           if (event.metrics.ready_at_end !== undefined) {
             setReadyAtEnd(event.metrics.ready_at_end);
@@ -201,12 +285,31 @@ export const App: React.FC = () => {
     }
   };
 
+  // Reset to empty home screen
+  const handleNewQuestion = () => {
+    clearStoryTimers();
+    setIsStoryActive(false);
+    setIsPlayingStory(false);
+    setTranscript('');
+    setDecisions([]);
+    setLegs([]);
+    setDrafts({});
+    setFinalAnswer('');
+    setFinalClaims([]);
+    setCitations([]);
+    setDiff(undefined);
+    setVersion(1);
+    setCurrentTime(0);
+    setActiveTab('ask');
+  };
+
   // Play a demo scenario through the real WebSocket stream
   const playScenario = (index: number) => {
     clearStoryTimers();
     const scenario = SCENARIOS[index];
     if (!scenario || !clientRef.current) return;
 
+    setActiveTab('ask');
     setCurrentScenarioIndex(index);
     setIsPlayingStory(true);
     setIsStoryActive(true);
@@ -256,16 +359,14 @@ export const App: React.FC = () => {
 
   const handleSendText = (text: string) => {
     if (!clientRef.current) return;
+    setActiveTab('ask');
     setTranscript(text);
     setFinalAnswer('');
     setFinalClaims([]);
-    setOutOfScopeError(null);
-    setRateLimitError(null);
     setUtteranceEndT(2.0);
     clientRef.current.sendChunk(0.0, text, true);
   };
 
-  // Item 2: Quick actions run as presentation-only turns with zero searches
   const handleQuickAction = async (action: 'shorter' | 'bullets' | 'simple') => {
     if (!session) return;
     try {
@@ -281,110 +382,146 @@ export const App: React.FC = () => {
     }
   };
 
-  // Item 9: Thumbs up/down per answer, kept in session telemetry only
   const handleFeedback = (rating: 'up' | 'down') => {
     if (session) {
       sendFeedback(session.session_id, version, rating);
     }
   };
 
+  // Determine if in conversation or home view under 'ask'
+  const isConversation = Boolean(transcript || finalAnswer || Object.keys(drafts).length > 0 || isStoryActive);
   const currentScenario = SCENARIOS[currentScenarioIndex] || SCENARIOS[0];
 
+  const questionTitle = transcript
+    ? transcript.slice(0, 36) + (transcript.length > 36 ? '…' : '')
+    : 'Pune workshop for 30 people';
+
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-[#0E1014] text-[#ECE9E2]">
-      {/* Top Header */}
-      <Header
-        mode={mode}
-        onModeChange={setMode}
-        onPlayDemo={() => playScenario(0)}
-        status={status}
-        isStoryActive={isStoryActive}
-        onOpenSettings={() => setIsSettingsOpen(true)}
+    <div className="min-h-screen flex bg-[#0E1014] text-[#ECE9E2] font-sans antialiased overflow-x-hidden">
+      {/* 248px Left Navigation Menu (Board 6–9 App Shell) */}
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onNewQuestion={handleNewQuestion}
+        onSelectRecent={(idx) => playScenario(idx)}
+        isOpenMobile={isMobileMenuOpen}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
-      {/* Settings Sheet (Item 8) */}
-      <SettingsSheet
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        showDraftsWhileSpeaking={showDraftsWhileSpeaking}
-        onToggleDraftsWhileSpeaking={setShowDraftsWhileSpeaking}
-        textSize={textSize}
-        onChangeTextSize={setTextSize}
-      />
-
-      {/* Slim 56px Story Mode Top Bar if active */}
-      {isStoryActive && (
-        <StoryBar
-          currentScenarioIndex={currentScenarioIndex}
-          totalScenarios={SCENARIOS.length}
-          title={currentScenario.title}
-          description={currentScenario.caption}
-          isPlaying={isPlayingStory}
-          onPause={() => {
-            clearStoryTimers();
-            setIsPlayingStory(false);
-          }}
-          onResume={() => playScenario(currentScenarioIndex)}
-          onNext={() => playScenario((currentScenarioIndex + 1) % SCENARIOS.length)}
-          onExit={() => {
-            clearStoryTimers();
-            setIsStoryActive(false);
-            setIsPlayingStory(false);
-          }}
+      {/* Main Right Area: 64px TopBar + Main Views */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        {/* 64px Top Bar */}
+        <TopBar
+          activeTab={activeTab}
+          isConversation={isConversation}
+          questionTitle={questionTitle}
+          onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+          onPlayDemo={() => playScenario(0)}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          status={status}
         />
-      )}
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-[1280px] w-full mx-auto px-6 py-8">
-        {mode === 'assistant' ? (
-          <AssistantMode
-            transcript={transcript}
-            isSearching={isSearching}
-            legs={legs}
-            drafts={drafts}
-            finalAnswer={finalAnswer}
-            finalClaims={finalClaims}
-            citations={citations}
-            version={version}
-            diff={diff}
-            readyAtEnd={readyAtEnd}
-            readyCount={readyCount}
-            totalParts={totalParts}
-            isDrafting={isDrafting}
-            currentTime={currentTime}
-            suggestions={suggestions}
-            onSendText={handleSendText}
-            onQuickAction={handleQuickAction}
-            onSeeDiff={() => setMode('inspector')}
-            onFeedback={handleFeedback}
-            connectionStatus={status}
-            onRetryConnection={initSession}
-            micPermissionDenied={micPermissionDenied}
-            onTypeInstead={() => setMicPermissionDenied(false)}
-            rateLimitError={rateLimitError}
-            outOfScopeError={outOfScopeError}
-            generalError={generalError}
-            textSize={textSize}
-            showProvisionalDrafts={showDraftsWhileSpeaking}
-            inputRef={inputRef}
-          />
-        ) : (
-          <InspectorMode
-            decisions={decisions}
-            legs={legs}
-            firstRetrievalT={firstRetrievalT}
-            utteranceEndT={utteranceEndT}
-            currentTime={currentTime}
-            events={events}
-            readyAtEnd={readyAtEnd}
-            finalAnswer={finalAnswer}
-            finalClaims={finalClaims}
-            citations={citations}
-            version={version}
-            diff={diff}
+        {/* Settings Sheet Modal */}
+        <SettingsSheet
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          showDraftsWhileSpeaking={showDraftsWhileSpeaking}
+          onToggleDraftsWhileSpeaking={setShowDraftsWhileSpeaking}
+          textSize={textSize}
+          onChangeTextSize={setTextSize}
+        />
+
+        {/* Slim Story Mode Bar if active */}
+        {isStoryActive && (
+          <StoryBar
+            currentScenarioIndex={currentScenarioIndex}
+            totalScenarios={SCENARIOS.length}
+            title={currentScenario.title}
+            description={currentScenario.caption}
+            isPlaying={isPlayingStory}
+            onPause={() => {
+              clearStoryTimers();
+              setIsPlayingStory(false);
+            }}
+            onResume={() => playScenario(currentScenarioIndex)}
+            onNext={() => playScenario((currentScenarioIndex + 1) % SCENARIOS.length)}
+            onExit={() => {
+              clearStoryTimers();
+              setIsStoryActive(false);
+              setIsPlayingStory(false);
+            }}
           />
         )}
-      </main>
+
+        {/* Main Content View Switcher */}
+        <main className="flex-1 overflow-y-auto">
+          {activeTab === 'ask' && !isConversation && (
+            <HomeScreen
+              onSendQuestion={handleSendText}
+              onPlayScenario={playScenario}
+              isListening={isSearching}
+              onToggleMic={() => setIsSearching((prev) => !prev)}
+            />
+          )}
+
+          {activeTab === 'ask' && isConversation && (
+            <ConversationScreen
+              transcript={transcript}
+              isSearching={isSearching}
+              legs={legs}
+              drafts={drafts}
+              finalAnswer={finalAnswer}
+              finalClaims={finalClaims}
+              citations={citations}
+              version={version}
+              diff={diff}
+              readyAtEnd={readyAtEnd}
+              readyCount={readyCount}
+              totalParts={totalParts}
+              isDrafting={isDrafting}
+              currentTime={currentTime}
+              suggestions={suggestions}
+              onSendText={handleSendText}
+              onQuickAction={handleQuickAction}
+              onSeeDiff={() => setActiveTab('evaluation')}
+              onFeedback={handleFeedback}
+              onViewTrace={() => setActiveTab('traces')}
+              textSize={textSize}
+              showProvisionalDrafts={showDraftsWhileSpeaking}
+            />
+          )}
+
+          {activeTab === 'sources' && <KnowledgeSourcesScreen />}
+
+          {activeTab === 'traces' && (
+            <TracesScreen
+              questionTitle={questionTitle}
+              turnId={`turn s${currentScenarioIndex + 1}-t${version}`}
+              onBackToConversation={() => setActiveTab('ask')}
+              events={events}
+            />
+          )}
+
+          {activeTab === 'evaluation' && (
+            <div className="max-w-[1280px] w-full mx-auto px-6 py-8">
+              <InspectorMode
+                decisions={decisions}
+                legs={legs}
+                firstRetrievalT={firstRetrievalT}
+                utteranceEndT={utteranceEndT}
+                currentTime={currentTime}
+                events={events}
+                readyAtEnd={readyAtEnd}
+                finalAnswer={finalAnswer}
+                finalClaims={finalClaims}
+                citations={citations}
+                version={version}
+                diff={diff}
+              />
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 };

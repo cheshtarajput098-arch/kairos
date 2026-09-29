@@ -24,6 +24,35 @@ export async function getSuggestions(): Promise<string[]> {
   }
 }
 
+export interface ApiCorpusDoc {
+  id: string;
+  title: string;
+  sections_count: number;
+  summary: string;
+  chunks: {
+    id: string;
+    section: string;
+    title: string;
+    text: string;
+    flagged?: boolean;
+  }[];
+}
+
+export interface ApiCorpusResponse {
+  documents: ApiCorpusDoc[];
+  total_chunks: number;
+}
+
+export async function getCorpusDocs(): Promise<ApiCorpusResponse | null> {
+  try {
+    const res = await fetch(`${API_BASE}/v1/corpus/docs`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 export async function sendFeedback(
   sessionId: string,
   version: number,

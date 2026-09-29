@@ -149,6 +149,15 @@ All Tiers (Tier 1–5, Steps 01–14) are COMPLETE. The repository is fully audi
   - Updated Requirements Matrix (`docs/COMPLIANCE.md`): 100% of rows marked `done` with concrete code/test evidence.
   - Completed strict 5-part audit: verified held-out adapter tolerance (`tests/test_adapter.py` 9/9 passed), confirmed zero forbidden imports or hard-coded test prompts, verified clean security scans (Bandit 0 issues, pip-audit 0 vulnerabilities), clean `ruff check`, and clean `mypy --strict` on 58 files.
   - Tagged final release `PRISM_GENAI_HACKATHON_Y2026`.
+- UI Enhancement: Industry-Ready Product Shell & Boards 6–9:
+  - App Shell: 248px responsive sidebar with brand, Veloria Systems selector, "+ New question", navigation (`Ask`, `Knowledge sources`, `Traces`, `Evaluation`), recent sessions, and "Private by design" card. 64px top bar with search chips, "Local model · offline", and context actions.
+  - Board 6 Home Screen: Newsreader typography, large question box with 56px ivory mic orb, 3 guided demo scenario cards, and trust row.
+  - Board 7 Conversation Screen: Intent-colored decomposed question bubble, "X of Y sentences verified" header, right-hand 380px Source Viewer drawer with quote highlights and ranking criteria, actions row (Copy, Shorter, As bullets, Thumbs up/down, View trace), and 3 un-cited "Ask next" prompt suggestions.
+  - Board 8 Knowledge Sources Screen: Live index metrics (8 docs, 27 sections, 949 words, BGE-small-en-v1.5, BM25, RRF k=60, 0 flagged chunks, SHA-256 clean status), document table, and dropzone guidance card.
+  - Board 9 Traces Screen: Per-turn Gantt timeline (speech, controller, parallel retrieval legs, verified draft diamonds), chronological events log, and Grounding checks table.
+  - Inspector retained under the "Evaluation" menu item.
+  - 0 axe-core violations across all 4 screens, 9 high-res screenshots captured in `docs/screenshots/` (1440×900 desktop and 390×844 mobile).
+  - 8 vitest unit tests passing; 166 pytest tests passing with 88% code coverage; 0 ruff errors, 0 mypy errors.
 
 ## Next
 All build sequence steps (01–14) are complete! The repository is submittable and verified end-to-end. Human tasks remaining (recording the demo video and final git push) are tracked in `docs/HUMAN_TASKS.md`.

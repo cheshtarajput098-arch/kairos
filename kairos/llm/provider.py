@@ -36,6 +36,7 @@ class LLMProvider:
                 local_cfg = cfg.models.local_llm
                 local_llm = LocalLLM(
                     model_path=self.model_name or local_cfg.gguf_file,
+                    expected_sha256=local_cfg.sha256,
                     n_threads=local_cfg.n_threads,
                     context_tokens=local_cfg.context_tokens,
                     max_output_tokens=local_cfg.max_output_tokens,

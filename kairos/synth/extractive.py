@@ -80,6 +80,22 @@ class ExtractiveSynthesizer:
         dense_results: list[tuple[str, float]] = retrieval_results.get("dense_results", [])
         sparse_results: list[tuple[str, float]] = retrieval_results.get("sparse_results", [])
 
+        # Corpus confidence gate (SPEC §6.3, Gate G4):
+        # If neither dense nor sparse search found relevant evidence (below confidence threshold),
+        # return explicit gap / uncertainty claim instead of guessing or extracting unrelated text.
+        top_dense = max((s for _, s in dense_results), default=0.0)
+        top_sparse = max((s for _, s in sparse_results), default=0.0)
+        if (dense_results or sparse_results) and top_dense < 0.60 and top_sparse < 2.0:
+            return ClaimObject(
+                claim_id=f"claim_{leg.leg_id}_gap",
+                leg_id=leg.leg_id,
+                text="I couldn't find information regarding this in the documents.",
+                citations=[],
+                evidence_span="",
+                status="uncertain",
+                version=version,
+            )
+
         # Compute RRF score across dense and sparse results
         rrf_scores: dict[str, float] = {}
         for rank, (cid, _) in enumerate(dense_results):

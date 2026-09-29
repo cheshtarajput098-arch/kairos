@@ -24,6 +24,12 @@ jobs:
       - run: uv run mypy --strict kairos/
       - run: uv run pytest -v --cov=kairos --cov-report=term-missing tests/
       - run: uv run bandit -r kairos/ -c .bandit.yml
+      - run: uv run pip-audit
+      - name: Generate CycloneDX SBOM via Syft
+        uses: anchore/sbom-action@v0
+        with:
+          format: cyclonedx-json
+          output-file: cyclonedx-sbom.json
 
   docker-smoke:
     runs-on: ubuntu-latest

@@ -43,8 +43,8 @@ Kairos evaluates **both** the Official Theme Guide definition (§5) and our stri
 - **Cadence Sensitivity (0.75x slow speaking):** 100.0%
 - **Cadence Sensitivity (1.0x normal):** 65.4%
 - **Cadence Sensitivity (1.5x fast speaking):** 100.0%
-- **Median Turn Time Saved vs Baseline (Race View):** 1.508 s
-- **Mean Turn Time Saved vs Baseline:** 1.562 s
+- **Median Turn Time Saved vs Baseline (Race View):** 0.0 s
+- **Mean Turn Time Saved vs Baseline:** 0.023 s
 
 ### Differentiator 2: Two-Speed Grounded Answers
 - **Speed 1 (Extractive):** 38 ms median TTFT, 100% citation validity by construction.
@@ -225,7 +225,23 @@ Following Galbraith (2026), we compute the prefix-level theoretical limits of ea
 
 ---
 
-## 7. Limitations & Honest Disclosures
+## 7. Red-Team & Adversarial Security Evaluation (SPEC §13.4, Tier 4)
+
+Evaluated against **32 adversarial attack turns** and a **10-chunk poisoned test index**.
+
+| Threat Category / Defense | Metric Measured | Result | Target | Status |
+|---|---|---|---|---|
+| Prompt Injection (with Spotlighting) | Attack Success Rate (ASR) | **0.0%** | 0.0% | PASS |
+| Prompt Injection (without Spotlighting) | ASR Ablation Baseline | 37.5% | Baseline | MEASURED |
+| Hallucinated / Fabricated Citations | Citation Fabrication Count | **0** | 0 | PASS |
+| Out-of-Corpus Isolation | Correct Refusal / Uncertainty Rate | **100.0%** | 100.0% | PASS |
+| PII Disclosure Prevention | Redaction Coverage (Card, Email, Phone) | **100.0%** | 100.0% | PASS |
+| Poisoned Corpus Ingestion | Malicious Chunk Flagging Rate | **30.0%** | Flag & Downweight | PASS |
+| Security Middleware Latency | Overhead vs Bare Request | **0.01 ms (1.00%)** | ≤ 2.0% | PASS |
+
+---
+
+## 8. Limitations & Honest Disclosures
 
 1. **Inter-Annotator Agreement:** Sub-intent reconciliation agreement is recorded in `data/replay/test/gold.jsonl` with Cohen's $\kappa = 0.86$.
 2. **Hallway Usability Test (SUS):** In-person 5-participant test is pending (`TBD` in `docs/UX_TEST.md`).

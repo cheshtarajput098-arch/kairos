@@ -60,7 +60,7 @@ def evaluate_fluency(ratings_path: Path | None = None) -> dict[str, Any]:
 
     for item in items:
         key_a = item["secret_key"]["A"]
-        key_b = item["secret_key"]["B"]
+        _key_b = item["secret_key"]["B"]
 
         r1_a = int(item["rater_1"]["score_A"])
         r1_b = int(item["rater_1"]["score_B"])

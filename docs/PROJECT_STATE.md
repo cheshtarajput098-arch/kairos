@@ -18,12 +18,12 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 09 | `build/steps/p07b-generative.md` | done | Tier 3 Generative Speed-2 rewrite with Qwen2.5 GGUF, circuit breaker, deterministic GroundingGate validation, generative decomposition, and blind fluency benchmark |
 | 10 | `build/steps/p09a-ui-design.md` | done | Tier 3: Complete UI Design plan (Calm Precision), component matrix, motion spec, microcopy & WCAG 2.2 AA plan |
 | 11 | `build/steps/p09b-ui-build.md` | done | Tier 3 UI Build & Polish complete (Assistant & Inspector modes, Board 4 Timeline, Race view, Results, Corpus explorer, Playground, Playwright E2E suite, UX test guide, v0.8-polish tag) |
-| 12 | `build/steps/p08-security.md` | todo | |
+| 12 | `build/steps/p08-security.md` | done | Tier 4 Security Hardening, STRIDE threat model, OWASP GenAI Top 10 mapping, red-team evaluation suite, poisoned corpus & fuzzing |
 | 13 | `build/steps/p10-industry.md` | todo | |
 | 14 | `build/steps/p11-release.md` | todo | |
 
 ## Current tier
-Tier 3 complete (v0.8-polish). Ready for Tier 4: Security (Step 12).
+Tier 4 in progress. Step 12 (Security) complete. Ready for Step 13 (`build/steps/p10-industry.md` — CI, performance, operations, and tag `v0.9-hardened`).
 
 ## Done
 - Starter repo: rules, autopilot workflows, spec, config, folder layout, placeholder corpus, demo scenarios, docs templates, repo-rule tests.
@@ -112,9 +112,20 @@ Tier 3 complete (v0.8-polish). Ready for Tier 4: Security (Step 12).
     - Web checks: ESLint 0 errors, TypeScript strict 0 errors, Vitest 5/5 passed.
     - Backend: 145 pytest unit & E2E tests passed (89% coverage in Docker).
   - Tagged `v0.8-polish`.
+- Step 12: Tier 4 Security Hardening and Red-Team Evaluation (`build/steps/p08-security.md`):
+  - Comprehensive STRIDE threat model across 4 trust boundaries and full OWASP GenAI Top 10 (2025 IDs LLM01–LLM10) control matrix in `SECURITY.md`, with each row directly linking to automated tests.
+  - Hardened web security controls: strict Content-Security-Policy (zero unsafe-inline scripts), scoped Permissions-Policy to demo page, WebSocket lifetime bounds (1800s), max frame sizes (4096B), and input sanitization (Unicode NFKC, stripping control and zero-width characters, tag escaping).
+  - Model integrity verification (`kairos/security/integrity.py`): SHA-256 validation of weights prior to loading, raising `RuntimeError` on tampering.
+  - Standalone PII redaction utility (`kairos/telemetry/redact.py`) covering emails, phone numbers, credit card sequences, and API keys with 100% masking.
+  - Corpus confidence gating in extractive synthesis: rejects queries with low dense (< 0.60) and sparse (< 2.0) scores, emitting explicit uncertainty ClaimObjects without fabricating citations.
+  - Red-team adversarial dataset (`data/replay/redteam/turns.jsonl`) with 32 turns across 5 threat classes, plus poisoned test corpus (`data/replay/redteam/poisoned_corpus/`) and index (`data/replay/redteam/index/`) with 10 injected adversarial chunks.
+  - Automated evaluation harness (`eval/redteam.py`) and report generator integration producing `runs/eval/redteam.json`: 32 turns, 0 fabricated citations, 0.0% ASR with spotlighting, 100% correct refusal rate, 100% PII redaction rate, and 0.01ms (1.0%) security middleware latency overhead.
+  - Automated property fuzzing (`tests/security/test_fuzz.py`), poisoned corpus tests (`tests/security/test_poisoning.py`), and 10 unit tests for all 10 security rules (`tests/security/test_security_rules.py`).
+  - Updated CI workflow with `pip-audit` vulnerability scanning and Syft CycloneDX SBOM generation.
+  - 163 backend tests passing, clean `ruff check`, clean `mypy --strict` (58 files), clean `bandit`, clean `pip-audit`.
 
 ## Next
-Step 12: `build/steps/p08-security.md` — Tier 4: Security hardening, threat model tests (10 security rules in tests/security/), attack surface minimization, non-root hardened container, audit.
+Step 13: `build/steps/p10-industry.md` — Tier 4: CI hardening, Locust performance load-testing (1 & 10 sessions), production operations manual & runbook (`docs/OPERATIONS.md`), SLO definitions, and tag `v0.9-hardened`.
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).

@@ -62,3 +62,10 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.168.3",
+    "locust>=2.46.6",
+    "pip-audit>=2.10.1",
+]

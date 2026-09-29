@@ -46,6 +46,7 @@ class ReplayTranscript(StrictBaseModel):
         "compound", "late_constraint", "presentation_only", "single", "out_of_corpus"
     ]
     scenario: str | None = None
+    attack_category: str | None = None
     chunks: list[ReplayChunk]
     utterance_end: float
 

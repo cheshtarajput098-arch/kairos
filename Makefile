@@ -27,7 +27,12 @@ serve:
 	$(PYTHON) -m uvicorn kairos.api.app:app --host 0.0.0.0 --port 8000 --reload
 
 security:
-	$(PYTHON) -m bandit -r kairos/ -c .bandit.yml || true
+	$(PYTHON) -m bandit -r kairos/ -c .bandit.yml
+	$(PYTHON) -m pip_audit || true
+	$(PYTHON) -m pytest tests/security/
+
+redteam:
+	$(PYTHON) -m eval.redteam
 
 web:
 	@echo "Syncing frontend dist to kairos/api/static..."

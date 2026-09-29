@@ -12,7 +12,10 @@ INJECTION_PATTERNS = [
         r"ignore\s+(all\s+)?(previous|prior|above)\s+(instructions|directives|prompts)",
         re.IGNORECASE,
     ),
-    re.compile(r"(disregard|forget)\s+(all\s+)?(previous|prior)\s+rules", re.IGNORECASE),
+    re.compile(
+        r"(disregard|forget)\s+(all\s+)?(previous|prior|above)\s+(rules|directives|instructions)",
+        re.IGNORECASE,
+    ),
     re.compile(
         r"you\s+are\s+now\s+(an?\s+)?(unrestricted|jailbroken|developer|admin)", re.IGNORECASE
     ),

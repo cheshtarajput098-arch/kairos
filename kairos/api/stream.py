@@ -26,6 +26,7 @@ from kairos.grounding.gate import GroundingGate
 from kairos.index.store import IndexStore
 from kairos.retrieve.hybrid import HybridRetriever
 from kairos.schemas import ErrorDetail, ErrorEnvelope, StreamInputChunk
+from kairos.security.sanitizer import sanitize_input_text
 from kairos.session.delta import DeltaEngine
 from kairos.session.store import SessionStore
 from kairos.synth.drafting import DraftingManager
@@ -81,10 +82,27 @@ async def handle_stream_websocket(
     has_prior_answer = bool(session.answer)
     window_start = time.time()
     window_count = 0
+    conn_start_time = time.time()
     idle_timeout = float(cfg.session.ttl_s)
+    max_conn_lifetime = float(cfg.security.ws.max_connection_s)
 
     try:
         while True:
+            # Enforce max connection lifetime (SPEC §13.3)
+            now = time.time()
+            if now - conn_start_time > max_conn_lifetime:
+                logger.info(f"WebSocket session {session_id} exceeded max connection lifetime ({max_conn_lifetime}s).")
+                err = ErrorEnvelope(
+                    error=ErrorDetail(
+                        code="MAX_CONNECTION_LIFETIME_EXCEEDED",
+                        message="Connection lifetime exceeded. Please reconnect.",
+                        request_id=session_id,
+                    )
+                )
+                await websocket.send_text(json.dumps(err.model_dump()))
+                await websocket.close(code=status.WS_1000_NORMAL_CLOSURE)
+                return
+
             # Idle timeout guard
             raw_text = await asyncio.wait_for(websocket.receive_text(), timeout=idle_timeout)
 
@@ -103,7 +121,6 @@ async def handle_stream_websocket(
                 return
 
             # Enforce rate limit (max 60 messages per second per connection)
-            now = time.time()
             if now - window_start > 1.0:
                 window_start = now
                 window_count = 0
@@ -137,11 +154,14 @@ async def handle_stream_websocket(
                 await websocket.send_text(json.dumps(err.model_dump()))
                 continue
 
+            # Sanitize input chunk text (NFKC, strip control/zero-width, escape delimiters - SPEC §13.3)
+            sanitized_text = sanitize_input_text(chunk.text)
+
             # Update running prefix
             if prefix_buffer:
-                prefix_buffer = f"{prefix_buffer} {chunk.text}".strip()
+                prefix_buffer = f"{prefix_buffer} {sanitized_text}".strip()
             else:
-                prefix_buffer = chunk.text.strip()
+                prefix_buffer = sanitized_text.strip()
 
             # Controller decision
             features = feature_extractor.compute_features(

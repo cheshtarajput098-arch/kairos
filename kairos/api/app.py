@@ -366,8 +366,9 @@ async def get_evaluation_results() -> dict[str, Any]:
         "stabilisation": {},
         "robustness": {},
         "race": {},
+        "redteam": {},
     }
-    for key in ["gates", "metrics", "ablations", "stabilisation", "robustness", "race"]:
+    for key in ["gates", "metrics", "ablations", "stabilisation", "robustness", "race", "redteam"]:
         fpath = eval_dir / f"{key}.json"
         if fpath.exists():
             try:

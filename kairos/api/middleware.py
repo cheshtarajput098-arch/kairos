@@ -18,12 +18,19 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     ) -> Response:
         response: Response = await call_next(request)
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+            "default-src 'self'; script-src 'self'; style-src 'self'; "
             "img-src 'self' data:; connect-src 'self' ws: wss:; frame-ancestors 'none'; base-uri 'none';"
         )
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
-        response.headers["Permissions-Policy"] = "microphone=(self)"
+
+        # Permissions-Policy scoped to demo page / UI; restricted on API endpoints (SPEC §13.3)
+        path = request.url.path
+        if path == "/" or path.startswith("/demo") or not path.startswith("/v1"):
+            response.headers["Permissions-Policy"] = "microphone=(self)"
+        else:
+            response.headers["Permissions-Policy"] = "microphone=()"
+
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
         return response
 

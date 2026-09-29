@@ -74,10 +74,12 @@ class LocalLLM:
         context_tokens: int = 4096,
         max_output_tokens: int = 256,
         temperature: float = 0.0,
+        expected_sha256: str | None = None,
         failures_to_open: int = 3,
         reset_after_s: float = 30.0,
     ) -> None:
         self.model_path = Path(model_path) if model_path else None
+        self.expected_sha256 = expected_sha256
         self.n_threads = n_threads
         self.context_tokens = context_tokens
         self.max_output_tokens = max_output_tokens
@@ -106,6 +108,12 @@ class LocalLLM:
                 f"Local LLM model file not found at {self.model_path}; fallback to extractive mode."
             )
             return False
+
+        # Model integrity verification (Security Rule 8, SPEC §13.2)
+        if self.expected_sha256 and self.model_path:
+            from kairos.security.integrity import verify_model_integrity
+
+            verify_model_integrity(self.model_path, self.expected_sha256)
 
         try:
             import importlib

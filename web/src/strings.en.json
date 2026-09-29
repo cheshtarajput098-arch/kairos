@@ -8,30 +8,68 @@
     "assistant": "Assistant",
     "inspector": "Inspector",
     "playDemo": "Play the demo",
+    "modes": {
+      "offline": "Offline Extractive",
+      "speed2": "Speed 2 Generative"
+    },
     "status": {
       "connected": "Connected",
       "connecting": "Connecting...",
-      "offline": "Offline"
+      "offline": "Offline",
+      "reconnecting": "Reconnecting in {{seconds}}s..."
     }
   },
   "assistant": {
-    "welcome": "Ask anything about Veloria Systems. Speak or type naturally — you can add constraints as you go.",
+    "welcome": "Ask anything about Veloria Systems. Speak naturally — you can add details as you go.",
     "privacy": "This session is ephemeral and stored in memory only.",
-    "suggestedTitle": "Suggested questions",
-    "searching": "Already searching...",
+    "suggestedTitle": "Suggested questions from documents",
+    "listeningPlaceholder": "Listening for your question...",
+    "typePlaceholder": "Type a question or speech transcript...",
+    "alreadySearching": "Already searching: {{legs}} legs dispatched",
     "readyWhenStopped": "{{ready}} of {{total}} parts were ready before you finished speaking",
     "timeSaved": "saved {{time}}s vs batch",
+    "version": "v{{version}}",
     "updatedBadge": "Updated · v{{version}}",
     "seeWhatChanged": "See what changed",
     "quickActions": {
       "shorter": "Shorter",
       "asBullets": "As bullets",
       "explainSimply": "Explain simply",
-      "noNewSearch": "No new search needed"
+      "copy": "Copy answer",
+      "share": "Share",
+      "noNewSearch": "No new search needed (instant)"
     },
     "gapCard": {
       "title": "I couldn't find complete evidence for this in the documents.",
       "askDifferently": "Ask differently"
+    },
+    "errors": {
+      "micBlocked": "Microphone access blocked. You can type below.",
+      "rateLimit": "You're going fast — please pause for a moment.",
+      "messageTooLarge": "Message exceeds the maximum allowable length.",
+      "serverError": "Something went wrong. Let's try that again."
+    }
+  },
+  "inspector": {
+    "tabs": {
+      "session": "Live Session",
+      "race": "Race View",
+      "results": "Results",
+      "corpus": "Corpus",
+      "playground": "Playground",
+      "about": "About"
+    },
+    "timeline": {
+      "title": "Event Timeline",
+      "leadTime": "Lead time: {{leadTime}}s",
+      "utteranceEnd": "Utterance End",
+      "scrubberLabel": "Time-travel scrubber"
+    },
+    "telemetry": {
+      "title": "Turn Telemetry",
+      "tokens": "Tokens: {{in}} in / {{out}} out",
+      "cost": "Est. Cost: ${{cost}}",
+      "jaegerLink": "View trace in Jaeger"
     }
   },
   "storyMode": {

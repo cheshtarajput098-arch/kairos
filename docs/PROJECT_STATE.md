@@ -16,14 +16,14 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 07 | `build/steps/p06-mvp.md` | done | Tier 1 Differentiator MVP complete (pipeline, eval suite G1–G6, web UI, Docker multi-stage build, v0.1-mvp tag) |
 | 08 | `build/steps/p07-evaluation.md` | done | Tier 2 Proof complete (frozen test split 64 turns, dual official/strict G1-G6 gates, metrics engine, controller model arm, ablations A-E, stabilisation ceiling, ASR noise robustness, race run, report generator, judge guide, v0.5-proof tag) |
 | 09 | `build/steps/p07b-generative.md` | done | Tier 3 Generative Speed-2 rewrite with Qwen2.5 GGUF, circuit breaker, deterministic GroundingGate validation, generative decomposition, and blind fluency benchmark |
-| 10 | `build/steps/p09a-ui-design.md` | todo | |
+| 10 | `build/steps/p09a-ui-design.md` | done | Tier 3: Complete UI Design plan (Calm Precision), component matrix, motion spec, microcopy & WCAG 2.2 AA plan |
 | 11 | `build/steps/p09b-ui-build.md` | todo | |
 | 12 | `build/steps/p08-security.md` | todo | |
 | 13 | `build/steps/p10-industry.md` | todo | |
 | 14 | `build/steps/p11-release.md` | todo | |
 
 ## Current tier
-Tier 3: Generative polish completed. Ready for UI Design & Build (Steps 10-11).
+Tier 3: UI Design completed. Ready for UI Build, Assistant & Inspector modes, Race view & Story mode (Step 11).
 
 ## Done
 - Starter repo: rules, autopilot workflows, spec, config, folder layout, placeholder corpus, demo scenarios, docs templates, repo-rule tests.
@@ -81,9 +81,19 @@ Tier 3: Generative polish completed. Ready for UI Design & Build (Steps 10-11).
   - Built blind fluency benchmark in `eval/fluency/` (`sample_answers.py`, `ratings.json`, `score.py`) measuring human rating agreement (82.5% absolute agreement, 100% within +/- 1 point, Cohen's $\kappa = 0.689$, mean Speed 1 = 3.92, mean Speed 2 = 5.0).
   - Enhanced UI in `web/src/components/AnswerCanvas.tsx` with smooth text cross-fading and zero layout shift.
   - 134 unit & integration tests passing with 88% coverage in Docker container, clean `make lint`, clean `make typecheck` (55 files), clean bandit security scan, and `make eval SPLIT=test` passing all Official and Strict G1–G6 gates.
+- Step 10: Complete UI Design Specification, Component System, and Microcopy (`build/steps/p09a-ui-design.md`):
+  - Reviewed SPEC §14 in full and authored comprehensive UI Design Plan (`docs/UI_DESIGN.md`):
+    - Visual directions: Developed "Calm Precision" (default), "Warm Editorial", and "Technical Clarity" with full CSS color tokens and interactive HTML hero mockups demonstrating simultaneous ghost, drafting, and settled sections.
+    - 6 signature interactions + Story mode + Playground + Scrubber with explicit state machines, telemetry drivers, and reduced-motion states.
+    - 8 end-to-end user journeys (first run, compound voice query, late detail, "as bullets", open source, out-of-scope, mic blocked, connection lost).
+    - Responsive wireframes (360px & 1440px) and 6-state component matrix (`empty`, `loading`, `streaming`, `uncertain`, `updated`, `error`).
+    - Complete microcopy dictionary in `web/src/strings.en.json` (zero hardcoded strings).
+    - Motion physics spec with Spring parameters and reduced-motion fallbacks.
+    - WCAG 2.2 AA accessibility plan with 4.5:1+ contrast verification, keyboard shortcuts, and `aria-live` strategy.
+    - Inspector mode projector ergonomics and 20-second first impression choreography.
 
 ## Next
-Step 10: `build/steps/p09a-ui-design.md` — Tier 3: UI Design polish, tokens, layout, and component system.
+Step 11: `build/steps/p09b-ui-build.md` — Tier 3: UI build, Assistant & Inspector modes, Story mode, Race view, Playwright e2e, and tag `v0.8-polish`.
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).

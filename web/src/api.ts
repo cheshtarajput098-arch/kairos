@@ -1,6 +1,14 @@
 import { SessionInfo, StreamEvent } from './types';
 
-const API_BASE = window.location.origin;
+const isDevPort =
+  typeof window !== 'undefined' &&
+  (window.location.port === '5173' || window.location.port === '3000');
+
+export const API_BASE = isDevPort
+  ? 'http://localhost:8000'
+  : typeof window !== 'undefined'
+  ? window.location.origin
+  : 'http://localhost:8000';
 
 export async function createSession(): Promise<SessionInfo> {
   const res = await fetch(`${API_BASE}/v1/sessions`, {
@@ -103,7 +111,7 @@ export class KairosStreamClient {
 
   public connect(): void {
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
+    const host = isDevPort ? 'localhost:8000' : window.location.host;
     const url = `${proto}//${host}/v1/stream?session_id=${encodeURIComponent(
       this.session.session_id
     )}&token=${encodeURIComponent(this.session.token)}`;

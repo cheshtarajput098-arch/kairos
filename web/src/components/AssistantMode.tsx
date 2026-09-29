@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Mic, ArrowRight, BookOpen, Square } from 'lucide-react';
 import { AnswerCanvas } from './AnswerCanvas';
 import { SourcesPanel } from './SourcesPanel';
 import { ChangePanel } from './ChangePanel';
 import { FirstRunScreen } from './FirstRunScreen';
 import { StatusBanners } from './StatusBanners';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { ClaimObject, LegInfo, VersionDiff } from '../types';
 import { getIntentColor } from '../design/tokens';
 
@@ -72,16 +73,38 @@ export const AssistantMode: React.FC<AssistantModeProps> = ({
   inputRef,
 }) => {
   const [inputText, setInputText] = useState('');
+  const internalInputRef = useRef<HTMLInputElement>(null);
+  const effectiveInputRef = inputRef || internalInputRef;
   const [isMobileSourcesOpen, setIsMobileSourcesOpen] = useState(false);
   const [selectedCitation, setSelectedCitation] = useState<string | null>(null);
   const [isListeningManual, setIsListeningManual] = useState(false);
 
-  const isSpeaking = isDrafting || (isSearching && !finalAnswer) || isListeningManual;
+  const {
+    isListening: isSpeechListening,
+    permissionDenied: isSpeechPermissionDenied,
+    toggleListening: toggleSpeech,
+    stopListening: stopSpeech,
+  } = useSpeechRecognition((transcriptText, isFinal) => {
+    setInputText(transcriptText);
+    if (isFinal && transcriptText.trim()) {
+      onSendText(transcriptText.trim());
+      setInputText('');
+    }
+  });
+
+  const isSpeaking =
+    isDrafting ||
+    (isSearching && !finalAnswer) ||
+    isListeningManual ||
+    isSpeechListening;
   const isV2 = version > 1;
   const isFirstRun = !transcript && !finalAnswer && legs.length === 0;
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSpeechListening) {
+      stopSpeech();
+    }
     if (!inputText.trim()) return;
     onSendText(inputText.trim());
     setInputText('');
@@ -89,11 +112,8 @@ export const AssistantMode: React.FC<AssistantModeProps> = ({
   };
 
   const handleMicToggle = () => {
-    if (isSpeaking) {
-      setIsListeningManual(false);
-    } else {
-      setIsListeningManual(true);
-    }
+    toggleSpeech();
+    setIsListeningManual((prev) => !prev);
   };
 
   const handleSourceSelect = (cite: string) => {
@@ -326,6 +346,22 @@ export const AssistantMode: React.FC<AssistantModeProps> = ({
             </div>
           )}
 
+          {/* Mic Permission Denied Banner (Item 7) */}
+          {isSpeechPermissionDenied && (
+            <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#E5484D]/10 border border-[#E5484D]/30 text-xs text-[#E5484D] animate-fade-in">
+              <div className="flex items-center gap-2">
+                <span>Microphone access was denied. You can type your question instead.</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => effectiveInputRef.current?.focus()}
+                className="font-medium underline hover:text-[#FF8B8B] transition-colors"
+              >
+                Type instead
+              </button>
+            </div>
+          )}
+
           {/* Unified Input Row: 52-56px Ivory Mic Orb + Text Input + Send Button */}
           <form onSubmit={handleSend} className="flex items-center gap-3">
             {/* 52-56px Ivory Mic with listening ring */}
@@ -348,7 +384,7 @@ export const AssistantMode: React.FC<AssistantModeProps> = ({
             {/* Text Input Field */}
             <div className="flex-1 relative flex items-center bg-[#12151B] border border-[#1E2330] rounded-xl px-4 py-2.5 focus-within:border-[#8FB3FF]/50 transition-colors">
               <input
-                ref={inputRef}
+                ref={effectiveInputRef}
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}

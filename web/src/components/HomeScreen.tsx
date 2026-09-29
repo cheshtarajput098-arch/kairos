@@ -7,10 +7,13 @@ import {
   Search,
   Lock,
   Play,
+  Square,
+  AlertCircle,
 } from 'lucide-react';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 
 interface HomeScreenProps {
-  onSendQuestion: (text: string) => void;
+  onSendQuestion: (text: string, isSpoken?: boolean) => void;
   onPlayScenario: (index: number) => void;
   isListening?: boolean;
   onToggleMic?: () => void;
@@ -19,16 +22,44 @@ interface HomeScreenProps {
 export const HomeScreen: React.FC<HomeScreenProps> = ({
   onSendQuestion,
   onPlayScenario,
-  isListening = false,
+  isListening: externalIsListening = false,
   onToggleMic,
 }) => {
   const [inputText, setInputText] = useState('');
+  const [wasSpoken, setWasSpoken] = useState(false);
+
+  const {
+    isListening: isSpeechListening,
+    permissionDenied: micDenied,
+    toggleListening: toggleSpeech,
+    stopListening: stopSpeech,
+  } = useSpeechRecognition((transcriptText, isFinal) => {
+    setInputText(transcriptText);
+    setWasSpoken(true);
+    if (isFinal && transcriptText.trim()) {
+      onSendQuestion(transcriptText.trim(), true);
+      setInputText('');
+      setWasSpoken(false);
+    }
+  });
+
+  const isListening = externalIsListening || isSpeechListening;
+
+  const handleMicClick = () => {
+    toggleSpeech();
+    onToggleMic?.();
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const spoken = wasSpoken || isSpeechListening;
+    if (isSpeechListening) {
+      stopSpeech();
+    }
     if (!inputText.trim()) return;
-    onSendQuestion(inputText.trim());
+    onSendQuestion(inputText.trim(), spoken);
     setInputText('');
+    setWasSpoken(false);
   };
 
   const guidedExamples = [
@@ -119,7 +150,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             {/* 56px Ivory Circular Mic Orb */}
             <button
               type="button"
-              onClick={onToggleMic}
+              onClick={handleMicClick}
               className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
                 isListening
                   ? 'bg-[#ECE9E2] text-[#0E1014] ring-4 ring-[#8FB3FF]/40 ring-offset-2 ring-offset-[#0E1014] animate-pulse shadow-lg'
@@ -132,6 +163,34 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Listening / Permission Denied Banners */}
+        {isListening && (
+          <div className="flex items-center justify-between px-3 py-2 bg-[#1C2028] border border-[#8FB3FF]/30 rounded-xl text-xs">
+            <div className="flex items-center gap-2 text-[#ECE9E2]">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8FB3FF] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#8FB3FF]"></span>
+              </span>
+              <span>Listening… speak your question or detail.</span>
+            </div>
+            <button
+              type="button"
+              onClick={stopSpeech}
+              className="px-2.5 py-1 rounded-lg border border-[#282D3A] bg-[#15181E] text-[#ECE9E2] hover:bg-[#252B36] flex items-center gap-1 font-medium"
+            >
+              <Square className="w-3 h-3 fill-current text-[#E5484D]" />
+              <span>Stop</span>
+            </button>
+          </div>
+        )}
+
+        {micDenied && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-[#F0B455]/10 border border-[#F0B455]/30 rounded-xl text-xs text-[#F0B455]">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>Microphone permission denied. You can type your question in the text box.</span>
+          </div>
+        )}
       </form>
 
       {/* Guided Examples Section */}

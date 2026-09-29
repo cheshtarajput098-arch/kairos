@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from collections.abc import Mapping
 from typing import Any
@@ -161,11 +162,8 @@ class Speed2Synthesizer:
                 else:
                     trimmed_span = candidate.evidence_span.strip()
 
-                # Format text with exact same citation marker
-                citation_marker = f" [{s1_claim.citations[0]}]" if s1_claim.citations else ""
-                clean_text = candidate.text.strip()
-                if s1_claim.citations and s1_claim.citations[0] not in clean_text:
-                    clean_text = f"{clean_text}{citation_marker}"
+                # Clean text: remove any embedded raw citation markers (Item 4)
+                clean_text = re.sub(r"\s*\[Doc_\w+(?:§\w+)?\]", "", candidate.text).strip()
 
                 # Create test claim object - CITATIONS NEVER MUTATE DURING A SWAP
                 test_claim = ClaimObject(

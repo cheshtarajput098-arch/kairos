@@ -13,6 +13,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { AnswerCanvas } from './AnswerCanvas';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { ClaimObject, LegInfo, VersionDiff } from '../types';
 import { getIntentColor } from '../design/tokens';
 
@@ -39,6 +40,9 @@ interface ConversationScreenProps {
   onViewTrace: () => void;
   textSize?: 'normal' | 'large' | 'xlarge';
   showProvisionalDrafts?: boolean;
+  isSpoken?: boolean;
+  turnType?: string;
+  onAskDifferently?: (suggestion?: string) => void;
 }
 
 // Source card metadata registry for high-fidelity inspector representation
@@ -183,12 +187,37 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   onViewTrace,
   textSize = 'normal',
   showProvisionalDrafts = true,
+  isSpoken = false,
+  turnType,
+  onAskDifferently,
 }) => {
   const [inputText, setInputText] = useState('');
   const [copied, setCopied] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState<'up' | 'down' | null>(null);
   const [activeSourceIndex, setActiveSourceIndex] = useState(0);
   const [isMobileSourceDrawerOpen, setIsMobileSourceDrawerOpen] = useState(false);
+
+  const {
+    isListening: isSpeechListening,
+    toggleListening: toggleSpeech,
+    stopListening: stopSpeech,
+  } = useSpeechRecognition((transcriptText, isFinal) => {
+    setInputText(transcriptText);
+    if (isFinal && transcriptText.trim()) {
+      onSendText(transcriptText.trim());
+      setInputText('');
+    }
+  });
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSpeechListening) {
+      stopSpeech();
+    }
+    if (!inputText.trim()) return;
+    onSendText(inputText.trim());
+    setInputText('');
+  };
 
   // Compute active citations list (or fallback list for Scenario 1)
   const activeCitations = React.useMemo(() => {
@@ -224,13 +253,6 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
-  };
-
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputText.trim()) return;
-    onSendText(inputText.trim());
-    setInputText('');
   };
 
   // Grounding gate verified ratio
@@ -292,19 +314,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
               </span>
             ) : transcript ? (
               <span>{transcript}</span>
-            ) : (
-              <span>
-                <span className="border-b-2 border-[#8FB3FF] pb-0.5 mr-1">
-                  How do I organize an executive seminar in Pune for 30 attendees
-                </span>
-                <span className="border-b-2 border-[#62D6B4] pb-0.5 mr-1">
-                  , along with venue cancellation terms
-                </span>
-                <span className="border-b-2 border-[#B98CFF] pb-0.5">
-                  and meal arrangements?
-                </span>
-              </span>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -331,7 +341,10 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
             {/* Right lead time badge */}
             <div className="text-xs text-[#7D8594] font-mono">
-              2 of 3 parts ready before you finished · v{version}
+              {isSpoken && readyCount !== undefined && readyCount > 0 && finalClaims.some((c) => c.status === 'verified')
+                ? `${readyCount} of ${totalParts || legs.length || finalClaims.length} parts ready before you finished · `
+                : ''}
+              v{version}
             </div>
           </div>
 
@@ -348,6 +361,9 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
             readyCount={readyCount}
             totalParts={totalParts}
             isDrafting={isDrafting}
+            isSpoken={isSpoken}
+            turnType={turnType}
+            onAskDifferently={(suggestion) => (onAskDifferently ? onAskDifferently(suggestion) : onSendText(suggestion || ''))}
             onQuickAction={onQuickAction}
             onSeeDiff={onSeeDiff}
             onSelectSource={(cite) => {
@@ -465,9 +481,19 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
           className="bg-[#15181E] border border-[#1E2330] rounded-2xl p-2.5 flex items-center gap-3 shadow-lg focus-within:border-[#8FB3FF]/40 transition-colors"
         >
           {/* Small 38px ivory mic button */}
-          <div className="w-9 h-9 rounded-full bg-[#ECE9E2] text-[#0E1014] flex items-center justify-center shrink-0 cursor-pointer shadow-sm hover:bg-white">
+          <button
+            type="button"
+            onClick={toggleSpeech}
+            className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 cursor-pointer shadow-sm transition-all ${
+              isSpeechListening
+                ? 'bg-[#ECE9E2] text-[#0E1014] ring-4 ring-[#8FB3FF]/40 animate-pulse'
+                : 'bg-[#ECE9E2] text-[#0E1014] hover:bg-white active:scale-95'
+            }`}
+            title={isSpeechListening ? 'Stop listening' : 'Add details by voice'}
+            aria-label={isSpeechListening ? 'Stop listening' : 'Add details by voice'}
+          >
             <Mic className="w-4 h-4 fill-current" />
-          </div>
+          </button>
 
           <input
             type="text"

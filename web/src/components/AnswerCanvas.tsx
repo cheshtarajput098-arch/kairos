@@ -16,10 +16,13 @@ interface AnswerCanvasProps {
   readyCount?: number;
   totalParts?: number;
   isDrafting: boolean;
+  isSpoken?: boolean;
+  turnType?: string;
   onQuickAction: (action: 'shorter' | 'bullets' | 'simple') => void;
   onSeeDiff: () => void;
   onSelectSource?: (citation: string, evidenceSpan?: string) => void;
   onFeedback?: (rating: 'up' | 'down') => void;
+  onAskDifferently?: (suggestion?: string) => void;
   textSize?: 'normal' | 'large' | 'xlarge';
   showProvisionalDrafts?: boolean;
 }
@@ -34,10 +37,13 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
   readyCount,
   totalParts,
   isDrafting,
+  isSpoken = false,
+  turnType,
   onQuickAction,
   onSeeDiff,
   onSelectSource,
   onFeedback,
+  onAskDifferently,
   textSize = 'normal',
   showProvisionalDrafts = true,
 }) => {
@@ -203,11 +209,77 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
             // Case A: Settled claim card
             if ('claim' in sec && sec.claim) {
               const claim = sec.claim;
+              const isUncertain = claim.status === 'uncertain' || claim.citations.length === 0;
               const prose = cleanProse(claim.text);
               const isSpeed2 = (claim as unknown as { speed?: number }).speed === 2;
               const speed1Prose = (claim as unknown as { speed1_text?: string }).speed1_text
                 ? cleanProse((claim as unknown as { speed1_text?: string }).speed1_text || '')
                 : prose;
+
+              if (isUncertain) {
+                // Item 2: Abstain properly: show nothing for that part, no citation, amber "Not in the documents: <topic>" note
+                const didYouMeanMatch = claim.text.match(/Did you mean ['"]([^'"]+)['"]\?/i);
+                const dym = didYouMeanMatch ? didYouMeanMatch[1] : null;
+                const corpusCoverage =
+                  'Travel Reimbursement, Workshop Venues in Pune, Meeting Rooms in Bengaluru, Event Cancellation & Refunds, IT Equipment Loans, Remote Work, Expense Receipts, and Catering.';
+
+                return (
+                  <div
+                    key={sec.id}
+                    className="bg-[#15181E] border border-[#F0B455]/30 rounded-2xl p-5 space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="w-5 h-5 rounded flex items-center justify-center text-xs font-mono font-bold text-white shrink-0"
+                          style={{ backgroundColor: intent.hex }}
+                        >
+                          {idx + 1}
+                        </div>
+                        <span className="font-semibold text-sm text-[#ECE9E2]">
+                          {sec.title}
+                        </span>
+                      </div>
+                      <span className="text-xs font-mono font-medium text-[#F0B455] bg-[#F0B455]/10 border border-[#F0B455]/20 px-2.5 py-0.5 rounded-full">
+                        Not in documents
+                      </span>
+                    </div>
+
+                    <div className="rounded-xl border border-[#F0B455]/30 bg-[#F0B455]/5 p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1.5">
+                          <div className="text-xs font-medium text-[#F0B455] flex items-center gap-1.5 font-mono">
+                            <Search className="w-3.5 h-3.5" />
+                            <span>Not in the documents: {sec.title}</span>
+                          </div>
+                          <p className="text-xs text-[#A3A9B5] font-serif leading-relaxed">
+                            The documents cover: {corpusCoverage}
+                          </p>
+                          {dym && (
+                            <div className="pt-1">
+                              <button
+                                type="button"
+                                onClick={() => onAskDifferently?.(dym)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-sans bg-[#1C2028] border border-[#8FB3FF]/30 text-[#8FB3FF] hover:bg-[#252B36] transition-colors"
+                              >
+                                <span>Did you mean: <strong className="text-[#ECE9E2]">{dym}</strong>?</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => onAskDifferently?.()}
+                          className="px-3 py-1.5 text-xs rounded-lg border border-[#282D3A] bg-[#1C2028] text-[#ECE9E2] hover:bg-[#252B36] transition-colors font-sans shrink-0 cursor-pointer"
+                        >
+                          Ask differently
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <div
@@ -403,12 +475,12 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
         )}
       </div>
 
-      {/* Settled State Footer Line: Ready-at-End milestone */}
-      {hasSettledAnswer && readyCount !== undefined && readyCount > 0 && (
+      {/* Settled State Footer Line: Ready-at-End milestone (strictly for spoken turns with >=1 verified part) */}
+      {hasSettledAnswer && isSpoken && readyCount !== undefined && readyCount > 0 && finalClaims.some((c) => c.status === 'verified') && (
         <div className="flex items-center gap-2 text-xs text-[#A3A9B5] font-sans pt-1">
           <CheckCircle2 className="w-4 h-4 text-[#6FD39A] shrink-0" />
           <span>
-            <strong className="text-[#ECE9E2] font-semibold">{readyCount} of {totalParts || 3} parts</strong> were ready before you finished speaking · about 1.3 s sooner than waiting
+            <strong className="text-[#ECE9E2] font-semibold">{readyCount} of {totalParts || finalClaims.length} parts</strong> were ready before you finished speaking
           </span>
         </div>
       )}
@@ -443,8 +515,8 @@ export const AnswerCanvas: React.FC<AnswerCanvasProps> = ({
               <span>{copied ? 'Copied' : 'Copy'}</span>
             </button>
 
-            {/* "No new search needed" appears only after quick action (Item 2) */}
-            {hasTriggeredQuickAction && (
+            {/* "No new search needed" appears only when controller decision is NO_RETRIEVAL or presentation-only turn */}
+            {(hasTriggeredQuickAction || turnType === 'presentation_only') && (
               <span className="text-[11px] text-[#7D8594] font-mono ml-2 animate-fade-in">
                 No new search needed
               </span>

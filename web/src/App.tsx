@@ -61,10 +61,12 @@ export const App: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [events, setEvents] = useState<StreamEvent[]>([]);
 
-  // Story mode
+  // Story mode & Turn Metadata
   const [isStoryActive, setIsStoryActive] = useState(false);
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
   const [isPlayingStory, setIsPlayingStory] = useState(false);
+  const [isSpokenTurn, setIsSpokenTurn] = useState(false);
+  const [turnType, setTurnType] = useState<string>('standard');
 
   const clientRef = useRef<KairosStreamClient | null>(null);
   const storyTimerRef = useRef<number[]>([]);
@@ -290,6 +292,8 @@ export const App: React.FC = () => {
     clearStoryTimers();
     setIsStoryActive(false);
     setIsPlayingStory(false);
+    setIsSpokenTurn(false);
+    setTurnType('standard');
     setTranscript('');
     setDecisions([]);
     setLegs([]);
@@ -313,6 +317,8 @@ export const App: React.FC = () => {
     setCurrentScenarioIndex(index);
     setIsPlayingStory(true);
     setIsStoryActive(true);
+    setIsSpokenTurn(true);
+    setTurnType('standard');
 
     if (index === 0) {
       setVersion(1);
@@ -357,8 +363,10 @@ export const App: React.FC = () => {
     storyTimerRef.current = [];
   };
 
-  const handleSendText = (text: string) => {
+  const handleSendText = (text: string, isSpoken: boolean = false) => {
     if (!clientRef.current) return;
+    setIsSpokenTurn(isSpoken);
+    setTurnType('standard');
     setActiveTab('ask');
     setTranscript(text);
     setFinalAnswer('');
@@ -369,6 +377,7 @@ export const App: React.FC = () => {
 
   const handleQuickAction = async (action: 'shorter' | 'bullets' | 'simple') => {
     if (!session) return;
+    setTurnType('presentation_only');
     try {
       const result = await executePresentationTurn(session.session_id, session.token, action);
       if (result && 'answer' in result) {
@@ -457,7 +466,7 @@ export const App: React.FC = () => {
         <main className="flex-1 overflow-y-auto">
           {activeTab === 'ask' && !isConversation && (
             <HomeScreen
-              onSendQuestion={handleSendText}
+              onSendQuestion={(text, spoken) => handleSendText(text, Boolean(spoken))}
               onPlayScenario={playScenario}
               isListening={isSearching}
               onToggleMic={() => setIsSearching((prev) => !prev)}
@@ -481,7 +490,9 @@ export const App: React.FC = () => {
               isDrafting={isDrafting}
               currentTime={currentTime}
               suggestions={suggestions}
-              onSendText={handleSendText}
+              isSpoken={isSpokenTurn}
+              turnType={turnType}
+              onSendText={(text) => handleSendText(text, false)}
               onQuickAction={handleQuickAction}
               onSeeDiff={() => setActiveTab('evaluation')}
               onFeedback={handleFeedback}

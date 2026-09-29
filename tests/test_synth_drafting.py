@@ -35,7 +35,7 @@ def test_extractive_synthesis_leg() -> None:
     assert claim is not None
     assert claim.leg_id == "L1"
     assert claim.citations == ["Doc_12§2"]
-    assert "Doc_12§2" in claim.text
+    assert "[Doc_12§2]" not in claim.text
     assert "seating capacity of 50 attendees" in claim.evidence_span
     assert len(claim.evidence_span.split()) <= 30
 

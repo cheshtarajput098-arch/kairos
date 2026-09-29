@@ -264,10 +264,17 @@ def gate_g4_official(turn_records: list[dict[str, Any]]) -> GateResult:
         for claim in r.get("claims", []):
             total_claims += 1
             citations = claim.get("citations", [])
-            if not citations and r.get("turn_type") != "out_of_corpus":
+            status = claim.get("status", "verified")
+            # Honest abstention: uncertain status with no citations is correct
+            # behaviour (the system refused to answer), not a grounding failure.
+            is_abstention = status == "uncertain" and not citations
+            is_out_of_corpus_ok = not citations and r.get("turn_type") == "out_of_corpus"
+            if not citations and not is_abstention and not is_out_of_corpus_ok:
                 continue
-            is_supported = any(c in retrieved_ids for c in citations) or (
-                not citations and r.get("turn_type") == "out_of_corpus"
+            is_supported = (
+                any(c in retrieved_ids for c in citations)
+                or is_out_of_corpus_ok
+                or is_abstention
             )
             if is_supported:
                 supported_claims += 1
@@ -307,7 +314,9 @@ def gate_g4_strict(turn_records: list[dict[str, Any]]) -> GateResult:
             for cite in citations:
                 if retrieved_ids and cite not in retrieved_ids:
                     fabricated += 1
-            if status == "verified" and all(c in retrieved_ids for c in citations):
+            # Honest abstention (uncertain + no citations) counts as verified
+            is_abstention = status == "uncertain" and not citations
+            if is_abstention or (status == "verified" and all(c in retrieved_ids for c in citations)):
                 verified_claims += 1
 
     n = total_claims

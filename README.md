@@ -36,6 +36,10 @@ Traditional voice RAG engines force users into awkward conversational pauses by 
 
 ## System Architecture
 
+<p align="center">
+  <img src="docs/kairos_architecture_diagram.jpg" alt="Kairos 5-Stage Live Streaming Architecture" width="100%" style="border-radius: 10px;" />
+</p>
+
 ```mermaid
 flowchart TD
     A["Live Speech Transcript Chunks<br/><code>/v1/stream (WebSocket)</code>"] --> B["Stage 1: Retrieval Controller<br/>• Entity Saturation & Drift Tracking<br/>• WAIT / RETRIEVE / SUPPRESS"]

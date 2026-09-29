@@ -91,9 +91,14 @@ Tier 3: UI Design completed. Ready for UI Build, Assistant & Inspector modes, Ra
     - Motion physics spec with Spring parameters and reduced-motion fallbacks.
     - WCAG 2.2 AA accessibility plan with 4.5:1+ contrast verification, keyboard shortcuts, and `aria-live` strategy.
     - Inspector mode projector ergonomics and 20-second first impression choreography.
+- Pre-Step 11: Answer bug fixes and approved design adoption:
+  - Fixed 6 answer bugs: (1) capacity sentences use Doc_12§2, no heading leaks; (2) explicit gap note for Riverside Hall catering; (3) sequential numbered source pills, no raw IDs in prose; (4) new question starts at v1, only late detail makes v2; (5) "N of M parts ready" with exact Ready-at-End, hidden when N=0, "Instant delivery" removed; (6) "No new search needed" only after quick action.
+  - Converted 5-board design PDF to 2x PNGs in `docs/design/board_01.png`–`board_05.png`.
+  - Rewrote `docs/UI_DESIGN.md` to match the approved design exactly: colours (#0E1014, #15181E, #1C2028, #12151B, #ECE9E2, #A3A9B5, #7D8594), fonts (Geist, Newsreader, Geist Mono), layout (760px answer + 340px sources, 56px story bar), no coloured left-border cards. Removed unused Warm Editorial and Technical Clarity directions.
+  - 138 tests passing, clean ruff and mypy --strict.
 
 ## Next
-Step 11: `build/steps/p09b-ui-build.md` — Tier 3: UI build, Assistant & Inspector modes, Story mode, Race view, Playwright e2e, and tag `v0.8-polish`.
+Step 11: `build/steps/p09b-ui-build.md` — Tier 3: UI build to match approved design boards, Assistant & Inspector modes, Story mode, Race view, Playwright e2e, and tag `v0.8-polish`.
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).

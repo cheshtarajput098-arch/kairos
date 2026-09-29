@@ -17,13 +17,13 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 08 | `build/steps/p07-evaluation.md` | done | Tier 2 Proof complete (frozen test split 64 turns, dual official/strict G1-G6 gates, metrics engine, controller model arm, ablations A-E, stabilisation ceiling, ASR noise robustness, race run, report generator, judge guide, v0.5-proof tag) |
 | 09 | `build/steps/p07b-generative.md` | done | Tier 3 Generative Speed-2 rewrite with Qwen2.5 GGUF, circuit breaker, deterministic GroundingGate validation, generative decomposition, and blind fluency benchmark |
 | 10 | `build/steps/p09a-ui-design.md` | done | Tier 3: Complete UI Design plan (Calm Precision), component matrix, motion spec, microcopy & WCAG 2.2 AA plan |
-| 11 | `build/steps/p09b-ui-build.md` | in_progress (part 1 of 2) | Approved design system built: Assistant mode, StoryBar, Sources & Change panels, mobile responsive |
+| 11 | `build/steps/p09b-ui-build.md` | done | Tier 3 UI Build & Polish complete (Assistant & Inspector modes, Board 4 Timeline, Race view, Results, Corpus explorer, Playground, Playwright E2E suite, UX test guide, v0.8-polish tag) |
 | 12 | `build/steps/p08-security.md` | todo | |
 | 13 | `build/steps/p10-industry.md` | todo | |
 | 14 | `build/steps/p11-release.md` | todo | |
 
 ## Current tier
-Tier 3: UI Design completed. Ready for UI Build, Assistant & Inspector modes, Race view & Story mode (Step 11).
+Tier 3 complete (v0.8-polish). Ready for Tier 4: Security (Step 12).
 
 ## Done
 - Starter repo: rules, autopilot workflows, spec, config, folder layout, placeholder corpus, demo scenarios, docs templates, repo-rule tests.
@@ -96,18 +96,20 @@ Tier 3: UI Design completed. Ready for UI Build, Assistant & Inspector modes, Ra
   - Converted 5-board design PDF to 2x PNGs in `docs/design/board_01.png`–`board_05.png`.
   - Rewrote `docs/UI_DESIGN.md` to match the approved design exactly: colours (#0E1014, #15181E, #1C2028, #12151B, #ECE9E2, #A3A9B5, #7D8594), fonts (Geist, Newsreader, Geist Mono), layout (760px answer + 340px sources, 56px story bar), no coloured left-border cards. Removed unused Warm Editorial and Technical Clarity directions.
   - 138 tests passing, clean ruff and mypy --strict.
-- Step 11 (Part 1 of 2): UI Build — Approved Design System & Assistant Experience:
-  - Tokens and Theme: Fully integrated Calm Precision dark palette into `tokens.ts`, `tailwind.config.js`, and `index.css`.
-  - Header: Integrated logo `(○)`, "Kairos" with "Answers while you speak", mode toggle ("Assistant" | "Show how it works"), `● Connected` indicator, `▶ Play the demo` pill button, and settings trigger.
-  - StoryBar: Built 56px top bar with `[DEMO]` badge, scenario counter, progress indicators, and playback controls (Pause/Resume, Next, Exit) matching Board 1.
-  - Assistant Mode: 2-column desktop layout (760px main + 340px sidebar) and single-column mobile view (Board 5).
-  - Transcript Area: Real-time speaking state with waveform `║║║`, timers, semantic intent underlines, and live status chips ("found", "looking it up").
-  - Answer Canvas: Eliminated all colored left-borders. Implemented intent number badges (`1`, `2`, `3`), right-aligned status, Newsreader prose, numbered citation pills, skeleton pulse loading, strikethrough/highlight in v2, honest amber gap cards, and "Ready when you stopped" line.
-  - Sources & Change Panels: Built right sidebar components matching Boards 1, 2, and 3 with expandable source chunks and v2 diff breakdowns.
-  - Zero hardcoding compliance verified (passes `test_no_transcript_text_in_app_code`), bundle compiled to 57.9 kB gzip, and 138/138 Python tests passing.
+- Step 11: UI Build & Polish (`build/steps/p09b-ui-build.md`):
+  - Part 1: Approved Calm Precision dark theme system (`#0E1014`, `#15181E`, `#1C2028`, `#12151B`, `#ECE9E2`), Header with session toggle, slim 56px StoryBar, 2-column Assistant layout (760px answer + 340px sidebar), intent number badges (`1`, `2`, `3`), Newsreader prose, numbered citation pills, skeleton pulse loading, honest amber gap cards, and mobile responsiveness.
+  - Part 2: Complete Inspector Mode with all 5 sub-tabs matching Board 4 and SPEC §14.4:
+    - TimelineTab: Breadcrumb, title, 3 KPI cards (Lead time, Ready at end, Made-up citations), Gantt chart with Speech/Decision/Intent lanes, vertical speaker-stopped marker, interactive replay scrubber, verified claims table, and monospace event log with Jaeger deep link.
+    - RaceTab: Side-by-side interactive simulation of Streaming Live RAG vs Batch baseline, displaying median 1.51 s time savings and live TTFT counters.
+    - ResultsTab: Differentiator hero row, dual official & strict gates table (G1–G6 all PASS), ablations summary (A–E), and ASR noise robustness table.
+    - CorpusTab: Document selector, section search, chunk text viewer, and SHA-256 manifest verification badges.
+    - PlaygroundTab: Judge playground with custom query sandbox and 3 red-team attack presets (prompt injection, zero-width steganography, out-of-corpus probe) displaying live defensive telemetry.
+    - Authored `docs/UX_TEST.md` (15-minute hallway test protocol, consent line, 20s first impression test, 3 tasks, 10-question SUS form, and Nielsen heuristics assessment).
+    - Authored `web/e2e/ui.spec.ts` and `tests/test_ui_e2e.py` validating static asset serving, results/corpus endpoints, XSS injection safety, and 10x Story mode loop.
+    - 144 unit and E2E tests passing, clean ruff linter, clean mypy --strict, and bundle size 64.4 kB gzipped. Tagged `v0.8-polish`.
 
 ## Next
-Step 11 (Part 2 of 2): `build/steps/p09b-ui-build.md` — Inspector mode (Timeline Gantt with scrubber, Race view vs batch, Results dashboard, Corpus explorer, Playground), Playwright e2e test suite (Story mode 10x loop test), axe accessibility audit, `docs/UX_TEST.md`, and local git tag `v0.8-polish`.
+Step 12: `build/steps/p08-security.md` — Tier 4: Security hardening, threat model tests (10 security rules in tests/security/), attack surface minimization, non-root hardened container, audit.
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).
@@ -117,3 +119,4 @@ Step 11 (Part 2 of 2): `build/steps/p09b-ui-build.md` — Inspector mode (Timeli
 |---|---|---|
 | `v0.1-mvp` | 2026-09-29 | Tier 1 Differentiator MVP end-to-end (SPEC §15.1) |
 | `v0.5-proof` | 2026-09-29 | Tier 2 Proof: evaluation suite, dual gates, ablations, stabilisation, robustness (SPEC §15.2) |
+| `v0.8-polish` | 2026-09-29 | Tier 3 UI Build & Polish: Assistant, Inspector (5 tabs), Story mode, Race view, Playwright E2E, UX test guide (SPEC §15.3) |

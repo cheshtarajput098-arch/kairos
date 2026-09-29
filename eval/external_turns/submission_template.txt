@@ -1,0 +1,29 @@
+# Classmate Submission Template: External Voice Assistant Test Questions
+# Name: [Your Name]
+# Date: [Date]
+# Instructions: Write natural spoken sentences as described in INSTRUCTIONS.md.
+# Include disfluencies ("uh", "um", self-repairs) as people naturally speak.
+
+[COMPOUND]
+1: 
+
+[LATE_DETAIL]
+2: 
+
+[REFORMAT_REQUEST]
+3: 
+
+[SINGLE]
+4: 
+
+[OUT_OF_CORPUS]
+5: 
+
+[FREE_CHOICE_1]
+6: 
+
+[FREE_CHOICE_2]
+7: 
+
+[FREE_CHOICE_3]
+8: 

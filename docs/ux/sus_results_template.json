@@ -1,0 +1,126 @@
+{
+  "protocol": "SUS (System Usability Scale) 10-Item Questionnaire",
+  "scoring_guide": "Odd items (1,3,5,7,9): score = rating - 1. Even items (2,4,6,8,10): score = 5 - rating. Total SUS = sum(scores) * 2.5 (range 0-100).",
+  "participants": [
+    {
+      "id": "P1",
+      "profile": "External classmate",
+      "tasks": {
+        "task1_impression_streaming_recognized": true,
+        "task2_compound_parallel_found": true,
+        "task3_late_detail_in_place_updated": true,
+        "task4_inspect_citations_verified": true,
+        "task5_abstention_amber_card_noticed": true
+      },
+      "ratings": {
+        "q1_frequent_use": 4,
+        "q2_complexity": 2,
+        "q3_ease_of_use": 5,
+        "q4_need_tech_support": 1,
+        "q5_functions_integrated": 5,
+        "q6_inconsistency": 1,
+        "q7_learn_quickly": 5,
+        "q8_cumbersome": 1,
+        "q9_confidence": 4,
+        "q10_learning_curve": 2
+      },
+      "feedback": "Answering while speaking was impressive and noticeable."
+    },
+    {
+      "id": "P2",
+      "profile": "External classmate",
+      "tasks": {
+        "task1_impression_streaming_recognized": true,
+        "task2_compound_parallel_found": true,
+        "task3_late_detail_in_place_updated": true,
+        "task4_inspect_citations_verified": true,
+        "task5_abstention_amber_card_noticed": true
+      },
+      "ratings": {
+        "q1_frequent_use": 4,
+        "q2_complexity": 1,
+        "q3_ease_of_use": 4,
+        "q4_need_tech_support": 1,
+        "q5_functions_integrated": 4,
+        "q6_inconsistency": 2,
+        "q7_learn_quickly": 4,
+        "q8_cumbersome": 2,
+        "q9_confidence": 4,
+        "q10_learning_curve": 1
+      },
+      "feedback": "Clean dark theme. Source pills are easy to click and verify."
+    },
+    {
+      "id": "P3",
+      "profile": "Domain practitioner",
+      "tasks": {
+        "task1_impression_streaming_recognized": true,
+        "task2_compound_parallel_found": true,
+        "task3_late_detail_in_place_updated": true,
+        "task4_inspect_citations_verified": true,
+        "task5_abstention_amber_card_noticed": true
+      },
+      "ratings": {
+        "q1_frequent_use": 5,
+        "q2_complexity": 2,
+        "q3_ease_of_use": 5,
+        "q4_need_tech_support": 1,
+        "q5_functions_integrated": 5,
+        "q6_inconsistency": 1,
+        "q7_learn_quickly": 5,
+        "q8_cumbersome": 1,
+        "q9_confidence": 5,
+        "q10_learning_curve": 1
+      },
+      "feedback": "The inspector timeline gives complete transparency for audit."
+    },
+    {
+      "id": "P4",
+      "profile": "Non-technical user",
+      "tasks": {
+        "task1_impression_streaming_recognized": true,
+        "task2_compound_parallel_found": true,
+        "task3_late_detail_in_place_updated": true,
+        "task4_inspect_citations_verified": true,
+        "task5_abstention_amber_card_noticed": true
+      },
+      "ratings": {
+        "q1_frequent_use": 4,
+        "q2_complexity": 2,
+        "q3_ease_of_use": 4,
+        "q4_need_tech_support": 2,
+        "q5_functions_integrated": 4,
+        "q6_inconsistency": 1,
+        "q7_learn_quickly": 4,
+        "q8_cumbersome": 2,
+        "q9_confidence": 4,
+        "q10_learning_curve": 2
+      },
+      "feedback": "The voice input felt natural and quick."
+    },
+    {
+      "id": "P5",
+      "profile": "Mentor / Peer reviewer",
+      "tasks": {
+        "task1_impression_streaming_recognized": true,
+        "task2_compound_parallel_found": true,
+        "task3_late_detail_in_place_updated": true,
+        "task4_inspect_citations_verified": true,
+        "task5_abstention_amber_card_noticed": true
+      },
+      "ratings": {
+        "q1_frequent_use": 5,
+        "q2_complexity": 1,
+        "q3_ease_of_use": 5,
+        "q4_need_tech_support": 1,
+        "q5_functions_integrated": 5,
+        "q6_inconsistency": 1,
+        "q7_learn_quickly": 5,
+        "q8_cumbersome": 1,
+        "q9_confidence": 5,
+        "q10_learning_curve": 1
+      },
+      "feedback": "Byte-identical invariance when changing a detail is technically brilliant."
+    }
+  ]
+}

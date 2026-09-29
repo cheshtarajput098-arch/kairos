@@ -1,6 +1,6 @@
 # Kairos — Offline Evaluation Report
 
-**Evaluation Split:** `dev` · **Total Turns ($n$):** 16 · **Status:** Validated Offline
+**Evaluation Split:** `test` · **Total Turns ($n$):** 64 · **Status:** Validated Offline
 
 > [!IMPORTANT]
 > **Corpus Isolation & Honesty Guarantee:** Every metric in this report was computed directly
@@ -19,7 +19,7 @@ Kairos evaluates **both** the Official Theme Guide definition (§5) and our stri
 |---|---|---|---|---|
 | **G1** | Pass/Fail clean container execution | 100% (Pass) (target: 1.0) | 100% (Pass) (target: 1.0) | **PASSED** |
 | **G2** | Pre-utterance-end retrieval on eligible queries | 100.0% (target: 0.8) | 100.0% (target: 0.8) | **PASSED** |
-| **G3** | Isolation of distinct sub-intents in compound queries | 100.0% (target: 0.7) | 100.0% (target: 1.0) | **PASSED** |
+| **G3** | Isolation of distinct sub-intents in compound queries | 89.5% (target: 0.7) | 89.5% (target: 1.0) | **PARTIAL/WARN** |
 | **G4** | Citation support & 0 fabricated chunk IDs | 100.0% support, 0 fabricated (target: 0.0) | 0.0% verified, 0 hallucinations (target: 0.0) | **PASSED** |
 | **G5** | Patch in place without re-retrieval | 100.0% (target: 1.0) | 100.0% (target: 1.0) | **PASSED** |
 | **G6** | 100% structured trace coverage on every turn | 100.0% (target: 1.0) | 100.0% (target: 1.0) | **PASSED** |
@@ -28,21 +28,23 @@ Kairos evaluates **both** the Official Theme Guide definition (§5) and our stri
 
 | Stratum | Turns ($n$) | G2 Early Ret. | G3 Multi-Intent | Ready-at-End |
 |---|---|---|---|---|
-| Source: `llm_drafted` | 16 | 100.0% | 100.0% | 76.9% |
-| Decisive Word: `early` | 8 | 100.0% | 100.0% | 100.0% |
-| Decisive Word: `middle` | 8 | 100.0% | 100.0% | 40.0% |
+| Source: `llm_drafted` | 37 | 100.0% | 83.3% | 70.0% |
+| Source: `human_external` | 27 | 100.0% | 100.0% | 59.1% |
+| Decisive Word: `early` | 24 | 100.0% | 90.9% | 100.0% |
+| Decisive Word: `middle` | 24 | 100.0% | 100.0% | 45.8% |
+| Decisive Word: `last third` | 16 | 100.0% | 0.0% | 68.8% |
 
 ---
 
 ## 2. Differentiator Metrics
 
 ### Differentiator 1: Answer-as-You-Speak (Ready-at-End)
-- **Ready-at-End (1.0x Cadence):** 76.9% ($n=13$)
+- **Ready-at-End (1.0x Cadence):** 65.4% ($n=52$)
 - **Cadence Sensitivity (0.75x slow speaking):** 100.0%
-- **Cadence Sensitivity (1.0x normal):** 76.9%
+- **Cadence Sensitivity (1.0x normal):** 65.4%
 - **Cadence Sensitivity (1.5x fast speaking):** 100.0%
 - **Median Turn Time Saved vs Baseline (Race View):** 1.508 s
-- **Mean Turn Time Saved vs Baseline:** 1.489 s
+- **Mean Turn Time Saved vs Baseline:** 1.562 s
 
 ### Differentiator 2: Two-Speed Grounded Answers
 - **Speed 1 (Extractive):** 38 ms median TTFT, 100% citation validity by construction.
@@ -55,10 +57,10 @@ Measured under seeded phonetic substitutions, repetitions, and partial revisions
 |---|---|---|---|
 | G2 Early Retrieval (Official) | 100.0% | 100.0% | 100.0% |
 | G2 Early Retrieval (Strict) | 100.0% | 100.0% | 100.0% |
-| G3 Multi-Intent (Official) | 100.0% | 100.0% | 100.0% |
-| G3 Multi-Intent (Strict) | 100.0% | 100.0% | 100.0% |
+| G3 Multi-Intent (Official) | 89.5% | 89.5% | 94.7% |
+| G3 Multi-Intent (Strict) | 89.5% | 89.5% | 94.7% |
 | False Trigger Rate | 0.0% | 0.0% | 0.0% |
-| Ready-at-End | 76.9% | 76.9% | 76.9% |
+| Ready-at-End | 65.4% | 65.4% | 65.4% |
 | G4 Grounding Support | 0.0% | 0.0% | 0.0% |
 
 ---
@@ -66,19 +68,19 @@ Measured under seeded phonetic substitutions, repetitions, and partial revisions
 ## 3. Comprehensive Metrics (SPEC §9.1a)
 
 ### Retrieval Effectiveness & Controller Efficiency
-- **Recall@5:** 0.309
-- **Recall@10:** 0.536
-- **nDCG@10:** 0.245
+- **Recall@5:** 0.146
+- **Recall@10:** 0.312
+- **nDCG@10:** 0.148
 - **Suppression Rate (Headline):** 100.0%
 - **False Trigger Rate on Suppressed Turns:** 0.0%
-- **Retrievals per Turn:** 1.00
+- **Retrievals per Turn:** 0.84
 - **Redundant Leg Rate:** 0.0%
-- **Retrievals Saved vs Full Restart:** 3
+- **Retrievals Saved vs Full Restart:** 12
 
 ### Latency Distributions (p50 / p95)
-- **End-to-End Turn Latency:** p50 = 1820.0 ms | p95 = 2120.0 ms
+- **End-to-End Turn Latency:** p50 = 1820.0 ms | p95 = 2220.0 ms
 - **Time-to-First-Token (TTFT):** p50 = 0.0 ms | p95 = 15.0 ms
-- **Lead Time:** p50 = 1800.0 ms | p95 = 2000.0 ms
+- **Lead Time:** p50 = 1800.0 ms | p95 = 2200.0 ms
 - **Retrieval Latency Breakdown (p50):** Dense: 8.5 ms | Sparse: 2.1 ms | Fusion: 1.5 ms
 
 ### Cost-to-Performance Parsimony Table
@@ -104,32 +106,32 @@ Measured under seeded phonetic substitutions, repetitions, and partial revisions
 
 | Threshold | Early Retrieval Rate | False Trigger Rate |
 |---|---|---|
-| 0.10 | 100.0% | 19.1% |
-| 0.20 | 100.0% | 9.5% |
-| 0.30 | 100.0% | 9.5% |
-| 0.40 | 100.0% | 9.5% |
-| 0.50 | 100.0% | 9.5% |
-| 0.60 | 91.7% | 4.8% |
-| 0.70 | 83.3% | 4.8% |
-| 0.80 | 75.0% | 4.8% |
-| 0.90 | 33.3% | 0.0% |
+| 0.10 | 100.0% | 12.5% |
+| 0.20 | 100.0% | 6.2% |
+| 0.30 | 96.1% | 3.8% |
+| 0.40 | 90.2% | 3.8% |
+| 0.50 | 86.3% | 3.8% |
+| 0.60 | 80.4% | 2.5% |
+| 0.70 | 72.5% | 2.5% |
+| 0.80 | 58.8% | 1.2% |
+| 0.90 | 47.1% | 1.2% |
 
 ### Ablation B: End-of-Utterance vs Incremental Decomposition
 
 | Arm | Sub-Intent Coverage | Lead Time (Mean) | Ready-at-End | Description |
 |---|---|---|---|---|
-| **Incremental (Kairos)** | 100.0% | 1.77 s | 83.3% | Progressively splits clauses; dispatches early |
-| **End-of-Utterance** | 100.0% | 0.0 s | 0.0% | Waits until speech completes; 0 lead time |
+| **Incremental (Kairos)** | 89.5% | 2.14 s | 91.2% | Progressively splits clauses; dispatches early |
+| **End-of-Utterance** | 94.7% | 0.0 s | 0.0% | Waits until speech completes; 0 lead time |
 
 ### Ablation C: Retrieval Modality & Fusion
 
 | Configuration | Recall@5 | Recall@10 | nDCG@10 | Latency (Mean) |
 |---|---|---|---|---|
-| `dense_only` | 0.795 | 0.897 | 0.813 | 17.32 ms |
-| `sparse_only` | 0.000 | 0.000 | 0.000 | 0.1 ms |
-| `hybrid_rrf_k10` | 0.795 | 0.897 | 0.790 | 23.14 ms |
-| `hybrid_rrf_k60` | 0.795 | 0.897 | 0.790 | 12.22 ms |
-| `hybrid_rrf_k60_rerank` | 0.833 | 0.897 | 0.732 | 8.0 ms |
+| `dense_only` | 0.885 | 0.917 | 0.733 | 18.25 ms |
+| `sparse_only` | 0.000 | 0.000 | 0.000 | 0.18 ms |
+| `hybrid_rrf_k10` | 0.875 | 0.917 | 0.716 | 5.43 ms |
+| `hybrid_rrf_k60` | 0.875 | 0.917 | 0.716 | 6.91 ms |
+| `hybrid_rrf_k60_rerank` | 0.750 | 0.896 | 0.678 | 6.09 ms |
 
 ### Ablation D: Speed 1 Extractive vs Two-Speed Grounded Synthesis
 
@@ -151,7 +153,7 @@ Measured under seeded phonetic substitutions, repetitions, and partial revisions
 
 | Arm | Ready-at-End | TTFT Relative to Utterance End | Drafts Created | Description |
 |---|---|---|---|---|
-| **Drafting On (Kairos)** | 73.1% | -1.24 s | 16 | Verified answer sections streamed while speech is in flight. Ready before user stops. |
+| **Drafting On (Kairos)** | 62.2% | -1.24 s | 54 | Verified answer sections streamed while speech is in flight. Ready before user stops. |
 | **Drafting Off** | 0.0% | +0.42 s | 0 | Waits until speech ends to begin synthesis. User waits for full retrieval + LLM delay. |
 
 ---
@@ -159,10 +161,10 @@ Measured under seeded phonetic substitutions, repetitions, and partial revisions
 ## 5. Stabilisation Ceiling Analysis (arXiv:2606.20113)
 
 Following Galbraith (2026), we compute the prefix-level theoretical limits of early retrieval:
-- **Mean Sufficiency $\phi = t^* / n$:** 0.141 (Sufficiency reached at ~14.1% of utterance)
-- **Prefix Volatility $V$:** 0.846 (Ranking stability across prefix progression)
+- **Mean Sufficiency $\phi = t^* / n$:** 0.098 (Sufficiency reached at ~9.8% of utterance)
+- **Prefix Volatility $V$:** 0.5 (Ranking stability across prefix progression)
 - **Latency Hidden Fraction $H / L$:** 100.0%
-- **Controller Trigger Gap ($t_{trig} - t_{suf}$) Median:** 0.0 s (p25: -0.8 s, p75: 0.0 s)
+- **Controller Trigger Gap ($t_{trig} - t_{suf}$) Median:** 0.0 s (p25: 0.0 s, p75: 0.0 s)
 
 > [!NOTE]
 > A median gap of 0.0s demonstrates that Kairos triggers retrieval precisely when sufficiency is established,

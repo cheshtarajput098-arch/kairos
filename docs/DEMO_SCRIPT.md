@@ -6,28 +6,31 @@ This document provides the exact timed shot list, narration cues, and visual act
 
 ## Shot List & Narration Timeline
 
-### 0:00 – 0:25 · The Hook: Answering While You Talk
-* **Visual Setup:** Browser open in **Assistant Mode** sized to a mobile viewport (390px width). Clean Dark Theme ("Calm Precision").
+### 0:00 – 0:25 · The Hook: Answering While You Talk (Boards 6 & 7)
+* **Visual Setup:** Browser open at `http://localhost:8000` showing the **Home Screen (Board 6)** with the 248px left navigation bar, Newsreader typography, large question box with 56px ivory mic orb, and 3 guided demo scenario cards.
 * **Action:** Click "Play the demo" on Scenario 1.
 * **What appears on screen:**
-  * As transcript words arrive in real-time, the teal *"Already searching..."* chip appears mid-sentence.
-  * The Answer Canvas renders ghost sections, transitions to drafting shimmer, and settles into verified claims *before* the audio stops.
-  * The green line *"Ready when you stopped"* appears.
+  * Screen transitions smoothly to **Conversation Screen (Board 7)** with the intent-colored decomposed question bubble.
+  * Header shows the real-time verified counter: *"3 of 3 sentences verified"*.
+  * As speech streams, ghost sections shimmer into settled verified claims *before* the speaker finishes talking.
+  * The green Ready-at-End milestone line appears: *"3 of 3 parts were ready before you finished speaking"*.
+  * Right-hand 380px **Source Viewer drawer** slides open showing quoted passage highlights and ranking criteria.
 * **Narration:**
-  > *"Most voice RAG systems make you wait in silence after you stop talking. Kairos does something different: it starts answering while you're still speaking. Watch the canvas — while the query is still being spoken, Kairos has already detected the retrieval intent, launched parallel searches, and verified the answer. The moment the speaker stops, the answer is already complete and verified."*
+  > *"Most voice RAG systems make you wait in silence after you stop talking. Kairos does something different: it starts answering while you're still speaking. Watch the canvas — while the query is still being spoken, Kairos has already detected the retrieval intent, launched parallel searches, and verified the answer. The moment the speaker stops, the answer is already complete, citation-backed, and verified."*
 
 ---
 
-### 0:25 – 1:30 · Inspector Mode: Scenario 1 (Early Retrieval & Intent Splitting)
-* **Visual Setup:** Toggle switch from Assistant Mode to **Inspector Mode** (Board 4 Timeline).
+### 0:25 – 1:30 · Traces & Inspector Mode: Scenario 1 (Boards 4 & 9)
+* **Visual Setup:** Click **"Traces"** in the left navigation sidebar to open **Board 9 Traces Screen**, or click **"Evaluation"** for the Inspector Mode Timeline.
 * **Action:** Click Scenario 1 on the Story bar.
 * **What appears on screen:**
-  * Interactive Timeline showing Speech, Decision, and Intent lanes.
-  * The yellow vertical line marks speaker-stopped time ($t=2.2s$).
-  * Two distinct intent-colored legs (Leg 1 blue, Leg 2 purple) show parallel retrieval dispatches starting at $t=1.2s$.
-  * Shaded green lead-time bar shows 1.0 second of hidden latency.
+  * Interactive Timeline showing Speech, Controller Decision, and Intent lanes.
+  * Vertical speaker-stopped marker ($t=2.2s$).
+  * Two distinct intent-colored legs (Leg 1 blue, Leg 2 purple) showing parallel retrieval dispatches starting at $t=1.2s$.
+  * Shaded lead-time bar showing 1.0 second of hidden latency.
+  * Grounding checks table confirming deterministic span and citation validation.
 * **Narration:**
-  > *"Switching to Inspector Mode, we see the real event-driven engine under the hood. For this compound question asking about both venue capacity and AV costs, the Stage 1 Controller triggered retrieval at 1.2 seconds — a full second before the utterance ended. The Decomposer split the compound sentence into two independent legs with context inheritance, running dense and sparse searches concurrently. Both drafts were verified and ready at speech end."*
+  > *"Clicking into the Traces view, we see the real event-driven engine under the hood. For this compound question asking about both venue capacity and AV costs, the Stage 1 Controller triggered retrieval at 1.2 seconds — a full second before the utterance ended. The Decomposer split the compound sentence into two independent legs with context inheritance, running dense and sparse searches concurrently. Both drafts were verified and ready at speech end."*
 
 ---
 
@@ -57,7 +60,15 @@ This document provides the exact timed shot list, narration cues, and visual act
 
 ---
 
-### 2:50 – 3:30 · Rigorous Grounding & Red-Team Defense (Gate G4)
+### 2:50 – 3:30 · Rigorous Grounding, Knowledge Sources & Red-Team Defense (Boards 7 & 8)
+* **Visual Setup:** Click **"Knowledge sources" (Board 8)** in the left sidebar, then return to Conversation and click a numbered source pill `[1]`.
+* **Action:** Demonstrate Knowledge Sources table and source quote highlighting.
+* **What appears on screen:**
+  * Knowledge Sources screen shows live index statistics: 8 documents, 27 sections, 949 words, BGE-small + BM25, 0 passages flagged, SHA-256 clean.
+  * Clicking source pill `[1]` slides open the drawer with the exact sentence highlighted in green.
+  * When asking an out-of-corpus question like *"what's the weather in Pune"*, Kairos displays an honest amber gap card: *"Not in the documents"*, emitting zero fabricated citations.
+* **Narration:**
+  > *"Every claim in Kairos carries deterministic provenance. The Knowledge Sources view displays all verified documents with zero flagged adversarial passages. Clicking any citation pill highlights the exact sentence in the source text. When asked questions outside the documents, Kairos never guesses or hallucinates — it admits the gap with an honest amber card and zero fabricated citations."*
 * **Visual Setup:** Click a citation pill in the Answer Canvas, then switch to the **Playground Tab**.
 * **Action:**
   1. Click citation `[Doc_12 §2]` to reveal the exact passage popover with char offsets.

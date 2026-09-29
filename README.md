@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/kairos-logo.jpg" alt="Kairos Logo" width="340" style="border-radius: 12px; margin-bottom: 12px;" />
+</p>
+
 # Kairos — Live RAG That Answers While You Speak
 
 **Theme 04: Streaming Live RAG · Team Coding Agent RIT (M S Ramaiah Institute of Technology)**  
@@ -10,6 +14,9 @@
 [![A11y: Axe 0 Violations](https://img.shields.io/badge/accessibility-axe%200%20violations-brightgreen.svg)](docs/UX_TEST.md)
 [![Release: PRISM_GENAI_HACKATHON_Y2026](https://img.shields.io/badge/release-PRISM__GENAI__HACKATHON__Y2026-blue.svg)](docs/PROJECT_STATE.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+**Key Documentation:**  
+[Judge Evaluator Guide](docs/JUDGE_GUIDE.md) · [Theme Compliance Matrix](docs/COMPLIANCE.md) · [Architecture Brief](docs/ARCHITECTURE_BRIEF.md) · [Decisions Log](docs/DECISIONS.md) · [Demonstration Script & Video](docs/DEMO_SCRIPT.md) · [Operations & Limitations](docs/OPERATIONS.md)
 
 ---
 
@@ -55,6 +62,17 @@ docker compose up -d --build
 - **Interactive UI (Assistant & Inspector Modes):** [http://localhost:8000](http://localhost:8000)
 - **Story Mode:** Click **"Play the demo"** in the navigation bar to watch all three theme scenarios stream through the real pipeline in real time.
 - **Distributed Tracing (Jaeger):** [http://localhost:16686](http://localhost:16686)
+
+> **Windows Note:** In PowerShell, chain commands with `;` instead of `&&` (e.g. `docker compose build; docker compose up -d`).
+
+### Strict Offline Verification Command
+
+To rigorously verify that Kairos executes 100% offline without any network access:
+
+```bash
+# Run full evaluation suite inside container with all network access completely disabled
+docker run --network none --rm kairos make eval
+```
 
 ### Optional Hosted LLM Mode via `.env`
 Kairos is **100% offline-capable by default** using CPU-quantized Qwen2.5. To optionally enable hosted models:

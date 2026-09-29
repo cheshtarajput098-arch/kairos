@@ -4,6 +4,7 @@ import { RaceTab } from './inspector/RaceTab';
 import { ResultsTab } from './inspector/ResultsTab';
 import { CorpusTab } from './inspector/CorpusTab';
 import { PlaygroundTab } from './inspector/PlaygroundTab';
+import { AboutTab } from './inspector/AboutTab';
 import { ClaimObject, ControllerDecisionEvent, LegInfo, StreamEvent, VersionDiff } from '../types';
 
 interface InspectorModeProps {
@@ -21,7 +22,7 @@ interface InspectorModeProps {
   diff?: VersionDiff;
 }
 
-type TabType = 'timeline' | 'race' | 'results' | 'corpus' | 'playground';
+type TabType = 'timeline' | 'race' | 'results' | 'corpus' | 'playground' | 'about';
 
 export const InspectorMode: React.FC<InspectorModeProps> = ({
   decisions,
@@ -41,6 +42,7 @@ export const InspectorMode: React.FC<InspectorModeProps> = ({
     { id: 'results', label: 'Results' },
     { id: 'corpus', label: 'Corpus' },
     { id: 'playground', label: 'Try it yourself' },
+    { id: 'about', label: 'About & Core vs. harness' },
   ];
 
   return (
@@ -90,6 +92,8 @@ export const InspectorMode: React.FC<InspectorModeProps> = ({
       {activeTab === 'corpus' && <CorpusTab />}
 
       {activeTab === 'playground' && <PlaygroundTab />}
+
+      {activeTab === 'about' && <AboutTab />}
     </div>
   );
 };

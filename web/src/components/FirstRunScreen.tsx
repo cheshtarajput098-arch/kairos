@@ -32,19 +32,26 @@ export const FirstRunScreen: React.FC<FirstRunScreenProps> = ({
           <span>Suggested Questions from Corpus Headings</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {suggestions.map((q, idx) => (
-            <button
-              key={idx}
-              onClick={() => onSelectSuggestion(q)}
-              className="text-left p-3.5 rounded-xl border border-[#1E2330] bg-[#12151B] hover:border-[#8FB3FF]/40 hover:bg-[#1C2028] transition-all flex items-start justify-between gap-3 group"
-            >
-              <span className="text-xs text-[#ECE9E2] font-serif leading-snug group-hover:text-[#8FB3FF] transition-colors">
-                "{q}"
-              </span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#7D8594] group-hover:text-[#8FB3FF] group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
-            </button>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 min-h-[140px]">
+          {suggestions.length === 0 ? (
+            <>
+              <div className="p-3.5 rounded-xl border border-[#1E2330] bg-[#12151B]/40 animate-pulse h-14" />
+              <div className="p-3.5 rounded-xl border border-[#1E2330] bg-[#12151B]/40 animate-pulse h-14" />
+            </>
+          ) : (
+            suggestions.map((q, idx) => (
+              <button
+                key={idx}
+                onClick={() => onSelectSuggestion(q)}
+                className="text-left p-3.5 rounded-xl border border-[#1E2330] bg-[#12151B] hover:border-[#8FB3FF]/40 hover:bg-[#1C2028] transition-all flex items-start justify-between gap-3 group"
+              >
+                <span className="text-xs text-[#ECE9E2] font-serif leading-snug group-hover:text-[#8FB3FF] transition-colors">
+                  "{q}"
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-[#7D8594] group-hover:text-[#8FB3FF] group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
+              </button>
+            ))
+          )}
         </div>
       </div>
 

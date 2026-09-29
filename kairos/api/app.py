@@ -10,6 +10,7 @@ from typing import Any
 
 from fastapi import FastAPI, Request, Response, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -78,6 +79,7 @@ app = FastAPI(
 )
 
 # Register Middlewares
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestTracingMiddleware)
 app.add_middleware(
@@ -375,6 +377,45 @@ async def get_evaluation_results() -> dict[str, Any]:
     return results
 
 
+@app.get("/v1/corpus/docs")
+async def list_corpus_documents() -> dict[str, Any]:
+    """List all corpus documents with their chunks, read from the loaded index (not hardcoded)."""
+    store: IndexStore = getattr(app.state, "index_store", None) or IndexStore()
+    if not store.chunks_map:
+        try:
+            store.load()
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f"Index load skipped: {e}")
+
+    # Group chunks by doc_id
+    docs_map: dict[str, dict[str, Any]] = {}
+    for chunk in store.chunks_map.values():
+        doc_id = chunk.doc_id
+        if doc_id not in docs_map:
+            docs_map[doc_id] = {
+                "id": doc_id,
+                "title": chunk.title.rsplit(" §", 1)[0] if " §" in chunk.title else chunk.title,
+                "sections_count": 0,
+                "summary": chunk.text[:150] + ("..." if len(chunk.text) > 150 else ""),
+                "chunks": [],
+            }
+        docs_map[doc_id]["sections_count"] += 1
+        cid = getattr(chunk, "chunk_id", f"{chunk.doc_id}§{chunk.section}")
+        prov = getattr(store, "provenance_map", {}).get(cid)
+        is_flagged = getattr(prov, "flagged", False) if prov else False
+        docs_map[doc_id]["chunks"].append({
+            "id": f"{chunk.doc_id}§{chunk.section}",
+            "section": f"§{chunk.section}",
+            "title": chunk.title,
+            "text": chunk.text,
+            "flagged": is_flagged,
+        })
+
+    # Sort by doc_id for consistency
+    docs = sorted(docs_map.values(), key=lambda d: d["id"])
+    return {"documents": docs, "total_chunks": len(store.chunks_map)}
+
+
 @app.get("/v1/corpus/chunks/{chunk_id}")
 async def get_corpus_chunk(chunk_id: str, request: Request) -> Any:
     """Retrieve full text and metadata for a chunk by ID for Inspector Corpus Explorer."""
@@ -427,7 +468,15 @@ async def search_corpus(q: str, limit: int = 10) -> dict[str, Any]:
     return {"query": q, "results": results}
 
 
+class CachedStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope: Any) -> Response:
+        response = await super().get_response(path, scope)
+        if "/assets/" in scope.get("path", ""):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
+
 # Mount static frontend directory if present
 static_dir = Path("kairos/api/static")
 if static_dir.exists():
-    app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
+    app.mount("/", CachedStaticFiles(directory=str(static_dir), html=True), name="static")

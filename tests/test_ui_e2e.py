@@ -115,3 +115,23 @@ def test_story_mode_10x_loop(client: TestClient) -> None:
         # Clean up session
         del_resp = client.delete(f"/v1/sessions/{session_id}", headers={"Authorization": f"Bearer {token}"})
         assert del_resp.status_code == 200
+
+
+def test_corpus_docs_endpoint(client: TestClient) -> None:
+    """Verify GET /v1/corpus/docs returns all documents from the live index (not hardcoded)."""
+    resp = client.get("/v1/corpus/docs")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "documents" in data
+    assert "total_chunks" in data
+    assert data["total_chunks"] == 27
+    docs = data["documents"]
+    assert len(docs) == 8  # All 8 placeholder docs
+    doc_ids = [d["id"] for d in docs]
+    assert "Doc_05" in doc_ids
+    assert "Doc_12" in doc_ids
+    assert "Doc_89" in doc_ids
+    for d in docs:
+        assert len(d["chunks"]) > 0
+        assert d["sections_count"] == len(d["chunks"])
+

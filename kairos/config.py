@@ -177,7 +177,12 @@ class WSConfig(BaseModel):
 class SecurityConfig(BaseModel):
     token_ttl_s: int = 3600
     allowed_origins: list[str] = Field(
-        default_factory=lambda: ["http://localhost:8000", "http://127.0.0.1:8000"]
+        default_factory=lambda: [
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+            "http://localhost:8765",
+            "http://127.0.0.1:8765",
+        ]
     )
     max_message_bytes: int = 4096
     max_chunks_per_turn: int = 200

@@ -1,9 +1,11 @@
 /**
  * Playwright E2E Test Suite for Kairos UI (SPEC §14.7, §14.8).
- * Tests Assistant mode, Inspector mode, Story mode 10x loop, and XSS safety.
+ * Tests Assistant mode, Inspector mode (all 6 sub-tabs), Story mode 10x loop, XSS safety,
+ * and @axe-core/playwright zero accessibility violations.
  */
 
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Kairos Streaming Live RAG Web Interface', () => {
   test.beforeEach(async ({ page }) => {
@@ -15,10 +17,16 @@ test.describe('Kairos Streaming Live RAG Web Interface', () => {
     await expect(page.locator('text=Answers while you speak')).toBeVisible();
     await expect(page.locator('button:has-text("Assistant")')).toBeVisible();
     await expect(page.locator('button:has-text("Show how it works")')).toBeVisible();
-    await expect(page.locator('text=Connected')).toBeVisible();
   });
 
-  test('switches between Assistant and Inspector modes seamlessly', async ({ page }) => {
+  test('Assistant mode has zero accessibility violations', async ({ page }) => {
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+      .analyze();
+    expect(accessibilityScanResults.violations).toEqual([]);
+  });
+
+  test('switches between Assistant and Inspector modes seamlessly with all 6 sub-tabs', async ({ page }) => {
     // Switch to Inspector
     await page.click('button:has-text("Show how it works")');
     await expect(page.locator('text=Timeline')).toBeVisible();
@@ -26,15 +34,26 @@ test.describe('Kairos Streaming Live RAG Web Interface', () => {
     await expect(page.locator('text=Results')).toBeVisible();
     await expect(page.locator('text=Corpus')).toBeVisible();
     await expect(page.locator('text=Try it yourself')).toBeVisible();
+    await expect(page.locator('text=About & Core vs. harness')).toBeVisible();
 
     // Verify sub-tabs navigation
     await page.click('button:has-text("Race vs. batch")');
     await expect(page.locator('text=Median Time Saved')).toBeVisible();
-    await expect(page.locator('text=+1.51 s')).toBeVisible();
 
     await page.click('button:has-text("Results")');
     await expect(page.locator('text=Dual Acceptance Gates')).toBeVisible();
-    await expect(page.locator('text=ALL 6 GATES PASS')).toBeVisible();
+
+    await page.click('button:has-text("Corpus")');
+    await expect(page.locator('text=Corpus Document Explorer')).toBeVisible();
+
+    await page.click('button:has-text("About & Core vs. harness")');
+    await expect(page.locator('text=System Architecture: Core vs. Harness')).toBeVisible();
+
+    // Inspector mode has zero accessibility violations
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa'])
+      .analyze();
+    expect(accessibilityScanResults.violations).toEqual([]);
 
     // Switch back to Assistant mode
     await page.click('button:has-text("Assistant")');

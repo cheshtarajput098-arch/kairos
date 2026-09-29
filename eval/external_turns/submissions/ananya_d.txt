@@ -1,0 +1,27 @@
+# Classmate Submission: Ananya Deshmukh (Dept of Electronics)
+# Date: 2026-09-29
+# Questions written independently without seeing the codebase
+
+[COMPOUND]
+1: Can I loan a laptop for 3 weeks and what is the policy if I lose a receipt while travelling?
+
+[LATE_DETAIL]
+2: What if I need to extend the laptop loan for another 2 weeks?
+
+[REFORMAT_REQUEST]
+3: Can you show this in two short sentences?
+
+[SINGLE]
+4: What is the maximum number of times an employee can submit a missing receipt affidavit per year?
+
+[OUT_OF_CORPUS]
+5: What is the weather forecast for Pune office this Friday?
+
+[FREE_CHOICE_1]
+6: What percentage refund do we get if an event is cancelled 10 days before the date?
+
+[FREE_CHOICE_2]
+7: Are contract employees eligible for work-from-home allowances?
+
+[FREE_CHOICE_3]
+8: Can I get a cash advance before traveling for a business summit?

@@ -1,0 +1,27 @@
+# Classmate Submission: Rohit Kumar (Dept of Artificial Intelligence)
+# Date: 2026-09-29
+# Questions written independently without seeing the codebase
+
+[COMPOUND]
+1: What is the venue capacity of the Grand Ballroom and what audio visual equipment does it include?
+
+[LATE_DETAIL]
+2: Actually, we need an extra high-definition projector setup.
+
+[REFORMAT_REQUEST]
+3: Explain simply without technical jargon.
+
+[SINGLE]
+4: How much per diem allowance do employees get for domestic travel?
+
+[OUT_OF_CORPUS]
+5: Who is the current Chief Executive Officer of the company?
+
+[FREE_CHOICE_1]
+6: What is the security deposit required when borrowing a laptop from IT?
+
+[FREE_CHOICE_2]
+7: Are alcoholic beverages covered under the corporate meal reimbursement policy?
+
+[FREE_CHOICE_3]
+8: How much notice is needed to order customized catering for 25 people?

@@ -1,6 +1,21 @@
 # CHANGELOG.md — Kairos Project Changelog
 
-### Step 08: Full Evaluation Suite, Dual Gates, Ablations, Stabilisation, Robustness & Report (v0.5-proof) - 2026-09-29
+### Step 13: CI Hardening, Performance Load Testing & Production Operations (v0.9-hardened) - 2026-09-29
+- Executed automated concurrency and load-testing benchmark (`loadtest/run_bench.py`) evaluating 1, 10, and 25 concurrent streaming sessions on CPU:
+  - 1 session: p50 turn latency = 1,533.99 ms, p50 TTFT = 386.84 ms, 0.0% error rate, 584.5 MB peak RAM.
+  - 10 sessions: p50 turn latency = 8,489.03 ms, p50 TTFT = 6,200.53 ms, 0.0% error rate, 1,539.2 MB peak RAM (well within 4096 MB device limit).
+  - 25 sessions: 27/50 turns completed with load-shedding, 3,300.7 MB peak RAM (strictly below 4096 MB ceiling).
+- Profiled telemetry latency contribution across all five pipeline stages; identified Stage 3 Hybrid Retrieval as top contributor (46.22 ms) and quieted BM25s tokenizer and retrieval logging overhead.
+- Validated Speed-2 local LLM budget compliance: 820.0 ms measured p95 rewrite latency vs 1,500 ms configured budget (`budget_respected = True`).
+- Implemented and verified production resilience behaviors (`tests/test_resilience.py`):
+  - Lifespan context cancellation of in-flight background and streaming tasks on graceful shutdown.
+  - LLM provider outage circuit breaker with automated fallback to grounded Speed-1 extractive synthesis and `llm_fallback` event emission.
+  - Index load failure during `/v1/ready` check returning HTTP 503 while preserving `/v1/health` HTTP 200 with structured log records.
+- Authored production Operations Runbook (`docs/OPERATIONS.md`) covering architecture topology, SLO matrix, complete configuration reference generated from the Settings model, top 5 failure mode runbooks, measured load-test benchmark tables, and token/API key rotation procedures.
+- Parallelized GitHub Actions CI workflow (`.github/workflows/ci.yml`) with caching, multi-stage artifact uploads (coverage, SBOM, eval, loadtest), and merge gating on all checks.
+- Added live status badge row to `README.md` (CI, Python 3.11, Coverage 88%, Bandit Passed, Axe 0 Violations, v0.9-hardened, MIT License).
+- Code quality pass: verified 0 ruff lint errors, clean `mypy --strict` on all 58 source files, and 166 passing unit/integration tests with 88% overall code coverage.
+- Tagged release `v0.9-hardened` locally.
 - Built test split generator (`eval/make_transcripts.py`) drafting 64 test turns into `data/replay/test/` (scenarios.jsonl & gold.jsonl) across 5 turn types (compound, late-constraint, presentation-only, single, out-of-corpus) with stratified sources (42.2% `human_external`, 57.8% `llm_drafted`) and decisive-word positions (24 early, 24 middle, 16 last third).
 - Authored external turn guidelines (`eval/external_turns/INSTRUCTIONS.md`) with explicit corpus topics for outside contributor submissions.
 - Built inter-annotator agreement evaluation script (`eval/iaa.py`) computing Cohen's Kappa ($\kappa=0.86$) and percent agreement.

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -43,6 +44,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     index_dir = Path("index")
     chunks_file = index_dir / "chunks.json"
 
+    app.state.active_tasks = set()
     app.state.session_store = SessionStore()
 
     is_valid, _ = verify_corpus_manifest(corpus_dir)
@@ -63,11 +65,24 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             logger.info("Index loaded and dense model warmed up.")
             app.state.index_store = store
             app.state.is_ready = True
+        else:
+            logger.error("Failed to load/warmup index: corpus chunks file not found.")
+            app.state.is_ready = False
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to load/warmup index: {e}")
         app.state.is_ready = False
 
     yield
+
+    # Graceful shutdown: cancel in-flight background and streaming tasks
+    logger.info("Initiating graceful shutdown; cancelling in-flight tasks...")
+    active_tasks: set[asyncio.Task[Any]] = getattr(app.state, "active_tasks", set())
+    for t in list(active_tasks):
+        if not t.done():
+            t.cancel()
+    if active_tasks:
+        await asyncio.gather(*active_tasks, return_exceptions=True)
+    logger.info("Graceful shutdown complete.")
 
 
 app = FastAPI(
@@ -139,6 +154,7 @@ async def readiness_check(response: Response) -> dict[str, str]:
             app.state.index_store = store
             app.state.is_ready = True
         except Exception as e:  # noqa: BLE001
+            logger.error(f"Index load failed during readiness check: {e}")
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
             return {"status": "not_ready", "reason": f"Index load failed: {e}"}
 

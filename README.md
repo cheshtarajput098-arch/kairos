@@ -2,6 +2,14 @@
 
 **Samsung PRISM GenAI Hackathon 2026 · Theme 04: Streaming Live RAG · Team Coding Agent RIT (M S Ramaiah Institute of Technology)**
 
+[![CI](https://github.com/kairos-rag/kairos/actions/workflows/ci.yml/badge.svg)](https://github.com/kairos-rag/kairos/actions)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![Coverage 88%](https://img.shields.io/badge/coverage-88%25-brightgreen.svg)](docs/PROJECT_STATE.md)
+[![Security: Bandit Passed](https://img.shields.io/badge/security-bandit%20passed-brightgreen.svg)](SECURITY.md)
+[![A11y: Axe 0 Violations](https://img.shields.io/badge/accessibility-axe%200%20violations-brightgreen.svg)](docs/UX_TEST.md)
+[![Release: v0.9-hardened](https://img.shields.io/badge/release-v0.9--hardened-blue.svg)](docs/PROJECT_STATE.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > **Status: under construction.** This is the starter repository. See [`docs/PROJECT_STATE.md`](docs/PROJECT_STATE.md) for progress. The final README (results, demo GIF, quick start) is written in Prompt 11, and every number in it will come from `runs/` output.
 
 Kairos is an event-driven streaming RAG engine. It listens to a transcript as it arrives, decides when it is safe to search, splits compound questions into parallel searches, **drafts and verifies each part of the answer before the speaker finishes**, cites every claim to the supplied corpus (or says what it couldn't verify), and refines the answer in place when a late detail arrives.

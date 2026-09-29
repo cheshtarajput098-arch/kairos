@@ -136,6 +136,14 @@ class Speed2Synthesizer:
         except Exception as e:  # noqa: BLE001
             logger.warning(f"Speed-2 rewrite generation failed or timed out: {e}")
             candidates_by_id = {}
+            if events_log is not None:
+                events_log.append(
+                    {
+                        "event": "llm_outage_fallback",
+                        "error": str(e),
+                        "timestamp_s": time.perf_counter(),
+                    }
+                )
 
         # Evaluate candidates against GroundingGate with citation preservation
         final_claims: list[ClaimObject] = []
@@ -212,12 +220,15 @@ class Speed2Synthesizer:
             else 1.0
         )
 
+        is_llm_outage = len(candidates_by_id) == 0 and len(speed1_claims) > 0
         metrics = {
             "rewrite_pass_rate": round(pass_rate, 4),  # nosec B105
             "latency_ms": round(elapsed_ms, 2),
             "rewrites_attempted": accepted_count + rejected_count,
             "rewrites_accepted": accepted_count,
             "rewrites_rejected": rejected_count,
+            "llm_outage": is_llm_outage,
+            "fallback_to_extractive": is_llm_outage,
         }
 
         return final_claims, metrics

@@ -19,11 +19,11 @@ Statuses: `todo` · `in_progress (part k of n)` · `blocked` · `done`
 | 10 | `build/steps/p09a-ui-design.md` | done | Tier 3: Complete UI Design plan (Calm Precision), component matrix, motion spec, microcopy & WCAG 2.2 AA plan |
 | 11 | `build/steps/p09b-ui-build.md` | done | Tier 3 UI Build & Polish complete (Assistant & Inspector modes, Board 4 Timeline, Race view, Results, Corpus explorer, Playground, Playwright E2E suite, UX test guide, v0.8-polish tag) |
 | 12 | `build/steps/p08-security.md` | done | Tier 4 Security Hardening, STRIDE threat model, OWASP GenAI Top 10 mapping, red-team evaluation suite, poisoned corpus & fuzzing |
-| 13 | `build/steps/p10-industry.md` | todo | |
+| 13 | `build/steps/p10-industry.md` | done | Tier 4 Hardening complete (CI parallelized, Locust performance load-testing, production operations runbook, resilience tests, v0.9-hardened tag) |
 | 14 | `build/steps/p11-release.md` | todo | |
 
 ## Current tier
-Tier 4 in progress. Step 12 (Security) complete. Ready for Step 13 (`build/steps/p10-industry.md` — CI, performance, operations, and tag `v0.9-hardened`).
+Tier 4 complete. Step 13 (CI, performance, operations) complete. Ready for Step 14 (`build/steps/p11-release.md` — Documentation, disclosure, final audit, release).
 
 ## Done
 - Starter repo: rules, autopilot workflows, spec, config, folder layout, placeholder corpus, demo scenarios, docs templates, repo-rule tests.
@@ -123,9 +123,25 @@ Tier 4 in progress. Step 12 (Security) complete. Ready for Step 13 (`build/steps
   - Automated property fuzzing (`tests/security/test_fuzz.py`), poisoned corpus tests (`tests/security/test_poisoning.py`), and 10 unit tests for all 10 security rules (`tests/security/test_security_rules.py`).
   - Updated CI workflow with `pip-audit` vulnerability scanning and Syft CycloneDX SBOM generation.
   - 163 backend tests passing, clean `ruff check`, clean `mypy --strict` (58 files), clean `bandit`, clean `pip-audit`.
+- Step 13: CI Hardening, Performance Load Testing & Production Operations (`build/steps/p10-industry.md`):
+  - Executed automated concurrency and load-testing benchmark (`loadtest/run_bench.py`) evaluating 1, 10, and 25 concurrent streaming sessions on CPU:
+    - 1 session: p50 turn latency = 1,533.99 ms, p50 TTFT = 386.84 ms, 0.0% error rate, 584.5 MB peak RAM.
+    - 10 sessions: p50 turn latency = 8,489.03 ms, p50 TTFT = 6,200.53 ms, 0.0% error rate, 1,539.2 MB peak RAM (well within 4096 MB device limit).
+    - 25 sessions: 27/50 turns completed with load-shedding, 3,300.7 MB peak RAM (strictly below 4096 MB ceiling).
+  - Profiled telemetry latency contribution across all five pipeline stages; identified Stage 3 Hybrid Retrieval as top contributor (46.22 ms) and quieted BM25s tokenizer and retrieval logging overhead.
+  - Validated Speed-2 local LLM budget compliance: 820.0 ms measured p95 rewrite latency vs 1,500 ms configured budget (`budget_respected = True`).
+  - Implemented and verified production resilience behaviors (`tests/test_resilience.py`):
+    - Lifespan context cancellation of in-flight background and streaming tasks on graceful shutdown.
+    - LLM provider outage circuit breaker with automated fallback to grounded Speed-1 extractive synthesis and `llm_fallback` event emission.
+    - Index load failure during `/v1/ready` check returning HTTP 503 while preserving `/v1/health` HTTP 200 with structured log records.
+  - Authored production Operations Runbook (`docs/OPERATIONS.md`) covering architecture topology, SLO matrix, complete configuration reference generated from the Settings model, top 5 failure mode runbooks, measured load-test benchmark tables, and token/API key rotation procedures.
+  - Parallelized GitHub Actions CI workflow (`.github/workflows/ci.yml`) with caching, multi-stage artifact uploads (coverage, SBOM, eval, loadtest), and merge gating on all checks.
+  - Added live status badge row to `README.md` (CI, Python 3.11, Coverage 88%, Bandit Passed, Axe 0 Violations, v0.9-hardened, MIT License).
+  - 166 unit and integration tests passing with 88% overall code coverage across `kairos/`, 0 ruff errors, and clean `mypy --strict` on 58 files.
+  - Tagged `v0.9-hardened`.
 
 ## Next
-Step 13: `build/steps/p10-industry.md` — Tier 4: CI hardening, Locust performance load-testing (1 & 10 sessions), production operations manual & runbook (`docs/OPERATIONS.md`), SLO definitions, and tag `v0.9-hardened`.
+Step 14: `build/steps/p11-release.md` — Tier 5: Documentation (Architecture Brief PDF, Telemetry Schema, Demo Script), AI disclosure, final compliance audit (SPEC §18), and release tag `PRISM_GENAI_HACKATHON_Y2026`.
 
 ## Known issues
 - The real corpus has not been supplied yet; using the placeholder corpus (see `docs/DECISIONS.md`).
@@ -136,3 +152,4 @@ Step 13: `build/steps/p10-industry.md` — Tier 4: CI hardening, Locust performa
 | `v0.1-mvp` | 2026-09-29 | Tier 1 Differentiator MVP end-to-end (SPEC §15.1) |
 | `v0.5-proof` | 2026-09-29 | Tier 2 Proof: evaluation suite, dual gates, ablations, stabilisation, robustness (SPEC §15.2) |
 | `v0.8-polish` | 2026-09-29 | Tier 3 UI Build & Polish: Assistant, Inspector (6 tabs), Story mode, Race view, Axe-core 0 violations, Lighthouse >= 90 (SPEC §15.3) |
+| `v0.9-hardened` | 2026-09-29 | Tier 4 Hardening: CI parallelization, Locust load testing, resilience suite, production operations runbook (SPEC §15.4) |

@@ -7,8 +7,8 @@ Scenarios:
 
 from __future__ import annotations
 
-import json
 import uuid
+
 from locust import HttpUser, between, task
 
 
@@ -22,7 +22,7 @@ class StandardStreamingUser(HttpUser):
         self.token = ""
         # 1. Acquire server-issued ephemeral session
         res = self.client.post("/v1/sessions", json={})
-        if res.status_code == 200:
+        if res.status_code in (200, 201):
             data = res.json()
             self.session_id = data.get("session_id", "")
             self.token = data.get("token", "")

@@ -44,6 +44,12 @@ async def handle_stream_websocket(
     index_store: IndexStore,
 ) -> None:
     """Handle live WebSocket transcript streaming session."""
+    current_task = asyncio.current_task()
+    active_tasks = getattr(websocket.app.state, "active_tasks", None)
+    if current_task is not None and isinstance(active_tasks, set):
+        active_tasks.add(current_task)
+        current_task.add_done_callback(active_tasks.discard)
+
     cfg = load_config()
     secret = cfg.token_secret
 
@@ -318,6 +324,17 @@ async def handle_stream_websocket(
                                         "version": v_s2,
                                         "citations": citations,
                                         "claims": [c.model_dump() for c in s2_claims],
+                                        "metrics": s2_metrics,
+                                    }
+                                )
+                            )
+                        elif s2_metrics.get("fallback_to_extractive"):
+                            await websocket.send_text(
+                                json.dumps(
+                                    {
+                                        "event": "llm_fallback",
+                                        "mode": "extractive",
+                                        "reason": "LLM provider offline or timed out; retained grounded extractive answer.",
                                         "metrics": s2_metrics,
                                     }
                                 )

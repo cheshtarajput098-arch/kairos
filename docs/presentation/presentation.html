@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kairos Presentation — Streaming Live RAG</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Geist+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg: #0E1014;
+      --card: #15181E;
+      --border: #1E2330;
+      --text: #ECE9E2;
+      --muted: #A3A9B5;
+      --dim: #7D8594;
+      --accent: #8FB3FF;
+      --green: #6FD39A;
+      --amber: #F5A623;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Geist', sans-serif;
+      line-height: 1.5;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .slide {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px;
+      margin-bottom: 40px;
+      page-break-after: always;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .slide-num {
+      position: absolute;
+      top: 32px;
+      right: 40px;
+      font-family: 'Geist Mono', monospace;
+      font-size: 13px;
+      color: var(--dim);
+    }
+
+    .category {
+      font-family: 'Geist Mono', monospace;
+      font-size: 12px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 38px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 24px;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .stat-card {
+      background: #12151B;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .stat-val {
+      font-family: 'Geist Mono', monospace;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .stat-val.green { color: var(--green); }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .stat-desc {
+      font-size: 12px;
+      color: var(--dim);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--dim);
+      font-family: 'Geist Mono', monospace;
+      font-weight: 500;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #1C2028;
+      color: var(--text);
+    }
+
+    .tag-pass {
+      background: rgba(111, 211, 154, 0.15);
+      color: var(--green);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'Geist Mono', monospace;
+      font-weight: 600;
+    }
+
+    .notes {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--dim);
+      font-style: italic;
+    }
+
+    @media print {
+      body { background: white; color: black; padding: 0; }
+      .slide {
+        background: white;
+        border: 1px solid #ddd;
+        box-shadow: none;
+        color: black;
+        margin-bottom: 0;
+        page-break-after: always;
+      }
+      h1, h2, td, .stat-label { color: #111; }
+      p, .stat-desc, .notes { color: #555; }
+      .stat-card { background: #f9f9f9; border-color: #eee; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Slide 1: Title -->
+    <div class="slide" style="text-align: center; padding: 60px 48px;">
+      <div class="slide-num">01 / 16</div>
+      <img src="../kairos-logo.jpg" alt="Kairos Logo" style="width: 180px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+      <div class="category">Samsung PRISM GenAI Hackathon 2026 · Theme 04: Streaming Live RAG</div>
+      <h1>KAIROS: Live RAG That Answers While You Speak</h1>
+      <p style="font-size: 18px; max-width: 700px; margin: 0 auto 24px auto;">
+        Event-Driven Speculative Retrieval, Multi-Intent Decomposition & In-Place Conversational Evolution on CPU
+      </p>
+      <div style="font-size: 15px; color: var(--accent); font-weight: 600;">
+        Cheshta Rajput
+      </div>
+      <div style="font-size: 13px; color: var(--dim);">
+        Team Coding Agent RIT · M S Ramaiah Institute of Technology, Bengaluru
+      </div>
+    </div>
+
+    <!-- Slide 2: Problem Statement -->
+    <div class="slide">
+      <div class="slide-num">02 / 16</div>
+      <div class="category">Problem Statement</div>
+      <h2>Traditional Voice RAG Imposes Painful Conversational Pauses</h2>
+      <p>Conventional retrieval-augmented generation enforces an awkward sequential bottleneck in voice applications:</p>
+      
+      <div class="grid-3">
+        <div class="stat-card">
+          <div class="stat-val" style="color: #FF7B72;">3.5 – 5.0 s</div>
+          <div class="stat-label">Conversational Delay</div>
+          <div class="stat-desc">Waiting for full utterance end + sequential vector search + LLM generation leaves users in silence.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color: var(--amber);">Failure</div>
+          <div class="stat-label">On Compound Queries</div>
+          <div class="stat-desc">Multiple questions in one breath get smashed into a single noisy vector search leg.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color: var(--dim);">100% Waste</div>
+          <div class="stat-label">Restart Overhead</div>
+          <div class="stat-desc">Late details ("Actually, make that 60 people") cause traditional systems to discard state and re-execute everything.</div>
+        </div>
+      </div>
+
+      <div class="notes">
+        Speaker Note: "When you speak to standard voice assistants, they wait until you finish talking, take seconds to search, and stumble when you change details. Voice interaction demands real-time intelligence."
+      </div>
+    </div>
+
+    <!-- Slide 3: Three Innovations -->
+    <div class="slide">
+      <div class="slide-num">03 / 16</div>
+      <div class="category">Core Innovation</div>
+      <h2>What Makes Kairos Different</h2>
+      <p>Kairos is built around three fundamental differentiators designed specifically for real-time speech:</p>
+      
+      <div class="grid-3">
+        <div class="stat-card">
+          <div class="stat-val green">65.4%</div>
+          <div class="stat-label">Ready-at-End</div>
+          <div class="stat-desc">Synthesizes and deterministically verifies answer drafts before the speaker finishes speaking.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">Two-Speed</div>
+          <div class="stat-label">Grounded Answers</div>
+          <div class="stat-desc">Instant verbatim quote (&lt; 1ms) + fluent local Qwen2.5 rewrite (&lt; 820ms) passing strict verification.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val green">Gate G5</div>
+          <div class="stat-label">Byte-Identical Invariance</div>
+          <div class="stat-desc">Patches only affected claims on late detail; unaffected claims stay 100% byte-identical.</div>
+        </div>
+      </div>
+
+      <div class="notes">
+        Speaker Note: "Kairos breaks the sequential barrier. By moving retrieval and draft synthesis into the utterance window, the answer is already verified the millisecond speech stops."
+      </div>
+    </div>
+
+    <!-- Slide 4: System Architecture -->
+    <div class="slide">
+      <div class="slide-num">04 / 16</div>
+      <div class="category">System Architecture</div>
+      <h2>Parsimonious 5-Stage Live Streaming Pipeline</h2>
+      <p>Zero external agent frameworks (no LangChain, no LlamaIndex). One Python 3.11 asyncio event loop running locally on CPU:</p>
+      
+      <div style="background: #12151B; border: 1px solid var(--border); border-radius: 12px; padding: 20px; font-family: 'Geist Mono', monospace; font-size: 13px; line-height: 1.8;">
+        Live Speech Chunks ──► <strong>Stage 1: Retrieval Controller</strong> (WAIT / RETRIEVE / SUPPRESS)<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──► <strong>Stage 2: Multi-Intent Decomposer</strong> (Context Inheritance)<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──► <strong>Stage 3: Hybrid Retriever</strong> (BGE + BM25s, 400ms Deadline)<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──► <strong>Stage 4: Fusion</strong> (RRF k=60 &amp; Deduplication)<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──► <strong>Stage 5: Two-Speed Grounded Synthesis</strong><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──────────────► <strong>Session Delta Engine</strong> ◄─── (Deterministic GroundingGate)<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──► <strong>Answer Canvas UI</strong> (Calm Precision)
+      </div>
+
+      <div class="notes">
+        Speaker Note: "Our architecture follows strict architectural parsimony: one asyncio event loop, five stages, zero framework bloat. Every stage has a justified microsecond budget."
+      </div>
+    </div>
+
+    <!-- Slide 5: Acceptance Gates Results -->
+    <div class="slide">
+      <div class="slide-num">05 / 16</div>
+      <div class="category">Empirical Results</div>
+      <h2>Benchmark Acceptance Gates (Official &amp; Strict)</h2>
+      <p>Evaluated on the 64-turn frozen test split (<code>runs/eval/gates.json</code>):</p>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Gate</th>
+            <th>Description</th>
+            <th>Threshold</th>
+            <th>Official Measured</th>
+            <th>Strict Measured</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>G1</strong></td>
+            <td>Offline Container Reproducibility</td>
+            <td>1.0</td>
+            <td><strong>1.0</strong> (n=1)</td>
+            <td><strong>1.0</strong> (n=1)</td>
+            <td><span class="tag-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>G2</strong></td>
+            <td>Early Retrieval Triggering</td>
+            <td>&ge; 0.80</td>
+            <td><strong>1.000</strong> (n=52)</td>
+            <td><strong>1.000</strong> (mean lead 1.88s)</td>
+            <td><span class="tag-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>G3</strong></td>
+            <td>Multi-Intent Decomposition</td>
+            <td>&ge; 0.70</td>
+            <td><strong>0.895</strong> (n=19)</td>
+            <td><strong>0.895</strong> (n=19)</td>
+            <td><span class="tag-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>G4</strong></td>
+            <td>Grounding Integrity (Hallucinations)</td>
+            <td>&le; 0.00</td>
+            <td><strong>0.0000</strong> (n=112)</td>
+            <td><strong>0.0000</strong> (0 fabricated IDs)</td>
+            <td><span class="tag-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>G5</strong></td>
+            <td>Selective State Continuity</td>
+            <td>1.0</td>
+            <td><strong>1.000</strong> (n=18)</td>
+            <td><strong>1.000</strong> (byte-identical)</td>
+            <td><span class="tag-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>G6</strong></td>
+            <td>Structured Telemetry Schema</td>
+            <td>1.0</td>
+            <td><strong>1.000</strong> (n=64)</td>
+            <td><strong>1.000</strong> (all fields present)</td>
+            <td><span class="tag-pass">PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="notes">
+        Speaker Note: "All six official hackathon acceptance gates pass. Most importantly, Gate G4 achieved exactly 0 fabricated citations across all 112 evaluated claims."
+      </div>
+    </div>
+
+    <!-- Slide 6: Measured Time Savings -->
+    <div class="slide">
+      <div class="slide-num">06 / 16</div>
+      <div class="category">Differentiator Metric</div>
+      <h2>1.508 Seconds Median Time Saved vs Sequential Baseline</h2>
+      <p>Evaluated on a synchronized shared virtual clock across all 64 test turns (<code>runs/eval/race.json</code>):</p>
+      
+      <div class="grid-2">
+        <div class="stat-card">
+          <div class="stat-val green">1.508 s</div>
+          <div class="stat-label">Median Turn Time Saved</div>
+          <div class="stat-desc">Mean time saved: 1.579 s across 100% of retrieval-requiring turns.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">100%</div>
+          <div class="stat-label">Retrieval Latency Hidden (H = 1.0)</div>
+          <div class="stat-desc">Galbraith ceiling analysis: 0.0s median trigger gap, hiding 100% of network retrieval latency under user speech.</div>
+        </div>
+      </div>
+
+      <div class="notes">
+        Speaker Note: "Compared to the sequential batch baseline on a shared virtual clock, Kairos saves a median 1.508 seconds per turn. Users experience zero waiting time."
+      </div>
+    </div>
+
+    <!-- Slide 7: Hardware & Load-Test -->
+    <div class="slide">
+      <div class="slide-num">07 / 16</div>
+      <div class="category">Industry Readiness</div>
+      <h2>Laptop-Class CPU Efficiency &amp; Concurrency</h2>
+      <p>Evaluated on 2.0 vCPU cores with a strict 4096 MB memory bound (<code>runs/loadtest/results.json</code>):</p>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Concurrency</th>
+            <th>Error Rate</th>
+            <th>p50 Latency</th>
+            <th>p95 Latency</th>
+            <th>Peak Memory</th>
+            <th>Memory vs Ceiling</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1 Session</strong></td>
+            <td>0.0%</td>
+            <td>1,533 ms</td>
+            <td>2,486 ms</td>
+            <td><strong>584 MB</strong></td>
+            <td>14.3% of 4GB</td>
+          </tr>
+          <tr>
+            <td><strong>10 Sessions</strong></td>
+            <td>0.0%</td>
+            <td>8,489 ms</td>
+            <td>12,734 ms</td>
+            <td><strong>1,539 MB</strong></td>
+            <td>37.6% of 4GB</td>
+          </tr>
+          <tr>
+            <td><strong>25 Sessions</strong></td>
+            <td>46.0% (shed)</td>
+            <td>19,630 ms</td>
+            <td>28,363 ms</td>
+            <td><strong>3,300 MB</strong></td>
+            <td>80.6% (Safe &lt; 4GB)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="notes">
+        Speaker Note: "Under stress testing, 10 concurrent streaming sessions run at zero error rate using only 1.5 GB of RAM — well within the 4 GB limit of a standard laptop."
+      </div>
+    </div>
+
+    <!-- Slide 8: Security & Red-Team -->
+    <div class="slide">
+      <div class="slide-num">08 / 16</div>
+      <div class="category">Security Hardening</div>
+      <h2>Zero Agency, Strict Spotlighting &amp; Red-Team Evaluation</h2>
+      <p>Evaluated across 32 adversarial red-team turns (<code>runs/eval/redteam.json</code>):</p>
+      
+      <div class="grid-3">
+        <div class="stat-card">
+          <div class="stat-val green">0.0%</div>
+          <div class="stat-label">Attack Success Rate</div>
+          <div class="stat-desc">Spotlighting untrusted text in delimited tags neutralizes prompt injection attempts.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val green">100%</div>
+          <div class="stat-label">PII Redaction Rate</div>
+          <div class="stat-desc">Automatic masking of card numbers, phone numbers, and emails.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">0.01 ms</div>
+          <div class="stat-label">Security Latency Overhead</div>
+          <div class="stat-desc">Consumes only 1.0% of per-turn latency budget.</div>
+        </div>
+      </div>
+
+      <div class="notes">
+        Speaker Note: "Security was built into the edges from day one. Across 32 red-team attack vectors, our attack success rate is 0.0%, with full PII redaction and negligible 0.01ms overhead."
+      </div>
+    </div>
+
+    <!-- Slide 9: Conclusion -->
+    <div class="slide" style="text-align: center; padding: 48px;">
+      <div class="slide-num">09 / 16</div>
+      <div class="category">Summary</div>
+      <h2>Submission Ready · PRISM_GENAI_HACKATHON_Y2026</h2>
+      <p style="max-width: 700px; margin: 0 auto 28px auto;">
+        Kairos proves that Streaming Live RAG can answer while you speak, eliminate hallucinations deterministically, and run 100% offline on a laptop CPU.
+      </p>
+      <div style="font-family: 'Geist Mono', monospace; font-size: 13px; color: var(--green);">
+        ✓ All 6 Acceptance Gates Passed &nbsp;·&nbsp; ✓ 190 Tests Passing (88% Coverage) &nbsp;·&nbsp; ✓ 0 Fabricated Citations
+      </div>
+      <div style="margin-top: 32px; font-size: 18px; color: var(--text);">
+        Thank You!
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

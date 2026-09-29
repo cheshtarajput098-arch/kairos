@@ -108,13 +108,24 @@ class SessionStore:
         claims: list[ClaimObject],
         citations: list[str],
         diff: VersionDiff | None = None,
+        is_refinement: bool | None = None,
     ) -> int:
-        """Record an answer version snapshot in session history."""
+        """Record an answer version snapshot in session history.
+
+        A new question starts at v1; only a late detail makes v2.
+        """
         state = self.sessions.get(session_id)
         if state is None:
             return 1
 
-        new_version = state.current_version if not state.answer else state.current_version + 1
+        refinement = is_refinement if is_refinement is not None else (diff is not None)
+        if refinement:
+            new_version = state.current_version + 1
+        else:
+            new_version = 1
+            state.version_history.clear()
+            state.diffs_history.clear()
+
         state.current_version = new_version
         state.answer = answer
         state.claims = claims

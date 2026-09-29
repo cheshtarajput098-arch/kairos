@@ -182,6 +182,17 @@ class DraftingManager:
                     if passed:
                         committed_claims.append(v_claim)
 
+        # 2b. Check for evidence gap claims across all final legs
+        for leg in final_legs:
+            check_gap_fn = getattr(self.synthesizer, "check_evidence_gap", None)
+            if callable(check_gap_fn):
+                res = leg_results_map.get(leg.leg_id, {})
+                gap_claim = check_gap_fn(leg, res, chunks_map, version=version)
+                if gap_claim and not any(c.claim_id == gap_claim.claim_id for c in committed_claims):
+                    v_gap, passed, _ = self.gate.verify_claim(gap_claim, chunks_map)
+                    if passed:
+                        committed_claims.append(v_gap)
+
         # 3. Compute metrics per SPEC §6.4 & §9.1a
         total_claims = len(committed_claims)
         ready_at_end = (byte_identical_drafts_count / total_claims) if total_claims > 0 else 0.0
@@ -203,6 +214,8 @@ class DraftingManager:
 
         metrics = {
             "ready_at_end": round(ready_at_end, 3),
+            "ready_count": byte_identical_drafts_count,
+            "total_parts": len(final_legs),
             "draft_survival_rate": round(draft_survival_rate, 3),
             "rollback_rate": round(rollback_rate, 3),
             "rollback_exposure_ms": round(total_rollback_exposure_ms, 1),

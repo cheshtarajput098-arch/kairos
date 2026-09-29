@@ -15,6 +15,8 @@ interface AssistantModeProps {
   version: number;
   diff?: VersionDiff;
   readyAtEnd?: number;
+  readyCount?: number;
+  totalParts?: number;
   isDrafting: boolean;
   onSendText: (text: string) => void;
   onQuickAction: (action: 'shorter' | 'bullets' | 'simple') => void;
@@ -38,6 +40,8 @@ export const AssistantMode: React.FC<AssistantModeProps> = ({
   version,
   diff,
   readyAtEnd,
+  readyCount,
+  totalParts,
   isDrafting,
   onSendText,
   onQuickAction,
@@ -87,6 +91,8 @@ export const AssistantMode: React.FC<AssistantModeProps> = ({
         version={version}
         diff={diff}
         readyAtEnd={readyAtEnd}
+        readyCount={readyCount}
+        totalParts={totalParts}
         isDrafting={isDrafting}
         onQuickAction={onQuickAction}
         onSeeDiff={onSeeDiff}

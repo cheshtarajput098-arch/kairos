@@ -30,6 +30,8 @@ export const App: React.FC = () => {
   const [version, setVersion] = useState(1);
   const [diff, setDiff] = useState<VersionDiff | undefined>();
   const [readyAtEnd, setReadyAtEnd] = useState<number | undefined>();
+  const [readyCount, setReadyCount] = useState<number | undefined>();
+  const [totalParts, setTotalParts] = useState<number | undefined>();
   const [firstRetrievalT, setFirstRetrievalT] = useState<number | null>(null);
   const [utteranceEndT, setUtteranceEndT] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -111,8 +113,16 @@ export const App: React.FC = () => {
         if (event.diff) {
           setDiff(event.diff);
         }
-        if (event.metrics && event.metrics.ready_at_end !== undefined) {
-          setReadyAtEnd(event.metrics.ready_at_end);
+        if (event.metrics) {
+          if (event.metrics.ready_at_end !== undefined) {
+            setReadyAtEnd(event.metrics.ready_at_end);
+          }
+          if (event.metrics.ready_count !== undefined) {
+            setReadyCount(event.metrics.ready_count);
+          }
+          if (event.metrics.total_parts !== undefined) {
+            setTotalParts(event.metrics.total_parts);
+          }
         }
         break;
 
@@ -137,13 +147,18 @@ export const App: React.FC = () => {
     setIsPlayingStory(true);
     setIsStoryActive(true);
 
-    // Reset turn display
+    // Reset turn display: new scenario starts at v1
     setTranscript('');
     setDecisions([]);
     setLegs([]);
     setDrafts({});
     setFinalAnswer('');
     setFinalClaims([]);
+    setVersion(1);
+    setDiff(undefined);
+    setReadyAtEnd(undefined);
+    setReadyCount(undefined);
+    setTotalParts(undefined);
     setFirstRetrievalT(null);
     setUtteranceEndT(scenario.utteranceEnd);
     setCurrentTime(0);
@@ -246,6 +261,8 @@ export const App: React.FC = () => {
             version={version}
             diff={diff}
             readyAtEnd={readyAtEnd}
+            readyCount={readyCount}
+            totalParts={totalParts}
             isDrafting={isDrafting}
             onSendText={handleSendText}
             onQuickAction={handleQuickAction}

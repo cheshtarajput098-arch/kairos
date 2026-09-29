@@ -81,6 +81,7 @@ def run_replay(
         store.load()
     except Exception:  # noqa: BLE001
         store.build()
+    store.warmup()
 
     feature_extractor = ControllerFeatureExtractor(store.sparse_index)
     controller = RuleBasedController()
@@ -201,6 +202,7 @@ def run_replay(
                 answer=final_ans,
                 claims=committed_claims,
                 citations=all_cites,
+                is_refinement=False,
             )
 
         lead_time = (u_end - first_retrieval_t) if first_retrieval_t is not None else 0.0

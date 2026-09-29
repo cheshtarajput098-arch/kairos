@@ -42,6 +42,10 @@ class GroundingGate:
         Returns:
             (claim_with_updated_status, passed, reason)
         """
+        # 0. Explicit uncertainty statements (e.g., documented gaps) pass as valid uncertainty
+        if claim.status == "uncertain":
+            return claim, True, "explicit_uncertainty"
+
         # 1. Citations existence check
         if not claim.citations:
             claim.status = "dropped"

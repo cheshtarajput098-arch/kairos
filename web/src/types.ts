@@ -54,6 +54,8 @@ export interface TurnCompletedEvent {
   diff?: VersionDiff;
   metrics?: {
     ready_at_end?: number;
+    ready_count?: number;
+    total_parts?: number;
     draft_survival_rate?: number;
     rollback_rate?: number;
     rollback_exposure_ms?: number;

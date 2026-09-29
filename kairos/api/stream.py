@@ -246,8 +246,17 @@ async def handle_stream_websocket(
                         dict.fromkeys(cite for c in committed_claims for cite in c.citations)
                     )
 
+                    is_refinement = turn_class in (
+                        "late_constraint",
+                        "constraint_on_existing",
+                        "contradiction",
+                    )
                     v = session_store.save_version(
-                        session_id, final_answer, committed_claims, citations
+                        session_id,
+                        final_answer,
+                        committed_claims,
+                        citations,
+                        is_refinement=is_refinement,
                     )
                     session.active_legs = {l.leg_id: l for l in final_legs}
                     has_prior_answer = True

@@ -26,7 +26,7 @@ export const SourcePopover: React.FC<SourcePopoverProps> = ({
         className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-mono font-bold rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 hover:bg-blue-200 transition-colors"
         aria-label={`Source citation ${citation}`}
       >
-        {index + 1}
+        {index}
       </button>
 
       {isOpen && (

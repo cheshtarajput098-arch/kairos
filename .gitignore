@@ -23,5 +23,7 @@ kairos/api/static/
 .DS_Store
 .idea/
 .vscode/
+# temporary office lock files
+~$*
 # bundle files (kept locally after unpacking, never committed)
 .bundle/

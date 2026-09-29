@@ -30,7 +30,12 @@ from pathlib import Path
 from typing import Any
 
 from eval.baseline import run_baseline
-from eval.gates import GateResult, ready_at_end, run_all_gates
+from eval.gates import (
+    compute_stratified_gates,
+    ready_at_end,
+    ready_at_end_by_cadence,
+    run_all_gates,
+)
 
 # kairos/ imports -- never import from data/ or eval/replay files
 from kairos.controller.features import ControllerFeatureExtractor
@@ -317,6 +322,18 @@ def run_suite(split: str = "dev", out_dir: str = "runs/eval") -> int:
     drafting_mgr = DraftingManager(gate=gate, synthesizer=synthesizer)
     session_store = SessionStore()
 
+    # Run freeze check if running against frozen test split
+    if split == "test":
+        from eval.freeze import verify_test_split_freeze
+
+        freeze_ok, errors = verify_test_split_freeze()
+        if not freeze_ok:
+            print("[eval] ERROR: Test split freeze verification failed:", file=sys.stderr)
+            for err in errors:
+                print(f"  - {err}", file=sys.stderr)
+            return 1
+        print("[eval] Test split integrity verified against manifest.sha256 [OK]")
+
     turn_records: list[dict[str, Any]] = []
 
     print(f"[eval] Replaying {len(readers)} turns from '{split}' split…")
@@ -336,6 +353,19 @@ def run_suite(split: str = "dev", out_dir: str = "runs/eval") -> int:
             delta_engine=delta_engine,
             session_store=session_store,
         )
+        # Attach gold label annotations for stratification
+        gold_item = _gold.get(record["turn_id"])
+        if gold_item:
+            record["source"] = gold_item.source or "llm_drafted"
+            record["decisive_word_position"] = gold_item.decisive_word_position or "middle"
+            record["gold_sub_intents"] = gold_item.sub_intents
+            record["gold_answer_chunks"] = gold_item.answer_chunks
+        else:
+            record["source"] = "unspecified"
+            record["decisive_word_position"] = "middle"
+            record["gold_sub_intents"] = []
+            record["gold_answer_chunks"] = {}
+
         turn_records.append(record)
         print(
             f"  [{record['turn_id']}] type={record['turn_type']} "
@@ -344,13 +374,19 @@ def run_suite(split: str = "dev", out_dir: str = "runs/eval") -> int:
             f"rae={record['ready_at_end']:.2f}"
         )
 
-    # Run gates
-    gate_results: list[GateResult] = run_all_gates(turn_records, index_loaded=index_loaded)
+    # Run dual gates (official + strict)
+    official_gates, strict_gates = run_all_gates(turn_records, index_loaded=index_loaded)
     rae = ready_at_end(turn_records)
+    cadence_rae = ready_at_end_by_cadence(turn_records)
+    stratified = compute_stratified_gates(turn_records)
 
     # Run baseline for comparison
     baseline_records = run_baseline(str(scenarios_path))
-    baseline_gates = run_all_gates(baseline_records, index_loaded=False)
+    baseline_official, baseline_strict = run_all_gates(baseline_records, index_loaded=False)
+
+    # Compute comprehensive metrics (SPEC §9.1a)
+    from eval.metrics import compute_all_metrics
+    metrics = compute_all_metrics(turn_records, baseline_records)
 
     # Write output
     out_path = Path(out_dir)
@@ -360,8 +396,12 @@ def run_suite(split: str = "dev", out_dir: str = "runs/eval") -> int:
         "split": split,
         "n_turns": len(turn_records),
         "ready_at_end": rae,
-        "gates": [g.as_dict() for g in gate_results],
-        "baseline_gates": [g.as_dict() for g in baseline_gates],
+        "ready_at_end_by_cadence": cadence_rae,
+        "official_gates": [g.as_dict() for g in official_gates],
+        "strict_gates": [g.as_dict() for g in strict_gates],
+        "stratified": stratified,
+        "baseline_official": [g.as_dict() for g in baseline_official],
+        "baseline_strict": [g.as_dict() for g in baseline_strict],
     }
     with open(out_path / "gates.json", "w", encoding="utf-8") as fh:
         json.dump(gates_output, fh, indent=2)
@@ -369,30 +409,48 @@ def run_suite(split: str = "dev", out_dir: str = "runs/eval") -> int:
     with open(out_path / "turn_records.json", "w", encoding="utf-8") as fh:
         json.dump(turn_records, fh, indent=2)
 
+    with open(out_path / "metrics.json", "w", encoding="utf-8") as fh:
+        json.dump(metrics, fh, indent=2)
+
     # Print summary
     print("\n" + "=" * 70)
     print(f"EVAL RESULTS -- split={split}, n={len(turn_records)}")
     print("=" * 70)
-    all_pass = True
-    for g in gate_results:
+    print("OFFICIAL THEME GATES (§5):")
+    official_pass = True
+    for g in official_gates:
         icon = "[PASS]" if g.passed else "[FAIL]"
-        print(
-            f"  {icon} {g.gate}: measured={g.measured:.3f}  threshold={g.threshold}  n={g.n}"
-        )
+        print(f"  {icon} {g.gate}: measured={g.measured:.3f}  threshold={g.threshold}  n={g.n}")
         print(f"      {g.detail}")
         if not g.passed:
-            all_pass = False
-    print()
+            official_pass = False
+
+    print("\nSTRICT GATES (SPEC §9.1):")
+    strict_pass = True
+    for g in strict_gates:
+        icon = "[PASS]" if g.passed else "[FAIL]"
+        print(f"  {icon} {g.gate}: measured={g.measured:.3f}  threshold={g.threshold}  n={g.n}")
+        print(f"      {g.detail}")
+        if not g.passed:
+            strict_pass = False
+
+    print("\nDIFFERENTIATOR METRICS (§0, §6.4):")
     print(f"  Ready-at-End: {rae['ready_at_end']:.3f}  (n={rae['n']})  {rae['detail']}")
+    print(f"  Cadence Sensitivity: {cadence_rae['detail']}")
+    print(f"  Recall@10: {metrics['retrieval_effectiveness']['recall_at_10']:.3f}  nDCG@10: {metrics['retrieval_effectiveness']['ndcg_at_10']:.3f}")
+    print(f"  Suppression Rate: {metrics['controller_efficiency']['suppression_rate']:.1%}")
+    print(f"  Retrievals Saved vs Restart: {metrics['cost_and_savings']['retrievals_saved_vs_restart']}")
     print("=" * 70)
-    print(f"  Output: {out_path / 'gates.json'}")
-    if all_pass:
-        print("  ALL GATES PASSED [PASS]")
+    print(f"  Outputs: {out_path / 'gates.json'}, {out_path / 'metrics.json'}")
+    if official_pass and strict_pass:
+        print("  ALL GATES PASSED (OFFICIAL + STRICT) [PASS]")
+    elif official_pass:
+        print("  OFFICIAL GATES PASSED (STRICT PENDING/PARTIAL) [PASS/WARN]")
     else:
         print("  ONE OR MORE GATES FAILED [FAIL]")
     print("=" * 70)
 
-    return 0 if all_pass else 1
+    return 0 if official_pass else 1
 
 
 def main() -> None:

@@ -61,6 +61,7 @@ class GoldLabel(StrictBaseModel):
     expected_behaviour: str | None = None
     decisive_word_position: str | None = None
     source: str | None = None
+    review_status: str | None = None
 
 
 class RetrievalEvent(StrictBaseModel):

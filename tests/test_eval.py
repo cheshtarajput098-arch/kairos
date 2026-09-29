@@ -7,7 +7,6 @@ from typing import Any
 import pytest
 
 from eval.gates import (
-    GateResult,
     gate_g1,
     gate_g2,
     gate_g3,
@@ -263,25 +262,172 @@ def test_ready_at_end_no_retrieve() -> None:
 
 
 # ---------------------------------------------------------------------------
-# run_all_gates
+# run_all_gates & Stratifications
 # ---------------------------------------------------------------------------
 
 
 def test_run_all_gates_returns_six() -> None:
     turns = [_retrieve_turn("t1")]
-    results = run_all_gates(turns, index_loaded=True)
-    assert len(results) == 6
-    gates = [r.gate for r in results]
-    assert gates == ["G1", "G2", "G3", "G4", "G5", "G6"]
-    assert all(isinstance(r, GateResult) for r in results)
+    official, strict = run_all_gates(turns, index_loaded=True)
+    assert len(official) == 6
+    assert len(strict) == 6
+    assert [r.gate for r in official] == ["G1", "G2", "G3", "G4", "G5", "G6"]
+    assert [r.gate for r in strict] == ["G1", "G2", "G3", "G4", "G5", "G6"]
+    assert all(r.variant == "official" for r in official)
+    assert all(r.variant == "strict" for r in strict)
 
 
 def test_gate_result_as_dict() -> None:
     r = gate_g1(True)
     d = r.as_dict()
     assert "gate" in d
+    assert "variant" in d
     assert "passed" in d
     assert "measured" in d
     assert "threshold" in d
     assert "n" in d
+
+
+def test_ready_at_end_by_cadence() -> None:
+    from eval.gates import ready_at_end_by_cadence
+
+    turns = [
+        _retrieve_turn("t1", retrieval_required=True, utterance_end=2.0, first_retrieval_t=0.5, ready_at_end_val=1.0),
+        _retrieve_turn("t2", retrieval_required=True, utterance_end=2.0, first_retrieval_t=1.8, ready_at_end_val=0.0),
+    ]
+    res = ready_at_end_by_cadence(turns)
+    assert "cadence_0_75x" in res
+    assert "cadence_1_0x" in res
+    assert "cadence_1_5x" in res
+    assert res["n"] == 2
+
+
+def test_compute_stratified_gates() -> None:
+    from eval.gates import compute_stratified_gates
+
+    turns = [
+        {**_retrieve_turn("t1"), "source": "llm_drafted", "decisive_word_position": "early"},
+        {**_retrieve_turn("t2"), "source": "human_external", "decisive_word_position": "last third"},
+    ]
+    strat = compute_stratified_gates(turns)
+    assert "by_source" in strat
+    assert "by_decisive_word_position" in strat
+    assert "llm_drafted" in strat["by_source"]
+    assert "human_external" in strat["by_source"]
+    assert "early" in strat["by_decisive_word_position"]
+    assert "last third" in strat["by_decisive_word_position"]
+
+
+# ---------------------------------------------------------------------------
+# Freeze verification tests
+# ---------------------------------------------------------------------------
+
+
+def test_freeze_verification(tmp_path: Any) -> None:
+    from eval.freeze import compute_manifest, verify_test_split_freeze
+
+    # Manifest should compute without error
+    manifest = compute_manifest()
+    assert len(manifest) >= 2
+    # Verify current repo freeze
+    ok, errors = verify_test_split_freeze()
+    assert ok is True
+    assert errors == []
+
+
+# ---------------------------------------------------------------------------
+# Metrics tests (SPEC §9.1a)
+# ---------------------------------------------------------------------------
+
+
+def test_metrics_calculation() -> None:
+    from eval.metrics import compute_all_metrics, compute_ndcg_at_k, compute_recall_at_k
+
+    # Test recall@k
+    retrieved = ["doc1", "doc2", "doc3", "doc4"]
+    gold = {"doc2", "doc5"}
+    rec = compute_recall_at_k(retrieved, gold, k=2)
+    assert rec == pytest.approx(0.5)
+
+    # Test nDCG@10
+    ndcg = compute_ndcg_at_k(retrieved, {"doc1"}, k=10)
+    assert ndcg == pytest.approx(1.0)
+
+    # Test overall metrics
+    turns = [
+        {
+            **_retrieve_turn("t1", retrieval_required=True, utterance_end=2.0, first_retrieval_t=0.5, ready_at_end_val=1.0),
+            "gold_answer_chunks": {"q1": ["doc1"]},
+            "retrieved_chunk_ids": ["doc1", "doc2"],
+            "legs": [{"leg_id": "L1", "text": "test query"}],
+            "answer": "Test answer with five words.",
+        },
+        {
+            **_retrieve_turn("t2", retrieval_required=False, utterance_end=1.5, first_retrieval_t=None),
+            "turn_type": "presentation_only",
+            "gold_answer_chunks": {},
+            "retrieved_chunk_ids": [],
+            "legs": [],
+            "answer": "Short answer.",
+        },
+    ]
+    res = compute_all_metrics(turns)
+    assert "retrieval_effectiveness" in res
+    assert "latencies_ms" in res
+    assert "controller_efficiency" in res
+    assert "cost_to_performance_table" in res
+    assert res["controller_efficiency"]["suppression_rate"] == 1.0
+
+
+# ---------------------------------------------------------------------------
+# Controller Model tests (SPEC §4.4)
+# ---------------------------------------------------------------------------
+
+
+def test_controller_model_classifier() -> None:
+    import numpy as np
+
+    from eval.controller_model import LogisticRegressionClassifier, compute_roc_curve
+
+    X = np.array([
+        [1.0, 2.0, 1.0, 0.1, 0.0, 1.0, 0.0],
+        [2.0, 3.0, 1.0, 0.05, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.8],
+        [0.0, 0.0, 0.0, 0.9, 1.0, 0.0, 0.9],
+    ])
+    y = np.array([1, 1, 0, 0])
+
+    clf = LogisticRegressionClassifier(learning_rate=0.2, epochs=100)
+    clf.fit(X, y)
+
+    preds = clf.predict(X)
+    assert len(preds) == 4
+    assert preds[0] == 1
+    assert preds[2] == 0
+
+    curve = compute_roc_curve(clf, X, y)
+    assert len(curve) > 0
+    assert "early_retrieval_rate" in curve[0]
+    assert "false_trigger_rate" in curve[0]
+
+    # Serialization roundtrip
+    d = clf.to_dict()
+    clf2 = LogisticRegressionClassifier.from_dict(d)
+    preds2 = clf2.predict(X)
+    assert np.array_equal(preds, preds2)
+
+
+# ---------------------------------------------------------------------------
+# Inter-Annotator Agreement tests (SPEC §9.6)
+# ---------------------------------------------------------------------------
+
+
+def test_cohens_kappa_calculation() -> None:
+    from eval.iaa import compute_cohens_kappa
+
+    labels_a = ["cat", "dog", "cat", "fish"]
+    labels_b = ["cat", "dog", "dog", "fish"]
+    po, kappa = compute_cohens_kappa(labels_a, labels_b)
+    assert po == 0.75
+    assert kappa > 0.5
 

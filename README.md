@@ -9,14 +9,14 @@
 
 [![CI](https://github.com/kairos-rag/kairos/actions/workflows/ci.yml/badge.svg)](https://github.com/kairos-rag/kairos/actions)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
-[![Coverage 88%](https://img.shields.io/badge/coverage-88%25-brightgreen.svg)](docs/PROJECT_STATE.md)
+[![Coverage 88%](https://img.shields.io/badge/coverage-88%25-brightgreen.svg)](docs/EVAL_REPORT.md)
 [![Security: Bandit Passed](https://img.shields.io/badge/security-bandit%20passed-brightgreen.svg)](SECURITY.md)
 [![A11y: Axe 0 Violations](https://img.shields.io/badge/accessibility-axe%200%20violations-brightgreen.svg)](docs/UX_TEST.md)
-[![Release: PRISM_GENAI_HACKATHON_Y2026](https://img.shields.io/badge/release-PRISM__GENAI__HACKATHON__Y2026-blue.svg)](docs/PROJECT_STATE.md)
+[![Release: PRISM_GENAI_HACKATHON_Y2026](https://img.shields.io/badge/release-PRISM__GENAI__HACKATHON__Y2026-blue.svg)](https://github.com/cheshtarajput098-arch/kairos/releases/tag/PRISM_GENAI_HACKATHON_Y2026)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Submission Highlights:**  
-🎥 **[YouTube Video Demonstration](https://youtu.be/Tw0xOKTyV7k)** · 📊 **[Official Presentation Deck (PPTX)](MSRIT_CodingAgentRIT_Submission%20on%2029-09-2026.pptx)** · 📦 **[requirements.txt](requirements.txt)**  
+🎥 **[YouTube Video Demonstration](https://youtu.be/Tw0xOKTyV7k)** · 📊 **[Official Presentation Deck (PPTX)](docs/MSRIT_CodingAgentRIT_Submission.pptx)** ([PDF](docs/MSRIT_CodingAgentRIT_Submission.pdf)) · 📦 **[requirements.txt](requirements.txt)**  
 
 **Key Documentation:**  
 [Judge Evaluator Guide](docs/JUDGE_GUIDE.md) · [Theme Compliance Matrix](docs/COMPLIANCE.md) · [Architecture Brief](docs/ARCHITECTURE_BRIEF.md) · [Decisions Log](docs/DECISIONS.md) · [Demonstration Script](docs/DEMO_SCRIPT.md) · [Operations & Limitations](docs/OPERATIONS.md)
@@ -31,8 +31,10 @@ Traditional voice RAG engines force users into awkward conversational pauses by 
 
 ## Three Headline Measured Results
 
-1. **Ready-at-End (Answers While You Speak):** **65.4%** of queries on the frozen test split are verified and ready the millisecond speech stops (**100%** at 0.75x and 1.5x speech cadence), hiding **100% of retrieval latency** ($H = 1.0$).
-2. **Deterministic Grounding (Gate G4):** **0 fabricated citations** out of 112 claims (**0.0%** hallucination rate, 100% claim-to-chunk provenance).
+1. **Ready-at-End (Answers While You Speak):** **65.4%** of queries on the frozen test split are verified and ready by the time speech stops ($34/52$ eligible turns), hiding **100% of retrieval latency** ($H = 1.0$).
+   - **Wait after the speaker stops (TTFT):** **p50 0 ms** (answer already ready), **p95 15 ms**
+   - **Lead time:** **median 1.80 s, mean 1.88 s**
+2. **Deterministic Grounding (Gate G4):** **0 fabricated citations** out of 124 claims (**0.0%** hallucination rate, 100% claim-to-chunk provenance).
 3. **Turn Time Saved vs Batch Baseline:** **1.508 seconds median savings** per turn on a shared virtual clock with zero restart overhead.
 
 ---
@@ -116,9 +118,9 @@ Measured on the 64-turn frozen test split (`runs/eval/gates.json`):
 | Gate | Description | Threshold | Official Result ($n$) | Strict Result ($n$) | Status |
 |---|---|---|---|---|---|
 | **G1** | Offline Reproducibility | 1.0 | **1.0** ($n=1$) | **1.0** ($n=1$) | **PASS** |
-| **G2** | Early Retrieval Triggering | $\ge 0.80$ | **1.000** ($n=52$) | **1.000** ($n=52$, mean lead 1.88s) | **PASS** |
-| **G3** | Multi-Intent Decomposition | $\ge 0.70$ | **0.9474** ($n=19$) | **0.9474** ($n=19$, full intent match) | **PASS** |
-| **G4** | Grounding Integrity (Hallucinations) | $\le 0.00$ | **0.0000** ($n=112$) | **0.0000** ($n=112$, 0 fabricated IDs) | **PASS** |
+| **G2** | Early Retrieval Triggering | $\ge 0.80$ | **1.000** ($n=52$) | **1.000** ($n=52$, lead time: median 1.80 s, mean 1.88 s) | **PASS** |
+| **G3** | Multi-Intent Decomposition | $\ge 0.70$ | **0.895** ($n=19$) | **0.895** ($n=19$, 17/19 compound legs isolated) | **PASS** |
+| **G4** | Grounding Integrity (Hallucinations) | $\le 0.00$ | **0.0000** ($n=124$) | **0.0000** ($n=124$, 0 fabricated IDs) | **PASS** |
 | **G5** | Selective State Continuity | 1.0 | **1.000** ($n=18$) | **1.000** ($n=18$, byte-identical) | **PASS** |
 | **G6** | Structured Telemetry Schema | 1.0 | **1.000** ($n=64$) | **1.000** ($n=64$, all fields present) | **PASS** |
 
@@ -135,7 +137,7 @@ docker compose run --rm kairos make eval
 # Run automated concurrent session load tests (1, 10, 25 sessions)
 docker compose run --rm kairos python -m loadtest.run_bench
 
-# Run all 166 unit and integration tests with coverage
+# Run all unit and integration tests with coverage
 docker compose run --rm kairos make test
 ```
 
@@ -162,7 +164,7 @@ kairos/
 ├── data/corpus/             # Supplied read-only corpus & cryptographic manifest
 ├── data/replay/             # Test (64 turns) and Dev (16 turns) streaming datasets
 ├── docs/                    # Architecture Brief, Telemetry Schema, Demo Script, Operations
-└── tests/                   # 166 pytest unit, integration, and security tests (88% coverage)
+└── tests/                   # Pytest unit, integration, and security tests (88% coverage)
 ```
 
 ---
@@ -173,7 +175,7 @@ kairos/
 |---|---|---|
 | **Source Code** | Complete implementation in `kairos/`, `web/`, `eval/` | Completed |
 | **Demonstration Video** | 🎥 **[YouTube Walkthrough Video](https://youtu.be/Tw0xOKTyV7k)** · Script: [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) | Completed |
-| **Presentation Deck (PPT)** | 📊 [`MSRIT_CodingAgentRIT_Submission on 29-09-2026.pptx`](MSRIT_CodingAgentRIT_Submission%20on%2029-09-2026.pptx) | Completed |
+| **Presentation Deck (PPT or PDF)** | 📊 [`docs/MSRIT_CodingAgentRIT_Submission.pptx`](docs/MSRIT_CodingAgentRIT_Submission.pptx) · [`PDF`](docs/MSRIT_CodingAgentRIT_Submission.pdf) | Completed |
 | **Dependencies (`requirements.txt`)** | [`requirements.txt`](requirements.txt) (fully pinned) · [`pyproject.toml`](pyproject.toml) | Completed |
 | **Detailed README** | [`README.md`](README.md) (Architecture, Quickstart, Results, Deliverables) | Completed |
 | **Architecture Brief (≤ 6 pages)** | [`docs/ARCHITECTURE_BRIEF.md`](docs/ARCHITECTURE_BRIEF.md) | Completed |
@@ -182,7 +184,6 @@ kairos/
 | **Production Runbook & SLOs** | [`docs/OPERATIONS.md`](docs/OPERATIONS.md) | Completed |
 | **Security & Threat Model** | [`SECURITY.md`](SECURITY.md) | Completed |
 | **AI Disclosure** | [`AI_DISCLOSURE.md`](AI_DISCLOSURE.md) | Completed |
-| **Presentation Numbers Sheet** | [`docs/presentation/numbers_sheet.md`](docs/presentation/numbers_sheet.md) | Completed |
 | **Full Requirements Matrix** | [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) | Completed |
 | **Release Tag** | Git Tag: `PRISM_GENAI_HACKATHON_Y2026` | Tagged |
 | **APK / Native Mobile SDK** | **N/A** (Browser-based PWA & WebSocket architecture) | N/A |

@@ -1,6 +1,7 @@
 # secrets
 .env
 *.key
+
 # python
 __pycache__/
 *.py[cod]
@@ -10,6 +11,10 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
+.hypothesis/
+*.egg-info/
+kairos.egg-info/
+
 # build outputs
 runs/
 index/
@@ -19,11 +24,19 @@ models/
 web/node_modules/
 web/dist/
 kairos/api/static/
+
 # os / editors
 .DS_Store
 .idea/
 .vscode/
+
 # temporary office lock files
 ~$*
-# bundle files (kept locally after unpacking, never committed)
-.bundle/
+
+# logs & browser debug
+*.log
+.playwright/
+kairos_chrome_debug/
+
+# archive folder (kept locally outside repo)
+kairos_archive/

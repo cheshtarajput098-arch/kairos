@@ -288,18 +288,7 @@ def test_gate_result_as_dict() -> None:
     assert "n" in d
 
 
-def test_ready_at_end_by_cadence() -> None:
-    from eval.gates import ready_at_end_by_cadence
 
-    turns = [
-        _retrieve_turn("t1", retrieval_required=True, utterance_end=2.0, first_retrieval_t=0.5, ready_at_end_val=1.0),
-        _retrieve_turn("t2", retrieval_required=True, utterance_end=2.0, first_retrieval_t=1.8, ready_at_end_val=0.0),
-    ]
-    res = ready_at_end_by_cadence(turns)
-    assert "cadence_0_75x" in res
-    assert "cadence_1_0x" in res
-    assert "cadence_1_5x" in res
-    assert res["n"] == 2
 
 
 def test_compute_stratified_gates() -> None:

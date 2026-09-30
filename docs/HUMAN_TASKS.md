@@ -8,11 +8,11 @@ This file tracks tasks that require human execution or external participation. A
 
 | # | Task | Material / Script | Status |
 |---|---|---|---|
-| **H1** | Independent Gold-Label Review & Agreement | `eval/gold_review/run_agreement.py` | **done** (Kappa=1.000, 64 turns reviewed) |
-| **H2** | External Test Questions from Classmates | `eval/external_turns/import_external_turns.py` | **done** (32 turns imported from 4 classmates) |
-| **H3** | 5-Person Usability Test (SUS Score) | `docs/ux/score_sus.py` | **done** (SUS=89.5/100, Grade A+) |
-| **H4** | Blind Fluency Benchmark Review | `eval/fluency/score.py` | **done** (Speed 2 = 5.0/5.0, +1.08 pts) |
-| **H5** | Presentation Deck Fill-In | `docs/presentation/FINAL_SLIDES_CONTENT.md` | **done** (All 16 slides fully written) |
+| **H1** | Independent Gold-Label Review & Agreement | `docs/JUDGE_GUIDE.md` | **open** (Post-submission roadmap) |
+| **H2** | External Test Questions from Classmates | `docs/OPERATIONS.md` | **open** (Post-submission roadmap) |
+| **H3** | 5-Person Usability Test (SUS Score) | `docs/UX_TEST.md` | **open** (Protocol defined, field trials pending) |
+| **H4** | Blind Fluency Benchmark Review | `docs/EVAL_REPORT.md` | **open** (Speed 2 Grounding Gate 98.4% verified; human study pending) |
+| **H5** | Presentation Deck Fill-In | `docs/MSRIT_CodingAgentRIT_Submission.pptx` | **done** (Official 12-slide submission deck & PDF) |
 | **H6** | Record ≤ 5-Minute Demo Video | `docs/DEMO_SCRIPT.md` | **done** (Uploaded: https://youtu.be/Tw0xOKTyV7k) |
 | **H7** | Final Git Push & Release Tag | `git push origin main --tags` | **open** (User to push) |
 | **H8** | Final Hackathon Submission Checklist | Section 8 below | **open** (User to submit) |
@@ -96,7 +96,7 @@ This file tracks tasks that require human execution or external participation. A
    ```bash
    uv run python -m eval.fluency.score
    ```
-   *(Current measured result: Speed 1 = 3.92/5.0, Speed 2 = 5.0/5.0, +1.08 improvement, Cohen's Kappa = 0.689).*
+   *(Requires team members to blind-score sampled pairs before running).*
 
 ---
 

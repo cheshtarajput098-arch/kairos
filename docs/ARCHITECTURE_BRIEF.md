@@ -12,7 +12,7 @@ Traditional Retrieval-Augmented Generation (RAG) operates sequentially: the syst
 **Kairos** reimagines live RAG as an event-driven, streaming pipeline running entirely on laptop-class CPU hardware. Rather than treating speech as a static batch query, Kairos processes timestamped transcript chunks mid-utterance.
 
 ### What Makes Kairos Distinctive:
-1. **Answers While You Speak (Ready-at-End):** Kairos speculatively retrieves and verifies answer claims *before* the speaker finishes speaking. On the 64-turn frozen test split, **65.4%** of queries are verified and ready the exact millisecond speech stops, hiding **100% of retrieval latency** ($H=1.0$, arXiv:2606.20113).
+1. **Answers While You Speak (Ready-at-End):** Kairos speculatively retrieves and verifies answer claims *before* the speaker finishes speaking. On the 64-turn frozen test split, **65.4%** of queries are verified and ready by the time speech stops, hiding **100% of retrieval latency** ($H=1.0$, arXiv:2606.20113).
 2. **Two-Speed Synthesis with Deterministic Grounding:** Speed-1 extractive synthesis produces instant verbatim candidate claims in under **0.5 ms**. Speed-2 fluent rewriting via local quantized LLM (Qwen2.5-1.5B) refines grammar within an **820 ms** budget while strictly preserving citations byte-for-byte under a zero-hallucination GroundingGate.
 3. **Selective Refinement Delta Engine:** Late constraints (e.g., *"and it must be in Pune"*) update only the affected claim while preserving unaffected claims strictly **byte-identical** (100% G5 compliance), avoiding expensive full-context restarts.
 
@@ -132,7 +132,7 @@ Measured on an Intel Core i5/i7 class laptop CPU (2.0 CPU cores, 4096 MB RAM, 0 
 | **Stage 3: Hybrid Search**| 46.2 ms | 65 MB | \$0.00 | G2, G4 | Combines lexical exact-match (BM25s) with semantic recall (BGE). |
 | **Stage 4: RRF Fusion** | 2.3 ms | 8 MB | \$0.00 | G4 | Re-ranks multi-source evidence without expensive cross-encoders. |
 | **Stage 5: Speed-1 Extractive** | 0.4 ms | 15 MB | \$0.00 | G4, Ready-at-End | Enables instantaneous answer drafting while user is still speaking. |
-| **Stage 5: Speed-2 Rewrite** | 420.0 ms | 1.5 GB | \$0.00 | Fluency | Raises fluency from 3.92 to 5.0/5.0 while gated by GroundingGate. |
+| **Stage 5: Speed-2 Rewrite** | 420.0 ms | 1.5 GB | \$0.00 | Fluency | Produces fluent conversational rewrites while gated by GroundingGate. |
 | **Grounding Gate** | 0.03 ms | 2 MB | \$0.00 | G4 | Eliminates 100% of citation hallucinations (0 fabricated IDs). |
 | **Delta Engine** | 0.9 ms | 4 MB | \$0.00 | G5 | Preserves 100% byte-identical state continuity on late constraints. |
 

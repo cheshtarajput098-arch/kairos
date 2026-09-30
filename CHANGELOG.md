@@ -17,8 +17,8 @@
 - Code quality pass: verified 0 ruff lint errors, clean `mypy --strict` on all 58 source files, and 166 passing unit/integration tests with 88% overall code coverage.
 - Tagged release `v0.9-hardened` locally.
 - Built test split generator (`eval/make_transcripts.py`) drafting 64 test turns into `data/replay/test/` (scenarios.jsonl & gold.jsonl) across 5 turn types (compound, late-constraint, presentation-only, single, out-of-corpus) with stratified sources (42.2% `human_external`, 57.8% `llm_drafted`) and decisive-word positions (24 early, 24 middle, 16 last third).
-- Authored external turn guidelines (`eval/external_turns/INSTRUCTIONS.md`) with explicit corpus topics for outside contributor submissions.
-- Built inter-annotator agreement evaluation script (`eval/iaa.py`) computing Cohen's Kappa ($\kappa=0.86$) and percent agreement.
+- Authored external turn guidelines and protocol for outside contributor submissions.
+- Built inter-annotator agreement evaluation tool (`eval/iaa.py`) computing Cohen's Kappa and percent agreement.
 - Built test split and configuration freeze tool (`eval/freeze.py`) computing and verifying `data/replay/test/manifest.sha256`.
 - Extended acceptance gates engine (`eval/gates.py`) to compute BOTH Official and Strict variants for G1–G6, stratified reports (by source and decisive-word position), and 3-cadence Ready-at-End (0.75x, 1.0x, 1.5x).
 - Built comprehensive metrics engine (`eval/metrics.py`) computing all SPEC §9.1a metrics: recall@k, nDCG@10, TTFT and lead-time percentiles, suppression rate, retrievals per turn, redundant-leg rate, cost by turn class, savings vs restart baseline, and cost-to-performance efficiency table.

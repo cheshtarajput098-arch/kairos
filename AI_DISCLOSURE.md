@@ -34,7 +34,7 @@ Three instruction-tuned quantized open models (~1–4B) were benchmarked on a st
 
 ## 3. AI Assistance & Development Tools Disclosure
 
-* **AI Coding Assistance**: Google Antigravity (Gemini 2.5/3.0 architecture) was used during development as a pair-programming agent for code scaffolding, refactoring, test generation, and documentation drafting under human direction.
+* **AI Assistance & Tooling**: Google Antigravity (Gemini models) for coding; Anthropic Claude for planning, the specification, UI design mockups, the presentation and the video script.
 * **Human Engineering & Governance**:
   * Architecture, pipeline sequencing, and mathematical derivations (stabilisation ceiling, RRF fusion, state delta engine) were designed and validated by the engineering team.
   * Every line of production code in `kairos/` is covered by automated unit and property-based regression tests.

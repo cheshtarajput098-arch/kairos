@@ -39,10 +39,9 @@ Kairos evaluates **both** the Official Theme Guide definition (§5) and our stri
 ## 2. Differentiator Metrics
 
 ### Differentiator 1: Answer-as-You-Speak (Ready-at-End)
-- **Ready-at-End (1.0x Cadence):** 65.4% ($n=52$)
-- **Cadence Sensitivity (0.75x slow speaking):** 100.0%
-- **Cadence Sensitivity (1.0x normal):** 65.4%
-- **Cadence Sensitivity (1.5x fast speaking):** 100.0%
+- **Ready-at-End:** 65.4% ($n=52$, 34/52 eligible turns ready at speech end)
+- **Wait after the speaker stops (TTFT):** p50 0 ms (answer already ready), p95 15 ms
+- **Lead time:** median 1.80 s, mean 1.88 s
 - **Median Turn Time Saved vs Baseline (Race View):** 1.508 s
 - **Mean Turn Time Saved vs Baseline:** 1.562 s
 
@@ -57,8 +56,8 @@ Measured under seeded phonetic substitutions, repetitions, and partial revisions
 |---|---|---|---|
 | G2 Early Retrieval (Official) | 100.0% | 100.0% | 100.0% |
 | G2 Early Retrieval (Strict) | 100.0% | 100.0% | 100.0% |
-| G3 Multi-Intent (Official) | 89.5% | 89.5% | 94.7% |
-| G3 Multi-Intent (Strict) | 89.5% | 89.5% | 94.7% |
+| G3 Multi-Intent (Official) | 89.5% | 73.7% | 73.7% |
+| G3 Multi-Intent (Strict) | 89.5% | 73.7% | 73.7% |
 | False Trigger Rate | 0.0% | 0.0% | 0.0% |
 | Ready-at-End | 65.4% | 65.4% | 65.4% |
 | G4 Grounding Support | 0.0% | 0.0% | 0.0% |
@@ -68,9 +67,9 @@ Measured under seeded phonetic substitutions, repetitions, and partial revisions
 ## 3. Comprehensive Metrics (SPEC §9.1a)
 
 ### Retrieval Effectiveness & Controller Efficiency
-- **Recall@5:** 0.146
-- **Recall@10:** 0.312
-- **nDCG@10:** 0.148
+- **Recall@5:** 0.240
+- **Recall@10:** 0.438
+- **nDCG@10:** 0.236
 - **Suppression Rate (Headline):** 100.0%
 - **False Trigger Rate on Suppressed Turns:** 0.0%
 - **Retrievals per Turn:** 0.84
@@ -127,11 +126,11 @@ Measured under seeded phonetic substitutions, repetitions, and partial revisions
 
 | Configuration | Recall@5 | Recall@10 | nDCG@10 | Latency (Mean) |
 |---|---|---|---|---|
-| `dense_only` | 0.885 | 0.917 | 0.733 | 18.25 ms |
-| `sparse_only` | 0.000 | 0.000 | 0.000 | 0.18 ms |
-| `hybrid_rrf_k10` | 0.875 | 0.917 | 0.716 | 5.43 ms |
-| `hybrid_rrf_k60` | 0.875 | 0.917 | 0.716 | 6.91 ms |
-| `hybrid_rrf_k60_rerank` | 0.750 | 0.896 | 0.678 | 6.09 ms |
+| `dense_only` | 0.885 | 0.917 | 0.733 | 17.71 ms |
+| `sparse_only` | 0.000 | 0.000 | 0.000 | 0.17 ms |
+| `hybrid_rrf_k10` | 0.875 | 0.917 | 0.716 | 5.01 ms |
+| `hybrid_rrf_k60` | 0.875 | 0.917 | 0.716 | 4.83 ms |
+| `hybrid_rrf_k60_rerank` | 0.750 | 0.896 | 0.678 | 5.06 ms |
 
 ### Ablation D: Speed 1 Extractive vs Two-Speed Grounded Synthesis
 
@@ -142,12 +141,6 @@ Measured under seeded phonetic substitutions, repetitions, and partial revisions
 
 - **Speed-2 Grounding Pass Rate:** 98.4%
 - **Fallback to Extractive Rate:** 1.6%
-
-**Blind Fluency Evaluation (20 sampled turns, 1–5 scale, 2 raters):**
-- **Speed 1 (Extractive) Mean:** 3.92 / 5.0
-- **Speed 2 (Fluent Rewrite) Mean:** 5.0 / 5.0 (Delta: +1.08 points)
-- **Inter-Rater Absolute Agreement:** 82.5%
-- **Inter-Rater Cohen's $\kappa$:** 0.689
 
 ### Ablation E: Answer-as-You-Speak Drafting (On vs Off)
 
@@ -243,6 +236,6 @@ Evaluated against **32 adversarial attack turns** and a **10-chunk poisoned test
 
 ## 8. Limitations & Honest Disclosures
 
-1. **Inter-Annotator Agreement:** Sub-intent reconciliation agreement is recorded in `data/replay/test/gold.jsonl` with Cohen's $\kappa = 0.86$.
-2. **Hallway Usability Test (SUS):** In-person 5-participant test is pending (`TBD` in `docs/UX_TEST.md`).
-3. **Code-Mixed / Multilingual Queries:** The default English ONNX embedder (`bge-small-en-v1.5`) exhibits degraded semantic recall on Hinglish / Romanized code-mixed phrasing; a multilingual model switch is documented in `docs/OPERATIONS.md`.
+1. **Hallway Usability Test (SUS):** In-person 5-participant test is pending (`docs/UX_TEST.md`).
+2. **Code-Mixed / Multilingual Queries:** The default English ONNX embedder (`bge-small-en-v1.5`) exhibits degraded semantic recall on Hinglish / Romanized code-mixed phrasing; a multilingual model switch is documented in `docs/OPERATIONS.md`.
+3. **Model Reasoning Capacity:** The local 1.5B CPU-quantized model is strictly bounded to grounded factual rewrites under Gate G4, abstaining on multi-hop open-domain reasoning.

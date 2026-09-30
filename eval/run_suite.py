@@ -33,7 +33,6 @@ from eval.baseline import run_baseline
 from eval.gates import (
     compute_stratified_gates,
     ready_at_end,
-    ready_at_end_by_cadence,
     run_all_gates,
 )
 
@@ -386,7 +385,6 @@ def run_suite(split: str = "dev", out_dir: str = "runs/eval") -> int:
     # Run dual gates (official + strict)
     official_gates, strict_gates = run_all_gates(turn_records, index_loaded=index_loaded)
     rae = ready_at_end(turn_records)
-    cadence_rae = ready_at_end_by_cadence(turn_records)
     stratified = compute_stratified_gates(turn_records)
 
     # Run baseline for comparison
@@ -405,7 +403,6 @@ def run_suite(split: str = "dev", out_dir: str = "runs/eval") -> int:
         "split": split,
         "n_turns": len(turn_records),
         "ready_at_end": rae,
-        "ready_at_end_by_cadence": cadence_rae,
         "official_gates": [g.as_dict() for g in official_gates],
         "strict_gates": [g.as_dict() for g in strict_gates],
         "stratified": stratified,
@@ -466,7 +463,6 @@ def run_suite(split: str = "dev", out_dir: str = "runs/eval") -> int:
 
     print("\nDIFFERENTIATOR METRICS (§0, §6.4):")
     print(f"  Ready-at-End: {rae['ready_at_end']:.3f}  (n={rae['n']})  {rae['detail']}")
-    print(f"  Cadence Sensitivity: {cadence_rae['detail']}")
     print(f"  Recall@10: {metrics['retrieval_effectiveness']['recall_at_10']:.3f}  nDCG@10: {metrics['retrieval_effectiveness']['ndcg_at_10']:.3f}")
     print(f"  Suppression Rate: {metrics['controller_efficiency']['suppression_rate']:.1%}")
     print(f"  Retrievals Saved vs Restart: {metrics['cost_and_savings']['retrievals_saved_vs_restart']}")

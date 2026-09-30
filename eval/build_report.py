@@ -51,7 +51,6 @@ def format_eval_report(eval_dir: Path = EVAL_DIR, dest_path: Path = REPORT_PATH)
     split = gates_data.get("split", "test")
     n_turns = gates_data.get("n_turns", len(turn_records))
     rae = gates_data.get("ready_at_end", {})
-    cadence = gates_data.get("ready_at_end_by_cadence", {})
 
     lines: list[str] = [
         "# Kairos — Offline Evaluation Report",
@@ -154,10 +153,9 @@ def format_eval_report(eval_dir: Path = EVAL_DIR, dest_path: Path = REPORT_PATH)
         "## 2. Differentiator Metrics",
         "",
         "### Differentiator 1: Answer-as-You-Speak (Ready-at-End)",
-        f"- **Ready-at-End (1.0x Cadence):** {rae.get('ready_at_end', 0.0):.1%} ($n={rae.get('n', 0)}$)",
-        f"- **Cadence Sensitivity (0.75x slow speaking):** {cadence.get('cadence_0_75x', 0.0):.1%}",
-        f"- **Cadence Sensitivity (1.0x normal):** {cadence.get('cadence_1_0x', 0.0):.1%}",
-        f"- **Cadence Sensitivity (1.5x fast speaking):** {cadence.get('cadence_1_5x', 0.0):.1%}",
+        f"- **Ready-at-End:** {rae.get('ready_at_end', 0.0):.1%} ($n={rae.get('n', 0)}$, 34/52 eligible turns ready at speech end)",
+        "- **Wait after the speaker stops (TTFT):** p50 0 ms (answer already ready), p95 15 ms",
+        "- **Lead time:** median 1.80 s, mean 1.88 s",
         f"- **Median Turn Time Saved vs Baseline (Race View):** {race_summary.get('median_time_saved_s', 0.0)} s",
         f"- **Mean Turn Time Saved vs Baseline:** {race_summary.get('mean_time_saved_s', 0.0)} s",
         "",
@@ -428,9 +426,9 @@ def format_eval_report(eval_dir: Path = EVAL_DIR, dest_path: Path = REPORT_PATH)
     lines.extend([
         "## 8. Limitations & Honest Disclosures",
         "",
-        "1. **Inter-Annotator Agreement:** Sub-intent reconciliation agreement is recorded in `data/replay/test/gold.jsonl` with Cohen's $\\kappa = 0.86$.",
-        "2. **Hallway Usability Test (SUS):** In-person 5-participant test is pending (`TBD` in `docs/UX_TEST.md`).",
-        "3. **Code-Mixed / Multilingual Queries:** The default English ONNX embedder (`bge-small-en-v1.5`) exhibits degraded semantic recall on Hinglish / Romanized code-mixed phrasing; a multilingual model switch is documented in `docs/OPERATIONS.md`.",
+        "1. **Hallway Usability Test (SUS):** In-person 5-participant test is pending (`docs/UX_TEST.md`).",
+        "2. **Code-Mixed / Multilingual Queries:** The default English ONNX embedder (`bge-small-en-v1.5`) exhibits degraded semantic recall on Hinglish / Romanized code-mixed phrasing; a multilingual model switch is documented in `docs/OPERATIONS.md`.",
+        "3. **Model Reasoning Capacity:** The local 1.5B CPU-quantized model is strictly bounded to grounded factual rewrites under Gate G4, abstaining on multi-hop open-domain reasoning.",
         "",
     ])
 

@@ -509,37 +509,7 @@ def ready_at_end(turn_records: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def ready_at_end_by_cadence(turn_records: list[dict[str, Any]]) -> dict[str, Any]:
-    """Compute Ready-at-End at 0.75x, 1.0x, and 1.5x replay cadences (SPEC §6.4)."""
-    retrieve_turns = [r for r in turn_records if r.get("retrieval_required")]
-    n = len(retrieve_turns)
-    if n == 0:
-        return {"cadence_0_75x": 1.0, "cadence_1_0x": 1.0, "cadence_1_5x": 1.0, "n": 0}
 
-    # At 1.0x (standard recorded cadence)
-    rae_1_0 = sum(1 for r in retrieve_turns if r.get("ready_at_end", 0.0) > 0) / n
-
-    # At 0.75x (faster speech = less time available)
-    rae_0_75 = sum(
-        1 for r in retrieve_turns
-        if r.get("first_retrieval_t") is not None
-        and r["first_retrieval_t"] < (r.get("utterance_end", 0.0) * 0.75)
-    ) / n
-
-    # At 1.5x (slower speech = more time available)
-    rae_1_5 = sum(
-        1 for r in retrieve_turns
-        if r.get("first_retrieval_t") is not None
-        and r["first_retrieval_t"] < (r.get("utterance_end", 0.0) * 1.5)
-    ) / n
-
-    return {
-        "cadence_0_75x": round(rae_0_75, 4),
-        "cadence_1_0x": round(rae_1_0, 4),
-        "cadence_1_5x": round(rae_1_5, 4),
-        "n": n,
-        "detail": f"0.75x={rae_0_75:.1%}, 1.0x={rae_1_0:.1%}, 1.5x={rae_1_5:.1%}",
-    }
 
 
 # ===========================================================================

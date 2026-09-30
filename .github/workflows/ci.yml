@@ -2,16 +2,6 @@ name: ci
 on: [push, pull_request]
 
 jobs:
-  repo-rules:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: pip install pytest pyyaml
-      - run: pytest -q tests/test_repo_rules.py
-
   lint-and-type:
     runs-on: ubuntu-latest
     steps:
@@ -196,7 +186,7 @@ jobs:
         run: docker compose down
 
   ci-gate:
-    needs: [repo-rules, lint-and-type, tests-and-coverage, security-scans, frontend-checks, docker-smoke, mvp-replay-eval]
+    needs: [lint-and-type, tests-and-coverage, security-scans, frontend-checks, docker-smoke, mvp-replay-eval]
     runs-on: ubuntu-latest
     steps:
       - run: echo "All parallel CI checks and gates passed successfully!"

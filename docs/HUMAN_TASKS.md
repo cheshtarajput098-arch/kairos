@@ -13,7 +13,7 @@ This file tracks tasks that require human execution or external participation. A
 | **H3** | 5-Person Usability Test (SUS Score) | `docs/ux/score_sus.py` | **done** (SUS=89.5/100, Grade A+) |
 | **H4** | Blind Fluency Benchmark Review | `eval/fluency/score.py` | **done** (Speed 2 = 5.0/5.0, +1.08 pts) |
 | **H5** | Presentation Deck Fill-In | `docs/presentation/FINAL_SLIDES_CONTENT.md` | **done** (All 16 slides fully written) |
-| **H6** | Record ≤ 5-Minute Demo Video | `docs/DEMO_SCRIPT.md` | **open** (User to record) |
+| **H6** | Record ≤ 5-Minute Demo Video | `docs/DEMO_SCRIPT.md` | **done** (Uploaded: https://youtu.be/Tw0xOKTyV7k) |
 | **H7** | Final Git Push & Release Tag | `git push origin main --tags` | **open** (User to push) |
 | **H8** | Final Hackathon Submission Checklist | Section 8 below | **open** (User to submit) |
 

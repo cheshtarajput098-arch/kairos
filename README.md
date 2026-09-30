@@ -15,8 +15,11 @@
 [![Release: PRISM_GENAI_HACKATHON_Y2026](https://img.shields.io/badge/release-PRISM__GENAI__HACKATHON__Y2026-blue.svg)](docs/PROJECT_STATE.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+**Submission Highlights:**  
+🎥 **[YouTube Video Demonstration](https://youtu.be/Tw0xOKTyV7k)** · 📊 **[Official Presentation Deck (PPTX)](MSRIT_CodingAgentRIT_Submission%20on%2029-09-2026.pptx)** · 📦 **[requirements.txt](requirements.txt)**  
+
 **Key Documentation:**  
-[Judge Evaluator Guide](docs/JUDGE_GUIDE.md) · [Theme Compliance Matrix](docs/COMPLIANCE.md) · [Architecture Brief](docs/ARCHITECTURE_BRIEF.md) · [Decisions Log](docs/DECISIONS.md) · [Demonstration Script & Video](docs/DEMO_SCRIPT.md) · [Operations & Limitations](docs/OPERATIONS.md)
+[Judge Evaluator Guide](docs/JUDGE_GUIDE.md) · [Theme Compliance Matrix](docs/COMPLIANCE.md) · [Architecture Brief](docs/ARCHITECTURE_BRIEF.md) · [Decisions Log](docs/DECISIONS.md) · [Demonstration Script](docs/DEMO_SCRIPT.md) · [Operations & Limitations](docs/OPERATIONS.md)
 
 ---
 
@@ -76,6 +79,25 @@ To rigorously verify that Kairos executes 100% offline without any network acces
 ```bash
 # Run full evaluation suite inside container with all network access completely disabled
 docker run --network none --rm kairos make eval
+```
+
+### Local Setup via `requirements.txt` (Native Python 3.11)
+
+If running directly without Docker:
+
+```bash
+# 1. Create and activate a Python 3.11 virtual environment
+python -m venv .venv
+source .venv/bin/activate       # On Windows: .venv\Scripts\activate
+
+# 2. Install pinned dependencies from requirements.txt
+pip install -r requirements.txt
+
+# 3. Build the local corpus index (FastEmbed + BM25s)
+python -m kairos.cli index --corpus data/corpus
+
+# 4. Launch the FastAPI & WebSocket server
+python -m uvicorn kairos.api.app:app --host 0.0.0.0 --port 8000
 ```
 
 ### Optional Hosted LLM Mode via `.env`
@@ -150,16 +172,19 @@ kairos/
 | Deliverable | Location / Proof | Status |
 |---|---|---|
 | **Source Code** | Complete implementation in `kairos/`, `web/`, `eval/` | Completed |
+| **Demonstration Video** | 🎥 **[YouTube Walkthrough Video](https://youtu.be/Tw0xOKTyV7k)** · Script: [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) | Completed |
+| **Presentation Deck (PPT)** | 📊 [`MSRIT_CodingAgentRIT_Submission on 29-09-2026.pptx`](MSRIT_CodingAgentRIT_Submission%20on%2029-09-2026.pptx) | Completed |
+| **Dependencies (`requirements.txt`)** | [`requirements.txt`](requirements.txt) (fully pinned) · [`pyproject.toml`](pyproject.toml) | Completed |
+| **Detailed README** | [`README.md`](README.md) (Architecture, Quickstart, Results, Deliverables) | Completed |
 | **Architecture Brief (≤ 6 pages)** | [`docs/ARCHITECTURE_BRIEF.md`](docs/ARCHITECTURE_BRIEF.md) | Completed |
 | **Telemetry Schema** | [`docs/TELEMETRY_SCHEMA.md`](docs/TELEMETRY_SCHEMA.md) | Completed |
 | **Evaluation Report** | [`docs/EVAL_REPORT.md`](docs/EVAL_REPORT.md) | Completed |
 | **Production Runbook & SLOs** | [`docs/OPERATIONS.md`](docs/OPERATIONS.md) | Completed |
 | **Security & Threat Model** | [`SECURITY.md`](SECURITY.md) | Completed |
-| **Demonstration Script (≤ 5 min)** | [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) | Completed |
 | **AI Disclosure** | [`AI_DISCLOSURE.md`](AI_DISCLOSURE.md) | Completed |
-| **Presentation Deck Numbers** | [`docs/presentation/numbers_sheet.md`](docs/presentation/numbers_sheet.md) | Completed |
+| **Presentation Numbers Sheet** | [`docs/presentation/numbers_sheet.md`](docs/presentation/numbers_sheet.md) | Completed |
 | **Full Requirements Matrix** | [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) | Completed |
-| **Release Tag** | `PRISM_GENAI_HACKATHON_Y2026` | Tagged |
+| **Release Tag** | Git Tag: `PRISM_GENAI_HACKATHON_Y2026` | Tagged |
 | **APK / Native Mobile SDK** | **N/A** (Browser-based PWA & WebSocket architecture) | N/A |
 
 ---

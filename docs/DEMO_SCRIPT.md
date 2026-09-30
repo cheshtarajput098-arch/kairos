@@ -1,5 +1,7 @@
 # Video Demonstration Script & Shot List (≤ 5 Minutes) — Kairos
 
+> 🎥 **Video Demonstration Link (YouTube):** [https://youtu.be/Tw0xOKTyV7k](https://youtu.be/Tw0xOKTyV7k)
+
 This document provides the exact timed shot list, narration cues, and visual actions for recording the final submission video. The entire sequence is recorded live from the Kairos Web UI (`http://localhost:8000`) using Story Mode.
 
 ---

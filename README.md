@@ -1,3 +1,13 @@
+---
+title: Kairos Streaming Live RAG
+emoji: ⚡
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 8000
+pinned: false
+---
+
 <p align="center">
   <img src="docs/kairos-logo.jpg" alt="Kairos Logo" width="340" style="border-radius: 12px; margin-bottom: 12px;" />
 </p>

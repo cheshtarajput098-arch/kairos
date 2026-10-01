@@ -37,6 +37,9 @@ dev = [
     "mypy>=1.9.0",
     "types-PyYAML>=6.0.12",
     "bandit>=1.7.8",
+    "hypothesis>=6.168.3",
+    "locust>=2.46.6",
+    "pip-audit>=2.10.1",
 ]
 
 [tool.setuptools.packages.find]
@@ -51,7 +54,7 @@ line-length = 100
 target-version = "py311"
 
 [tool.ruff.lint]
-ignore = ["EXE002"]
+ignore = ["EXE002", "E501"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -64,6 +67,13 @@ testpaths = ["tests"]
 
 [dependency-groups]
 dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.3.0",
+    "mypy>=1.9.0",
+    "types-PyYAML>=6.0.12",
+    "bandit>=1.7.8",
     "hypothesis>=6.168.3",
     "locust>=2.46.6",
     "pip-audit>=2.10.1",

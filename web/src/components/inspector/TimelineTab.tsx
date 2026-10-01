@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
 import { ExternalLink } from 'lucide-react';
-import { DEFAULT_TIMELINE_CLAIMS, RACE_BENCHMARKS } from '../../fixtures/inspectorMocks';
 import { ClaimObject, ControllerDecisionEvent, LegInfo, StreamEvent } from '../../types';
+
+interface DisplayClaim {
+  num: number;
+  text: string;
+  citation: string;
+  status: string;
+}
+
+const DEFAULT_TIMELINE_CLAIMS: DisplayClaim[] = [
+  { num: 1, text: 'Venue: Grand Ballroom capacity 500 guests', citation: 'Doc_12 §2', status: 'verified' },
+  { num: 2, text: 'Audiovisual: Dual-projector system included', citation: 'Doc_31 §2', status: 'verified' },
+  { num: 3, text: 'Catering: Buffet lunch with vegetarian options', citation: 'Doc_89 §1', status: 'verified' },
+];
 
 interface TimelineTabProps {
   decisions: ControllerDecisionEvent[];
@@ -30,9 +42,9 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
       : '1.3';
 
   // Sample or live claims
-  const displayClaims =
+  const displayClaims: DisplayClaim[] =
     finalClaims.length > 0
-      ? finalClaims.map((c, i) => ({
+      ? finalClaims.map((c: ClaimObject, i: number) => ({
           num: (i % 3) + 1,
           text: c.text.length > 40 ? `${c.text.slice(0, 40)}…` : c.text,
           citation: c.citations[0] ? c.citations[0].replace('§', ' §') : 'no source',
@@ -234,7 +246,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
           </div>
 
           <div className="space-y-2.5">
-            {displayClaims.map((claim, idx) => (
+            {displayClaims.map((claim: DisplayClaim, idx: number) => (
               <div
                 key={idx}
                 className="flex items-center justify-between text-xs py-1.5 border-b border-[#1E2330]/50 last:border-none"

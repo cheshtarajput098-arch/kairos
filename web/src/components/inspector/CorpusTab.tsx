@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Search, CheckCircle2, Shield, Loader2 } from 'lucide-react';
-import { CORPUS_DOCS } from '../../fixtures/corpusChunks';
 
 export interface DocChunk {
   id: string;
@@ -27,6 +26,35 @@ interface RawApiDoc {
   chunks: DocChunk[];
 }
 
+const FALLBACK_CORPUS_DOCS: CorpusDoc[] = [
+  {
+    id: 'Doc_12',
+    title: 'Approved Venues in Pune',
+    sectionsCount: 3,
+    summary: 'Venue capacities, facilities, and booking conditions for Pune facilities.',
+    chunks: [
+      {
+        id: 'Doc_12§1',
+        section: '§1',
+        title: 'Doc_12 §1',
+        text: 'Workshop rooms at the Shivaji Nagar campus can accommodate groups of 15 to 40 participants.',
+      },
+      {
+        id: 'Doc_12§2',
+        section: '§2',
+        title: 'Doc_12 §2',
+        text: 'Riverside Hall in Baner seats up to 40 people in a classroom layout, and Koregaon Studio seats up to 35.',
+      },
+      {
+        id: 'Doc_12§3',
+        section: '§3',
+        title: 'Doc_12 §3',
+        text: 'All Pune bookings require confirmation at least 48 hours prior to the event date.',
+      },
+    ],
+  },
+];
+
 export const CorpusTab: React.FC = () => {
   const [docs, setDocs] = useState<CorpusDoc[]>([]);
   const [totalChunks, setTotalChunks] = useState<number>(27);
@@ -42,7 +70,7 @@ export const CorpusTab: React.FC = () => {
       })
       .then((data: { documents?: RawApiDoc[]; total_chunks?: number }) => {
         if (data.documents && data.documents.length > 0) {
-          const mapped: CorpusDoc[] = data.documents.map((d) => ({
+          const mapped: CorpusDoc[] = data.documents.map((d: RawApiDoc) => ({
             id: d.id,
             title: d.title,
             sectionsCount: d.sections_count ?? d.sectionsCount ?? d.chunks.length,
@@ -50,20 +78,20 @@ export const CorpusTab: React.FC = () => {
             chunks: d.chunks,
           }));
           setDocs(mapped);
-          setTotalChunks(data.total_chunks ?? mapped.reduce((acc, d) => acc + d.chunks.length, 0));
+          setTotalChunks(data.total_chunks ?? mapped.reduce((acc: number, d: CorpusDoc) => acc + d.chunks.length, 0));
         } else {
-          setDocs(CORPUS_DOCS);
+          setDocs(FALLBACK_CORPUS_DOCS);
         }
       })
       .catch(() => {
-        setDocs(CORPUS_DOCS);
+        setDocs(FALLBACK_CORPUS_DOCS);
       })
       .finally(() => setLoading(false));
   }, []);
 
-  const activeDocs = docs.length > 0 ? docs : CORPUS_DOCS;
+  const activeDocs = docs.length > 0 ? docs : FALLBACK_CORPUS_DOCS;
   const selectedDoc: CorpusDoc =
-    activeDocs.find((d) => d.id === selectedDocId) || activeDocs[0] || {
+    activeDocs.find((d: CorpusDoc) => d.id === selectedDocId) || activeDocs[0] || {
       id: 'Doc_12',
       title: 'Loading…',
       sectionsCount: 0,
@@ -122,7 +150,7 @@ export const CorpusTab: React.FC = () => {
           </div>
 
           <div className="space-y-2 max-h-[640px] overflow-y-auto pr-1">
-            {activeDocs.map((doc) => {
+            {activeDocs.map((doc: CorpusDoc) => {
               const isSelected = doc.id === selectedDocId;
               return (
                 <button

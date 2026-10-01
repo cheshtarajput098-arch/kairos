@@ -1,12 +1,26 @@
+from pathlib import Path
+
 import pytest
 from starlette.testclient import TestClient
 
-from kairos.api.app import app
+from kairos.api.app import CachedStaticFiles, app
 from kairos.index.store import IndexStore
 
 
 @pytest.fixture(scope="module")
 def client() -> TestClient:
+    # Ensure static html exists for headless/CI test runners
+    static_dir = Path("kairos/api/static")
+    index_file = static_dir / "index.html"
+    if not index_file.exists():
+        static_dir.mkdir(parents=True, exist_ok=True)
+        index_file.write_text(
+            '<!doctype html><html><body><div id="root"></div></body></html>', encoding="utf-8"
+        )
+        has_static = any(getattr(route, "name", None) == "static" for route in app.routes)
+        if not has_static:
+            app.mount("/", CachedStaticFiles(directory=str(static_dir), html=True), name="static")
+
     # Ensure index store is built and loaded
     store = IndexStore()
     if not store.chunks_map:

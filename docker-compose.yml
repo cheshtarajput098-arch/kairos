@@ -16,8 +16,9 @@ services:
     read_only: true
     tmpfs:
       - /tmp:mode=1777
-      - /app/runs:mode=1777
-      - /app/index:mode=1777
+    volumes:
+      - runs_vol:/app/runs
+      - index_vol:/app/index
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -32,3 +33,7 @@ services:
       - "127.0.0.1:4318:4318"   # OTLP HTTP receiver
     environment:
       - COLLECTOR_OTLP_ENABLED=true
+
+volumes:
+  runs_vol:
+  index_vol:

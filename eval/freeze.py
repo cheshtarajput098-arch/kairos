@@ -18,12 +18,11 @@ MANIFEST_PATH = TEST_DIR / "manifest.sha256"
 
 
 def sha256_file(path: Path) -> str:
-    """Compute hex SHA-256 digest of a file."""
-    h = hashlib.sha256()
-    with open(path, "rb") as fh:
-        while chunk := fh.read(65536):
-            h.update(chunk)
-    return h.hexdigest()
+    """Compute hex SHA-256 digest of a file (normalizing CRLF for cross-platform stability)."""
+    data = path.read_bytes()
+    if path.suffix in {".jsonl", ".json", ".yaml", ".yml", ".md", ".txt"}:
+        data = data.replace(b"\r\n", b"\n")
+    return hashlib.sha256(data).hexdigest()
 
 
 def compute_manifest() -> dict[str, str]:

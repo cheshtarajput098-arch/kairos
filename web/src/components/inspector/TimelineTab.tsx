@@ -112,7 +112,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
           {/* Vertical marker: Speaker stopped */}
           <div className="absolute top-0 bottom-6 left-[96%] border-l-2 border-dashed border-[#F0B455] z-20 pointer-events-none">
             <span className="absolute -top-1 left-2 text-[11px] font-mono text-[#F0B455] whitespace-nowrap font-medium">
-              Speaker stopped · {utteranceEndT ? utteranceEndT.toFixed(1) : RACE_BENCHMARKS.utteranceEndS.toFixed(1)} s
+              Speaker stopped · {utteranceEndT ? utteranceEndT.toFixed(1) : '2.1'} s
             </span>
           </div>
 

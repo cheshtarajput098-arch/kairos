@@ -16,9 +16,9 @@ htmlcov/
 kairos.egg-info/
 
 # build outputs
-runs/
-index/
-models/
+/runs/
+/index/
+/models/
 *.gguf
 *.onnx
 web/node_modules/

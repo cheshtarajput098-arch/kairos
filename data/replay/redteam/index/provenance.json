@@ -1,0 +1,72 @@
+{
+  "doc_p01\u00a71": {
+    "doc_id": "doc_p01",
+    "section": "1",
+    "flagged": true,
+    "flag_score": 0.6,
+    "flag_reason": "matched:ignore\\s+(all\\s+)?(previous|pr"
+  },
+  "doc_p02\u00a71": {
+    "doc_id": "doc_p02",
+    "section": "1",
+    "flagged": false,
+    "flag_score": 0.0,
+    "flag_reason": "clean"
+  },
+  "doc_p03\u00a71": {
+    "doc_id": "doc_p03",
+    "section": "1",
+    "flagged": false,
+    "flag_score": 0.0,
+    "flag_reason": "clean"
+  },
+  "doc_p04\u00a71": {
+    "doc_id": "doc_p04",
+    "section": "1",
+    "flagged": false,
+    "flag_score": 0.0,
+    "flag_reason": "clean"
+  },
+  "doc_p05\u00a71": {
+    "doc_id": "doc_p05",
+    "section": "1",
+    "flagged": true,
+    "flag_score": 0.6,
+    "flag_reason": "matched:(disregard|forget)\\s+(all\\s+)?"
+  },
+  "doc_p06\u00a71": {
+    "doc_id": "doc_p06",
+    "section": "1",
+    "flagged": false,
+    "flag_score": 0.0,
+    "flag_reason": "clean"
+  },
+  "doc_p07\u00a71": {
+    "doc_id": "doc_p07",
+    "section": "1",
+    "flagged": true,
+    "flag_score": 0.6,
+    "flag_reason": "matched:you\\s+are\\s+now\\s+(an?\\s+)?(un"
+  },
+  "doc_p08\u00a71": {
+    "doc_id": "doc_p08",
+    "section": "1",
+    "flagged": false,
+    "flag_score": 0.0,
+    "flag_reason": "clean"
+  },
+  "doc_p09\u00a71": {
+    "doc_id": "doc_p09",
+    "section": "1",
+    "flagged": false,
+    "flag_score": 0.0,
+    "flag_reason": "clean"
+  },
+  "doc_p10\u00a71": {
+    "doc_id": "doc_p10",
+    "section": "1",
+    "flagged": false,
+    "flag_score": 0.0,
+    "flag_reason": "clean"
+  }
+}
